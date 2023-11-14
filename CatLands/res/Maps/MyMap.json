@@ -1,0 +1,40 @@
+{
+  "Version": 1,
+  "Tilesets": [
+    "res/Tilesets/ground tiles/Old tiles/Grass.png"
+  ],
+  "Tiles": [
+    {
+      "Id": 0,
+      "TilesetId": 0,
+      "Coord": {
+        "X": 0,
+        "Y": 0
+      }
+    },
+    {
+      "Id": 1,
+      "TilesetId": 0,
+      "Coord": {
+        "X": 1,
+        "Y": 0
+      }
+    },
+    {
+      "Id": 2,
+      "TilesetId": 0,
+      "Coord": {
+        "X": 0,
+        "Y": 1
+      }
+    },
+    {
+      "Id": 3,
+      "TilesetId": 0,
+      "Coord": {
+        "X": 1,
+        "Y": 1
+      }
+    }
+  ]
+}
