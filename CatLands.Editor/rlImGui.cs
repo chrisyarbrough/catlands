@@ -331,14 +331,9 @@ namespace rlImGui_cs
             ReloadFonts();
         }
 
-        public static Func<bool>? CancelMouseCapture;
-
         private static void SetMouseEvent(ImGuiIOPtr io, MouseButton rayMouse, ImGuiMouseButton imGuiMouse)
         {
-            if (CancelMouseCapture != null && CancelMouseCapture.Invoke())
-                return;
-
-            if (Raylib.IsMouseButtonPressed(rayMouse))
+	        if (Raylib.IsMouseButtonPressed(rayMouse))
                 io.AddMouseButtonEvent((int)imGuiMouse, true);
             else if (Raylib.IsMouseButtonReleased(rayMouse))
                 io.AddMouseButtonEvent((int)imGuiMouse, false);

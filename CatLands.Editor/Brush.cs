@@ -5,7 +5,7 @@ using System.Text;
 using ImGuiNET;
 using Raylib_cs;
 
-public class Brush
+public class Brush : GameObject
 {
 	private readonly Map map;
 	private readonly MapDisplay mapDisplay;
@@ -18,9 +18,12 @@ public class Brush
 		this.mapDisplay = mapDisplay;
 	}
 
-	public void Update(Map map, SceneView sceneView)
+	public override void Update()
 	{
-		Vector2 mouseWorldPosition = sceneView.GetMouseWorldPosition();
+		if (SceneView.Current == null)
+			return;
+
+		Vector2 mouseWorldPosition = SceneView.Current.GetMouseWorldPosition();
 		Coord gridPosition = Grid.WorldToCoord(mouseWorldPosition);
 		Coord snappedScreenPosition = Grid.CoordToWorld(gridPosition);
 		DrawOutline(snappedScreenPosition, Grid.TileRenderSize, 2);
@@ -44,8 +47,9 @@ public class Brush
 			rectSize + lineThickness * 2);
 		Raylib.DrawRectangleLinesEx(outline, lineThickness, Color.RED);
 	}
-
-	public void DrawToolsPanel()
+	int tileX = 0;
+	int tileY = 0;
+	public override void OnGui(bool isActive)
 	{
 		ImGui.Begin("Tools");
 
@@ -70,11 +74,30 @@ public class Brush
 			Vector2 tilesetSize = new Vector2(tileset.width, tileset.height) * 2f;
 			Vector2 tileSize = new Vector2(16, 16) * 2;
 
+
+
+			Vector2 pos = ImGui.GetCursorPos();
 			ImGui.Image(new IntPtr(tileset.id), tilesetSize);
 			{
-				int tileX = 0;
-				int tileY = 0;
 
+
+
+
+				tileX = TileId % 10;
+				tileY = TileId / 10;
+
+
+				// Draw a rectangle around the selected tile
+				ImGui.GetWindowDrawList().AddRect(
+					ImGui.GetItemRectMin() + new Vector2(tileX * tileSize.X, tileY * tileSize.Y),
+					ImGui.GetItemRectMin() + new Vector2((tileX + 1) * tileSize.X, (tileY + 1) * tileSize.Y),
+					ImGui.ColorConvertFloat4ToU32(new Vector4(1.0f, 0.0f, 0.0f, 1.0f)) // Red color for the rectangle
+				);
+			}
+			ImGui.SetCursorPos(pos);
+			ImGui.InvisibleButton(string.Empty, tilesetSize);
+			if (ImGui.IsItemHovered())
+			{
 				if (ImGui.GetMouseClickedCount(ImGuiMouseButton.Left) == 1)
 				{
 					// Get the mouse position relative to the image
@@ -92,17 +115,6 @@ public class Brush
 						TileId = tileY * ((int)tilesetSize.X / (int)tileSize.X) + tileX;
 					}
 				}
-
-				tileX = TileId % 10;
-				tileY = TileId / 10;
-
-
-				// Draw a rectangle around the selected tile
-				ImGui.GetWindowDrawList().AddRect(
-					ImGui.GetItemRectMin() + new Vector2(tileX * tileSize.X, tileY * tileSize.Y),
-					ImGui.GetItemRectMin() + new Vector2((tileX + 1) * tileSize.X, (tileY + 1) * tileSize.Y),
-					ImGui.ColorConvertFloat4ToU32(new Vector4(1.0f, 0.0f, 0.0f, 1.0f)) // Red color for the rectangle
-				);
 			}
 		}
 

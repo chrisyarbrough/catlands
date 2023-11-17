@@ -1,10 +1,24 @@
 namespace CatLands;
 
+using System.Text;
+
 public class Map
 {
 	public int Version = 1;
 	public string[] Tilesets = Array.Empty<string>();
 	public List<Tile> Tiles = new();
+
+	public Map()
+	{
+	}
+
+	public Map(Map map)
+	{
+		Version = map.Version;
+		Tilesets = new string[map.Tilesets.Length];
+		Tiles = new List<Tile>(map.Tiles);
+		Array.Copy(map.Tilesets, Tilesets, map.Tilesets.Length);
+	}
 
 	public void Set(Coord coord, int tileId, int tilesetId)
 	{
@@ -21,6 +35,17 @@ public class Map
 			});
 		}
 	}
+
+	public override string ToString()
+	{
+		var sb = new StringBuilder();
+		sb.Append("Version: ").AppendLine(Version.ToString());
+		foreach (var tileset in Tilesets)
+			sb.AppendLine(tileset);
+		foreach (var tile in Tiles)
+			sb.AppendLine(tile.ToString());
+		return sb.ToString();
+	}
 }
 
 public class Tile
@@ -32,47 +57,5 @@ public class Tile
 	public override string ToString()
 	{
 		return $"Tile {Id} ({Coord})";
-	}
-}
-
-public struct Coord
-{
-	public int X;
-	public int Y;
-
-	public Coord(int x, int y)
-	{
-		X = x;
-		Y = y;
-	}
-
-	public override string ToString()
-	{
-		return $"{X}|{Y}";
-	}
-
-	public bool Equals(Coord other)
-	{
-		return X == other.X && Y == other.Y;
-	}
-
-	public override bool Equals(object? obj)
-	{
-		return obj is Coord other && Equals(other);
-	}
-
-	public override int GetHashCode()
-	{
-		return HashCode.Combine(X, Y);
-	}
-
-	public static bool operator ==(Coord a, Coord b)
-	{
-		return a.Equals(b);
-	}
-
-	public static bool operator !=(Coord a, Coord b)
-	{
-		return !a.Equals(b);
 	}
 }

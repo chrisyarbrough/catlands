@@ -4,10 +4,11 @@ namespace CatLands;
 
 using Raylib_cs;
 
-public class MapDisplay
+public class MapDisplay : GameObject
 {
-	private readonly Map map;
 	public Texture2D[] textures;
+
+	private readonly Map map;
 
 	public MapDisplay(Map map)
 	{
@@ -21,7 +22,7 @@ public class MapDisplay
 			textures[i] = Raylib.LoadTexture(map.Tilesets[i]);
 	}
 
-	public void Render()
+	public override void Update()
 	{
 		const int sourceSize = Grid.TileSourceSize;
 		const float destSize = Grid.TileRenderSize;
