@@ -16,15 +16,7 @@ public class GameObject
 
 	private string? name;
 
-	public virtual void Update()
-	{
-	}
-
-	public virtual void OnGui(bool isActive)
-	{
-	}
-
-	private readonly List<GameObject> children = new List<GameObject>();
+	private readonly List<GameObject> children = new();
 
 	public GameObject()
 	{
@@ -33,6 +25,33 @@ public class GameObject
 	public GameObject(string name)
 	{
 		this.name = name;
+	}
+
+	public virtual void Setup()
+	{
+		foreach (GameObject child in children)
+			child.Setup();
+	}
+
+	public virtual void Shutdown()
+	{
+		foreach (GameObject child in children)
+			child.Shutdown();
+	}
+
+	public virtual void Update()
+	{
+		foreach (GameObject child in children)
+			child.Update();
+	}
+
+	/// <summary>
+	/// An editor callback invoked by each SceneView when it renders.
+	/// </summary>
+	public virtual void OnSceneGui()
+	{
+		foreach (GameObject child in children)
+			child.OnSceneGui();
 	}
 
 	public void AddChild(GameObject gameObject) => children.Add(gameObject);

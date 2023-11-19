@@ -4,6 +4,8 @@ using System.Text;
 
 public class Map
 {
+	public static Map? Current;
+	
 	public int Version = 1;
 	public string[] Tilesets = Array.Empty<string>();
 	public List<Tile> Tiles = new();
@@ -20,6 +22,15 @@ public class Map
 		Array.Copy(map.Tilesets, Tilesets, map.Tilesets.Length);
 	}
 
+	public int Get(Coord gridPosition)
+	{
+		Tile? tile = Tiles.FirstOrDefault(x => x.Coord == gridPosition);
+		if (tile != null)
+			return tile.Id;
+
+		return -1;
+	}
+
 	public void Set(Coord coord, int tileId, int tilesetId)
 	{
 		Tile? tile = Tiles.FirstOrDefault(tile => tile.Coord == coord);
@@ -34,6 +45,11 @@ public class Map
 				TilesetId = tilesetId
 			});
 		}
+	}
+
+	public void Remove(Coord gridPosition)
+	{
+		Tiles.RemoveAll(x => x.Coord == gridPosition);
 	}
 
 	public override string ToString()

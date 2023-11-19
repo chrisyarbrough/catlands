@@ -2,5 +2,5 @@ namespace CatLands.Editor;
 
 public class Selection
 {
-	public static GameObject Current;
+	public static GameObject? Current;
 }

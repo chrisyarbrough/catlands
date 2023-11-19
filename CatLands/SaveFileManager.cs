@@ -18,4 +18,17 @@ public static class SaveFileManager
 
 		throw new Exception("Failed to load from: " + filePath);
 	}
+
+	public static void Save(string filePath, Map map)
+	{
+		if (serializerLookup.TryGetValue(Path.GetExtension(filePath), out Func<ISerializer>? serializerFactory))
+		{
+			using FileStream stream = File.OpenWrite(filePath);
+			serializerFactory().Serialize(map, stream);
+		}
+		else
+		{
+			throw new Exception("Failed to save to: " + filePath);
+		}
+	}
 }

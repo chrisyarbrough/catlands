@@ -3,49 +3,171 @@ namespace CatLands.Editor;
 using ImGuiNET;
 using Raylib_cs;
 using System.Numerics;
+using rlImGui_cs;
 
 public class SceneView : Window
 {
+	public static SceneView? Current { get; private set; }
+
+	/// <summary>
+	/// Indicates that the mouse is in the interactable area of the viewport.
+	/// </summary>
+	public bool IsMouseOverWindow { get; private set; }
+
 	private Camera2D camera = new(Vector2.Zero, Vector2.Zero, rotation: 0f, zoom: 1f);
-	private uint renderTargetId;
 	private RenderTexture2D target;
+	private readonly RedrawIndicator redrawIndicator = new();
+	private bool pendingRedraw;
+	private bool loadingRenderTexture;
 
 	private Vector2 gameViewportPos;
 	private Vector2 gameViewportSize;
 
-	private Scene scene;
+	private const bool VisualizeMousePosition = true;
 
-	public SceneView(Scene scene) : base("Scene View")
+	public SceneView() : base("Scene View")
 	{
-		target = Raylib.LoadRenderTexture(Raylib.GetRenderWidth() / 2, Raylib.GetRenderHeight() / 2);
-		renderTargetId = target.texture.id;
-		this.scene = scene;
 	}
 
-	public override void Render()
+	public override void Shutdown()
 	{
-		if (!isOpen)
-			return;
+		base.Shutdown();
+		Raylib.UnloadRenderTexture(target);
+	}
 
-		DrawSceneViewWindow();
+	protected override ImGuiWindowFlags SetupWindow()
+	{
+		ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(0, 0));
+		ImGui.SetNextWindowSize(new Vector2(800, 600), ImGuiCond.FirstUseEver);
 
-		Raylib.BeginTextureMode(target);
-		Raylib.ClearBackground(Color.SKYBLUE);
-		Raylib.BeginMode2D(camera);
+		return ImGuiWindowFlags.NoScrollbar |
+		       ImGuiWindowFlags.NoScrollWithMouse |
+		       ImGuiWindowFlags.NoCollapse |
+		       ImGuiWindowFlags.MenuBar;
+	}
+
+	private static bool AnyInputGiven()
+	{
+		for (int key = 0; key <= (int)KeyboardKey.KEY_KB_MENU; key++)
+		{
+			if (Raylib.IsKeyPressed((KeyboardKey)key))
+				return true;
+		}
+
+		for (int mouseButton = 0; mouseButton <= (int)MouseButton.MOUSE_BUTTON_BACK; mouseButton++)
+		{
+			if (Raylib.IsMouseButtonPressed((MouseButton)mouseButton))
+				return true;
+		}
+
+		if (Raylib.GetMouseDelta().LengthSquared() > 0f)
+			return true;
+
+		return false;
+	}
+
+	protected override void DrawContent()
+	{
+		DrawMenuBar();
+
+		// Move the interactable area a tiny bit away from the edges of the viewport to avoid interfering with
+		// window resizing or tab dragging, etc.
+		const int inset = 4;
+		bool isMouseInHotRect = ImGui.IsMouseHoveringRect(
+			ImGui.GetCursorScreenPos() + new Vector2(inset, inset),
+			ImGui.GetCursorScreenPos() + ImGui.GetContentRegionAvail() - new Vector2(inset, inset));
+
+		if (isMouseInHotRect)
+			UpdateInput();
+
+		Vector2 viewportSize = ImGui.GetContentRegionAvail();
+		if (viewportSize != gameViewportSize)
+		{
+			gameViewportSize = viewportSize;
+			Raylib.UnloadRenderTexture(target);
+			// Fit to entire viewport. If we wanted to render a fitted fixed resolution, we could set it here.
+			target = Raylib.LoadRenderTexture((int)viewportSize.X, (int)viewportSize.Y);
+			loadingRenderTexture = true;
+		}
+
+		
+		if (AnyInputGiven() && ImGui.IsWindowHovered())
+			pendingRedraw = true;
+		
+		// BUG: Clicking the window returns true, but the pending redraw seems to happen 1 frame too late.
+		pendingRedraw = ImGui.IsWindowHovered();
+
+		if (loadingRenderTexture && Raylib.IsRenderTextureReady(target))
+		{
+			loadingRenderTexture = false;
+			pendingRedraw = true;
+		}
+
+		if (pendingRedraw)
+		{
+			pendingRedraw = false;
+			Raylib.BeginTextureMode(target);
+			Raylib.ClearBackground(Color.SKYBLUE);
+			Raylib.BeginMode2D(camera);
+
+			foreach (GameObject gameObject in Scene.Current.Children)
+				gameObject.OnSceneGui();
+
+			MainWindow.OnSceneGui();
+
+			DrawGrid();
+
+			if (isMouseInHotRect)
+				DrawMousePosition();
+
+			Raylib.EndMode2D();
+			Raylib.EndTextureMode();
+			redrawIndicator.AdvanceFrame();
+		}
+
+		if (ImGui.IsWindowHovered())
+		{
+			Current = this;
+		}
 
 
-		foreach (GameObject gameObject in scene.Children)
-			gameObject.Update();
+		gameViewportPos = ImGui.GetCursorScreenPos();
 
-		DrawGrid();
-		Vector2 mouseWorld = GetMouseWorldPosition();
-		Raylib.DrawCircle((int)mouseWorld.X, (int)mouseWorld.Y, 3, Color.RED);
+		rlImGui.ImageRenderTextureFit(target);
+		redrawIndicator.DrawFrame();
 
+		OnSceneGui(isMouseInHotRect);
 
-		Raylib.EndMode2D();
-		Raylib.EndTextureMode();
+		ImGui.PopStyleVar();
+	}
 
+	private void DrawMenuBar()
+	{
+		ImGui.BeginMenuBar();
+		if (ImGui.MenuItem("Recenter"))
+		{
+			RecenterToOrigin();
+		}
 
+		ImGui.EndMenuBar();
+	}
+
+	private void DrawMousePosition()
+	{
+		if (VisualizeMousePosition)
+		{
+			Vector2 mouseWorld = GetMouseWorldPosition();
+			Vector2 left = mouseWorld;
+			left.X -= 10;
+			Vector2 right = mouseWorld;
+			right.X += 10;
+			Vector2 top = mouseWorld;
+			top.Y -= 10;
+			Vector2 bottom = mouseWorld;
+			bottom.Y += 10;
+			Raylib.DrawLineV(left, right, Color.RED);
+			Raylib.DrawLineV(bottom, top, Color.RED);
+		}
 	}
 
 	private static void DrawGrid()
@@ -55,52 +177,8 @@ public class SceneView : Window
 		Raylib.DrawCircle(0, 0, 5, Color.RED);
 	}
 
-	private bool isFocused;
-	public static SceneView Current;
-	private bool isOpen = true;
-
-	private void DrawSceneViewWindow()
-	{
-		ImGui.SetNextWindowSize(new Vector2(800, 600), ImGuiCond.FirstUseEver);
-		if (ImGui.Begin(Name, ref isOpen, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
-		{
-			isFocused = ImGui.IsWindowFocused();
-			if (ImGui.IsWindowHovered())
-				Current = this;
-
-			UpdateInput();
-
-			Vector2 viewportSize = ImGui.GetContentRegionAvail();
-			if (viewportSize != gameViewportSize)
-			{
-				gameViewportSize = viewportSize;
-				Raylib.UnloadRenderTexture(target);
-				target = Raylib.LoadRenderTexture((int)viewportSize.X, (int)viewportSize.Y);
-				renderTargetId = target.texture.id;
-			}
-
-			gameViewportPos = ImGui.GetCursorScreenPos();
-
-			var texturePointer = new IntPtr(renderTargetId);
-
-			// Draw the scene as an image but overlay with an invisible button to capture the mouse in order to
-			// avoid dragging the window when interacting with the scene.
-			Vector2 pos = ImGui.GetCursorPos();
-			ImGui.Image(texturePointer, viewportSize, new Vector2(0, 1), new Vector2(1, 0));
-			ImGui.SetCursorPos(pos);
-			ImGui.InvisibleButton(string.Empty, viewportSize);
-
-			OnSceneGui(ImGui.IsItemHovered());
-		}
-
-		ImGui.End();
-	}
-
 	private void UpdateInput()
 	{
-		if (isFocused == false)
-			return;
-
 		if (Raylib.IsKeyPressed(KeyboardKey.KEY_C))
 		{
 			RecenterToOrigin();
@@ -110,22 +188,36 @@ public class SceneView : Window
 		    Raylib.IsMouseButtonDown(MouseButton.MOUSE_BUTTON_MIDDLE))
 		{
 			Vector2 delta = Raylib.GetMouseDelta();
-			delta *= -1.0f / camera.zoom;
-			camera.target += delta;
+			delta *= -1.0f / camera.Zoom;
+			camera.Target += delta;
+		}
+
+		if (MathF.Abs(Raylib.GetMouseWheelMove()) > 0)
+		{
+			Vector2 mouseWorldPos = GetMouseWorldPosition();
+
+			camera.Offset = GetMouseScreenPosition();
+
+			// Set the target to match, so that the camera maps the world space point 
+			// under the cursor to the screen space point under the cursor at any zoom
+			camera.Target = mouseWorldPos;
+
+			const float zoomSpeed = 0.125f;
+			float zoomFactor = (float)Math.Log(camera.Zoom + 1, 10) * zoomSpeed;
+			camera.Zoom = Math.Clamp(camera.Zoom + Raylib.GetMouseWheelMove() * zoomFactor, 0.1f, 10f);
 		}
 	}
 
 	private void RecenterToOrigin()
 	{
-		camera.target = Vector2.Zero;
-		camera.offset = new Vector2(gameViewportSize.X / 2f, gameViewportSize.Y / 2f);
-		camera.zoom = 1f;
+		camera.Target = Vector2.Zero;
+		camera.Offset = new Vector2(gameViewportSize.X / 2f, gameViewportSize.Y / 2f);
+		camera.Zoom = 1f;
 	}
 
 	private void OnSceneGui(bool isActive)
 	{
-		foreach (GameObject gameObject in scene.Children)
-			gameObject.OnGui(isActive);
+		this.IsMouseOverWindow = isActive;
 
 		if (isActive)
 		{
@@ -140,7 +232,7 @@ public class SceneView : Window
 	private Vector2 GetMouseScreenPosition()
 	{
 		Vector2 viewportNormalized = GetMouseViewportPositionNormalized();
-		Vector2 viewportScreen = viewportNormalized * new Vector2(target.texture.width, target.texture.height);
+		Vector2 viewportScreen = viewportNormalized * new Vector2(target.Texture.Width, target.Texture.Height);
 		return viewportScreen;
 	}
 

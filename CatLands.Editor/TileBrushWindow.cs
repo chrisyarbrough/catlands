@@ -5,59 +5,90 @@ using System.Text;
 using ImGuiNET;
 using Raylib_cs;
 
-public class Brush : GameObject
+public class MapEditCommand : Command
 {
 	private readonly Map map;
+	private readonly Coord gridPosition;
+	private readonly int tileId;
+
+	private int originalTileId = -1;
+
+	public MapEditCommand(Map map, Coord gridPosition, int tileId)
+	{
+		this.map = map;
+		this.gridPosition = gridPosition;
+		this.tileId = tileId;
+	}
+
+	public override void Do()
+	{
+		originalTileId = map.Get(gridPosition);
+		map.Set(gridPosition, tileId, tilesetId: 0);
+	}
+
+	public override void Undo()
+	{
+		if (originalTileId != -1)
+			map.Set(gridPosition, originalTileId, tilesetId: 0);
+		else
+			map.Remove(gridPosition);
+	}
+}
+
+public class TileBrushWindow : Window
+{
 	private readonly MapDisplay mapDisplay;
 	public int TileId;
 	private Coord? selectedCoord;
 
-	public Brush(Map map, MapDisplay mapDisplay)
+	public TileBrushWindow(MapDisplay mapDisplay) : base("Tile Brush")
 	{
-		this.map = map;
 		this.mapDisplay = mapDisplay;
 	}
 
-	public override void Update()
+	public override void OnSceneGui()
 	{
-		if (SceneView.Current == null)
-			return;
-
-		Vector2 mouseWorldPosition = SceneView.Current.GetMouseWorldPosition();
-		Coord gridPosition = Grid.WorldToCoord(mouseWorldPosition);
-		Coord snappedScreenPosition = Grid.CoordToWorld(gridPosition);
-		DrawOutline(snappedScreenPosition, Grid.TileRenderSize, 2);
-
-		if (Raylib.IsMouseButtonDown(MouseButton.MOUSE_BUTTON_LEFT))
+		if (SceneView.Current != null && SceneView.Current.IsMouseOverWindow)
 		{
-			if (selectedCoord != gridPosition)
+			Vector2 mouseWorldPosition = SceneView.Current.GetMouseWorldPosition();
+			Coord gridPosition = Grid.WorldToCoord(mouseWorldPosition);
+			Coord snappedScreenPosition = Grid.CoordToWorld(gridPosition);
+			DrawOutline(snappedScreenPosition, Grid.TileRenderSize, 2);
+
+			if (Raylib.IsMouseButtonDown(MouseButton.MOUSE_BUTTON_LEFT))
 			{
-				selectedCoord = gridPosition;
-				map.Set(gridPosition, tileId: TileId, tilesetId: 0);
+				if (selectedCoord != gridPosition)
+				{
+					selectedCoord = gridPosition;
+					CommandManager.Execute(new MapEditCommand(Map.Current, gridPosition, TileId));
+				}
 			}
 		}
 	}
 
-	private static void DrawOutline(Coord screenPosition, int rectSize, float lineThickness)
+	public static void DrawOutline(Coord position, int rectSize, float lineThickness)
 	{
 		var outline = new Rectangle(
-			screenPosition.X - lineThickness,
-			screenPosition.Y - lineThickness,
-			rectSize + lineThickness * 2,
-			rectSize + lineThickness * 2);
+			position.X,
+			position.Y,
+			rectSize,
+			rectSize);
 		Raylib.DrawRectangleLinesEx(outline, lineThickness, Color.RED);
 	}
+
+	
+
+
 	int tileX = 0;
 	int tileY = 0;
-	public override void OnGui(bool isActive)
-	{
-		ImGui.Begin("Tools");
 
+	protected override void DrawContent()
+	{
 		if (!ImGui.IsWindowCollapsed())
 		{
 			var sb = new StringBuilder();
-			int xTileCount = mapDisplay.textures[0].width / Grid.TileSourceSize;
-			int yTileCount = mapDisplay.textures[0].height / Grid.TileSourceSize;
+			int xTileCount = mapDisplay.Textures[0].Width / Grid.TileSourceSize;
+			int yTileCount = mapDisplay.Textures[0].Height / Grid.TileSourceSize;
 
 			for (int y = 0; y < yTileCount; y++)
 			{
@@ -70,22 +101,15 @@ public class Brush : GameObject
 
 			ImGui.Combo("Tile Id", ref TileId, sb.ToString());
 
-			Texture2D tileset = mapDisplay.textures[0];
-			Vector2 tilesetSize = new Vector2(tileset.width, tileset.height) * 2f;
+			Texture2D tileset = mapDisplay.Textures[0];
+			Vector2 tilesetSize = new Vector2(tileset.Width, tileset.Height) * 2f;
 			Vector2 tileSize = new Vector2(16, 16) * 2;
 
-
-
 			Vector2 pos = ImGui.GetCursorPos();
-			ImGui.Image(new IntPtr(tileset.id), tilesetSize);
+			ImGui.Image(new IntPtr(tileset.Id), tilesetSize);
 			{
-
-
-
-
 				tileX = TileId % 10;
 				tileY = TileId / 10;
-
 
 				// Draw a rectangle around the selected tile
 				ImGui.GetWindowDrawList().AddRect(
@@ -117,8 +141,5 @@ public class Brush : GameObject
 				}
 			}
 		}
-
-
-		ImGui.End();
 	}
 }

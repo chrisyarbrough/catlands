@@ -4,18 +4,13 @@ using ImGuiNET;
 
 public class HierarchyWindow : Window
 {
-	private readonly Scene scene;
-
-	public HierarchyWindow(Scene scene) : base("Hierarchy")
+	public HierarchyWindow() : base("Hierarchy")
 	{
-		this.scene = scene;
 	}
 
-	public override void Render()
+	protected override void DrawContent()
 	{
-		ImGui.Begin(Name, ImGuiWindowFlags.UnsavedDocument);
-		DrawTreeNode(scene);
-		ImGui.End();
+		DrawTreeNode(Scene.Current);
 	}
 
 	private static void DrawTreeNode(GameObject node)

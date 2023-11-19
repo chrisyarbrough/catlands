@@ -4,17 +4,12 @@ using ImGuiNET;
 
 public class Inspector : Window
 {
-	private bool isOpen = true;
-
 	public Inspector() : base("Inspector")
 	{
 	}
 
-	public override void Render()
+	protected override void DrawContent()
 	{
-		if (isOpen == false)
-			return;
-		ImGui.Begin(Name, ref isOpen);
 		if (Selection.Current != null)
 		{
 			ImGui.SetNextItemOpen(true, ImGuiCond.Once);
@@ -23,6 +18,5 @@ public class Inspector : Window
 				ImGui.LabelText(Selection.Current.Children.Count().ToString(), "Child Count");
 			}
 		}
-		ImGui.End();
 	}
 }

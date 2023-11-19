@@ -6,30 +6,24 @@ using Raylib_cs;
 
 public class MapDisplay : GameObject
 {
-	public Texture2D[] textures;
+	public readonly Texture2D[] Textures = new Texture2D[map.Tilesets.Length];
 
-	private readonly Map map;
-
-	public MapDisplay(Map map)
-	{
-		this.map = map;
-		textures = new Texture2D[map.Tilesets.Length];
-	}
+	private static Map map => Map.Current!;
 
 	public void LoadAssets()
 	{
-		for (int i = 0; i < textures.Length; i++)
-			textures[i] = Raylib.LoadTexture(map.Tilesets[i]);
+		for (int i = 0; i < Textures.Length; i++)
+			Textures[i] = Raylib.LoadTexture(map.Tilesets[i]);
 	}
 
-	public override void Update()
+	public override void OnSceneGui()
 	{
 		const int sourceSize = Grid.TileSourceSize;
 		const float destSize = Grid.TileRenderSize;
 
 		foreach (Tile tile in map.Tiles)
 		{
-			int xTileCount = textures[tile.TilesetId].width / sourceSize;
+			int xTileCount = Textures[tile.TilesetId].Width / sourceSize;
 
 			var sourceRect = new Rectangle(
 				x: tile.Id % xTileCount * sourceSize,
@@ -41,7 +35,7 @@ public class MapDisplay : GameObject
 				tile.Coord.X * destSize, tile.Coord.Y * destSize, destSize, destSize);
 
 			Raylib.DrawTexturePro(
-				textures[tile.TilesetId],
+				Textures[tile.TilesetId],
 				sourceRect,
 				destinationRect,
 				Vector2.Zero,
