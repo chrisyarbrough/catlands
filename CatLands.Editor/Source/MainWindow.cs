@@ -1,6 +1,7 @@
 namespace CatLands.Editor;
 
 using ImGuiNET;
+using System.Reflection;
 
 internal static class MainWindow
 {
@@ -59,13 +60,13 @@ internal static class MainWindow
 		if (ImGui.BeginMenu("File"))
 		{
 			if (ImGui.MenuItem("New"))
-				MapFileProvider.New();
+				SceneManager.NewMap();
 
 			if (ImGui.MenuItem("Open..."))
-				MapFileProvider.Open();
+				SceneManager.Open();
 
-			if (ImGui.MenuItem("Save"))
-				MapFileProvider.Save();
+			if (ImGui.MenuItem("Save", enabled: Map.Current != null))
+				SceneManager.Save(Map.Current!);
 
 			ImGui.EndMenu();
 		}
@@ -91,7 +92,8 @@ internal static class MainWindow
 			ImGui.MenuItem("ImGui Demo", string.Empty, ref showImGuiDemo);
 			if (ImGui.MenuItem("Reset Layout"))
 			{
-				ImGui.LoadIniSettingsFromDisk("layout-default.ini");
+				string iniPath = Path.Combine(AppContext.BaseDirectory, "../EditorAssets/layout-default.ini");
+				ImGui.LoadIniSettingsFromDisk(iniPath);
 			}
 
 			ImGui.EndMenu();

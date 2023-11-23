@@ -12,29 +12,4 @@
       <PackageReference Include="Raylib-cs" Version="5.0.0" />
     </ItemGroup>
 
-    <ItemGroup>
-      <None Update="res\Tilesets\ground tiles\Old tiles\Grass.png">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-      <None Update="res\Characters\Basic Charakter Spritesheet.png">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-      <None Update="res\Audio\Aeronauts OST Exploration.wav">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-      <None Update="res\Audio\Aeronauts OST Exploration.mp3">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-      <None Update="res\first.map">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-      <None Update="res\Maps\MyMap.json">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="res\Maps\" />
-    </ItemGroup>
-
 </Project>

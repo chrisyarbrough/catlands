@@ -2,23 +2,25 @@ namespace CatLands.Tests;
 
 public class SerializerTests
 {
-	private readonly Map sampleMap = new()
+	private readonly Map sampleMap = new(new Layer[]
 	{
-		Version = 42,
-		Tilesets = new[] { "MyTileset.png" },
-		Tiles = new List<Tile>
-		{
-			new Tile { Id = 0, Coord = new Coord(0, 0) },
-			new Tile { Id = 1, Coord = new Coord(1, 0) },
-			new Tile { Id = 2, Coord = new Coord(1, 0) },
-			new Tile { Id = 3, Coord = new Coord(1, 1) },
-		}
-	};
+		// new Layer("FakeTextureId_0"),
+		// new Layer("FakeTextureId_1"),
+		new Layer("FakeTextureId_2",
+			new[] { (new Coord(1, 2), 3) }),
+	});
+
+	[Fact]
+	public void Bla()
+	{
+		var stream = File.Create("File.json");
+		new JsonSerializer().Serialize(sampleMap, stream);
+	}
 
 	public static IEnumerable<object[]> Serializers()
 	{
 		yield return new object[] { new JsonSerializer() };
-		yield return new object[] { new BinarySerializer() };
+		// yield return new object[] { new BinarySerializer() };
 	}
 
 	[Theory]

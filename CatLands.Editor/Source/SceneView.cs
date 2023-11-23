@@ -29,10 +29,20 @@ public class SceneView : Window
 	{
 	}
 
+	public override void Setup()
+	{
+		Map.CurrentChanged += OnCurrentChanged;
+	}
+
 	public override void Shutdown()
 	{
-		base.Shutdown();
+		Map.CurrentChanged -= OnCurrentChanged;
 		Raylib.UnloadRenderTexture(target);
+	}
+
+	private void OnCurrentChanged()
+	{
+		pendingRedraw = true;
 	}
 
 	protected override ImGuiWindowFlags SetupWindow()
@@ -66,9 +76,17 @@ public class SceneView : Window
 		return false;
 	}
 
+	private int? lastRenderedVersion;
+
 	protected override void DrawContent()
 	{
 		DrawMenuBar();
+
+		if (Map.Current == null)
+		{
+			ImGuiUtil.TextCentered("No map loaded. Use the file menu to create to open or create one.");
+			return;
+		}
 
 		// Move the interactable area a tiny bit away from the edges of the viewport to avoid interfering with
 		// window resizing or tab dragging, etc.
@@ -90,12 +108,11 @@ public class SceneView : Window
 			loadingRenderTexture = true;
 		}
 
-		
+
 		if (AnyInputGiven() && ImGui.IsWindowHovered())
+		{
 			pendingRedraw = true;
-		
-		// BUG: Clicking the window returns true, but the pending redraw seems to happen 1 frame too late.
-		pendingRedraw = ImGui.IsWindowHovered();
+		}
 
 		if (loadingRenderTexture && Raylib.IsRenderTextureReady(target))
 		{
@@ -103,9 +120,10 @@ public class SceneView : Window
 			pendingRedraw = true;
 		}
 
-		if (pendingRedraw)
+		if (pendingRedraw || Map.Current.ChangeTracker.HasChanged(ref lastRenderedVersion))
 		{
 			pendingRedraw = false;
+
 			Raylib.BeginTextureMode(target);
 			Raylib.ClearBackground(Color.SKYBLUE);
 			Raylib.BeginMode2D(camera);
@@ -144,7 +162,7 @@ public class SceneView : Window
 	private void DrawMenuBar()
 	{
 		ImGui.BeginMenuBar();
-		if (ImGui.MenuItem("Recenter"))
+		if (ImGui.MenuItem("Recenter", enabled: Map.Current != null))
 		{
 			RecenterToOrigin();
 		}

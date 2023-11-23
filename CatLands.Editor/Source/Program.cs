@@ -7,14 +7,26 @@ using rlImGui_cs;
 
 internal static class Program
 {
-	public const string Version = "1.0";
+	public static string AssetsDirectory => Path.Combine(Directory.GetCurrentDirectory(), "Assets");
+	public static string EditorAssetsDirectory => Path.Combine(AppContext.BaseDirectory, "EditorAssets");
+
+	private const string Version = "1.0";
 
 	private static readonly Scene scene = new();
 
 	private static void Main(string[] args)
 	{
-		MapFileProvider.OpenOrGetFromCommandLine(args);
-		
+		if (args.Length == 0)
+		{
+			Console.WriteLine("Usage: <ProjectPath> (<MapFilePath>)");
+			return;
+		}
+		Directory.SetCurrentDirectory(args[0]);
+		Console.WriteLine("Working directory: " + Directory.GetCurrentDirectory());
+
+		Prefs.Load();
+		SceneManager.TryLoadInitialScene(args);
+
 		LogBuffer.Initialize();
 
 		Raylib.SetConfigFlags(ConfigFlags.FLAG_WINDOW_RESIZABLE | ConfigFlags.FLAG_VSYNC_HINT);
@@ -27,7 +39,6 @@ internal static class Program
 		ImGui.GetIO().ConfigWindowsMoveFromTitleBarOnly = true;
 
 		var mapDisplay = new MapDisplay();
-		mapDisplay.LoadAssets();
 
 		scene.AddChild(mapDisplay);
 		scene.Setup();
@@ -38,7 +49,7 @@ internal static class Program
 			new HierarchyWindow(),
 			new Inspector(),
 			new LogWindow(),
-			new TileBrushWindow(mapDisplay)
+			new TileBrushWindow()
 		});
 
 		while (!Raylib.WindowShouldClose())

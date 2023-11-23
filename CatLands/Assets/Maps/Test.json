@@ -1,0 +1,38 @@
+{
+  "FileVersion": 1,
+  "layers": [
+    {
+      "texturePath": "Assets/Tilesets/ground tiles/Old tiles/Grass.png",
+      "tiles": [
+        {
+          "Key": {
+            "X": 0,
+            "Y": 0
+          },
+          "Value": 0
+        },
+        {
+          "Key": {
+            "X": 1,
+            "Y": 0
+          },
+          "Value": 0
+        },
+        {
+          "Key": {
+            "X": 1,
+            "Y": 1
+          },
+          "Value": 0
+        },
+        {
+          "Key": {
+            "X": 2,
+            "Y": 2
+          },
+          "Value": 23
+        }
+      ]
+    }
+  ]
+}

@@ -6,36 +6,48 @@ using Raylib_cs;
 
 public class MapDisplay : GameObject
 {
-	public readonly Texture2D[] Textures = new Texture2D[map.Tilesets.Length];
+	private readonly MapTextures mapTextures = new();
 
-	private static Map map => Map.Current!;
-
-	public void LoadAssets()
-	{
-		for (int i = 0; i < Textures.Length; i++)
-			Textures[i] = Raylib.LoadTexture(map.Tilesets[i]);
-	}
+	private Map? map => Map.Current;
 
 	public override void OnSceneGui()
+	{
+		if (map == null)
+			return;
+
+		mapTextures.UpdateLoadState();
+
+		for (int i = 0; i < map.LayerCount; i++)
+		{
+			Layer layer = map.GetLayer(i);
+			Texture2D texture = mapTextures.Get(layer.TexturePath);
+			DrawLayer(layer, texture);
+		}
+	}
+
+	private void DrawLayer(Layer layer, Texture2D texture)
 	{
 		const int sourceSize = Grid.TileSourceSize;
 		const float destSize = Grid.TileRenderSize;
 
-		foreach (Tile tile in map.Tiles)
+		foreach ((Coord coord, int tileId) in layer.Tiles)
 		{
-			int xTileCount = Textures[tile.TilesetId].Width / sourceSize;
+			int xTileCount = texture.Width / sourceSize;
+
+			if (xTileCount == 0)
+				continue;
 
 			var sourceRect = new Rectangle(
-				x: tile.Id % xTileCount * sourceSize,
-				y: tile.Id / xTileCount * sourceSize,
+				x: tileId % xTileCount * sourceSize,
+				y: tileId / xTileCount * sourceSize,
 				sourceSize,
 				sourceSize);
 
 			var destinationRect = new Rectangle(
-				tile.Coord.X * destSize, tile.Coord.Y * destSize, destSize, destSize);
+				coord.X * destSize, coord.Y * destSize, destSize, destSize);
 
 			Raylib.DrawTexturePro(
-				Textures[tile.TilesetId],
+				texture,
 				sourceRect,
 				destinationRect,
 				Vector2.Zero,

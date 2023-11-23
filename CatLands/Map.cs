@@ -1,77 +1,67 @@
 namespace CatLands;
 
-using System.Text;
+using Newtonsoft.Json;
 
 public class Map
 {
-	public static Map? Current;
-	
-	public int Version = 1;
-	public string[] Tilesets = Array.Empty<string>();
-	public List<Tile> Tiles = new();
+	public static event Action? CurrentChanged;
+
+	public static Map? Current
+	{
+		get => current;
+		set
+		{
+			if (value != current)
+			{
+				current = value;
+				CurrentChanged?.Invoke();
+			}
+		}
+	}
+
+	private static Map? current;
+
+	// ReSharper disable once NotAccessedField.Global
+	// because it needs to be serialized in order to build backwards-compatibility later.
+	[SerializeMember]
+	public readonly int FileVersion = 1;
+
+	public readonly ChangeTracker ChangeTracker = new();
+	public IEnumerable<Layer> Layers => layers;
+
+	[SerializeMember]
+	private List<Layer> layers = new();
 
 	public Map()
 	{
 	}
 
-	public Map(Map map)
+	public Map(IEnumerable<Layer> layers)
 	{
-		Version = map.Version;
-		Tilesets = new string[map.Tilesets.Length];
-		Tiles = new List<Tile>(map.Tiles);
-		Array.Copy(map.Tilesets, Tilesets, map.Tilesets.Length);
+		this.layers.AddRange(layers);
 	}
 
-	public int Get(Coord gridPosition)
+	public Layer GetLayer(int index)
 	{
-		Tile? tile = Tiles.FirstOrDefault(x => x.Coord == gridPosition);
-		if (tile != null)
-			return tile.Id;
-
-		return -1;
+		Layer layer = layers[index];
+		layer.SetChangeTracker(ChangeTracker);
+		return layer;
 	}
 
-	public void Set(Coord coord, int tileId, int tilesetId)
+	public int AddLayer(Layer layer)
 	{
-		Tile? tile = Tiles.FirstOrDefault(tile => tile.Coord == coord);
-		if (tile != null)
-			tile.Id = tileId;
-		else
-		{
-			Tiles.Add(new Tile
-			{
-				Coord = coord,
-				Id = tileId,
-				TilesetId = tilesetId
-			});
-		}
+		int id = layers.Count;
+		layers.Add(layer);
+		layer.SetChangeTracker(ChangeTracker);
+		ChangeTracker.NotifyChange();
+		return id;
 	}
 
-	public void Remove(Coord gridPosition)
+	public void RemoveLayer(int index)
 	{
-		Tiles.RemoveAll(x => x.Coord == gridPosition);
+		layers.RemoveAt(index);
+		ChangeTracker.NotifyChange();
 	}
 
-	public override string ToString()
-	{
-		var sb = new StringBuilder();
-		sb.Append("Version: ").AppendLine(Version.ToString());
-		foreach (var tileset in Tilesets)
-			sb.AppendLine(tileset);
-		foreach (var tile in Tiles)
-			sb.AppendLine(tile.ToString());
-		return sb.ToString();
-	}
-}
-
-public class Tile
-{
-	public int Id;
-	public int TilesetId;
-	public Coord Coord;
-
-	public override string ToString()
-	{
-		return $"Tile {Id} ({Coord})";
-	}
+	public int LayerCount => layers.Count;
 }
