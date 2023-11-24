@@ -21,6 +21,7 @@ internal static class Program
 			Console.WriteLine("Usage: <ProjectPath> (<MapFilePath>)");
 			return;
 		}
+
 		Directory.SetCurrentDirectory(args[0]);
 		Console.WriteLine("Working directory: " + Directory.GetCurrentDirectory());
 

@@ -5,7 +5,6 @@
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <OutputPath>build</OutputPath>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     </PropertyGroup>
@@ -17,8 +16,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\CatLands.Shared\CatLands.Shared.csproj" />
-        <ProjectReference Include="..\CatLands\CatLands.csproj"/>
+      <ProjectReference Include="..\CatLands.Shared\CatLands.Shared.csproj" />
     </ItemGroup>
 
 </Project>

@@ -10,13 +10,20 @@ public static class SaveFileManager
 
 	public static Map? Load(string filePath)
 	{
-		if (serializerLookup.TryGetValue(Path.GetExtension(filePath), out Func<ISerializer>? serializerFactory))
+		try
 		{
-			using FileStream stream = File.OpenRead(filePath);
-			return serializerFactory().Deserialize(stream);
+			if (serializerLookup.TryGetValue(Path.GetExtension(filePath), out Func<ISerializer>? serializerFactory))
+			{
+				using FileStream stream = File.OpenRead(filePath);
+				return serializerFactory().Deserialize(stream);
+			}
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e);
 		}
 
-		throw new Exception("Failed to load from: " + filePath);
+		return null;
 	}
 
 	public static void Save(string filePath, Map map)

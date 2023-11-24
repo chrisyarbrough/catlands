@@ -3,7 +3,7 @@ namespace CatLands;
 using ImGuiNET;
 using System.Numerics;
 
-internal static class ImGuiUtil
+public static class ImGuiUtil
 {
 	public static void TextCentered(string text)
 	{

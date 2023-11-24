@@ -69,8 +69,8 @@ public static class SceneManager
 
 	private static void LoadMap(string value)
 	{
-		Prefs.Set("LastMapFilePath", value);
 		Map.Current = SaveFileManager.Load(value)!;
+		Prefs.Set("LastMapFilePath", value);
 		CommandManager.Clear();
 	}
 

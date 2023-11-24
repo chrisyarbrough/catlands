@@ -43,25 +43,37 @@ public class TileBrushWindow : Window
 		if (SceneView.Current != null && SceneView.Current.IsMouseOverWindow)
 		{
 			Vector2 mouseWorldPosition = SceneView.Current.GetMouseWorldPosition();
-			Coord gridPosition = Grid.WorldToCoord(mouseWorldPosition);
+			Coord gridCoord = Grid.WorldToCoord(mouseWorldPosition);
 
-			DrawOutline(gridPosition, Grid.TileRenderSize, 2);
+			DrawOutline(gridCoord, Grid.TileRenderSize, 2);
 
 			if (Raylib.IsMouseButtonDown(MouseButton.MOUSE_BUTTON_LEFT))
 			{
-				if (selectedCoord != gridPosition)
+				if (selectedCoord != gridCoord)
 				{
-					selectedCoord = gridPosition;
-					CommandManager.Execute(new MapEditCommand(Map.Current, layerIndex, gridPosition, tileId));
+					selectedCoord = gridCoord;
+					CommandManager.Execute(new MapEditCommand(Map.Current, layerIndex, gridCoord, tileId));
 				}
 			}
 		}
 	}
 
-	private static void DrawOutline(Coord gridPosition, int rectSize, float lineThickness)
+	private void DrawOutline(Coord gridCoord, int rectSize, float lineThickness)
 	{
-		Coord screenPos = Grid.CoordToWorld(gridPosition);
+		Coord screenPos = Grid.CoordToWorld(gridCoord);
 		var outline = new Rectangle(screenPos.X, screenPos.Y, rectSize, rectSize);
+
+		string textureId = Map.Current.GetLayer(layerIndex).TexturePath;
+		Texture2D tileset = mapTextures.Get(textureId);
+		const int sourceSize = Grid.TileSourceSize;
+		int xTileCount = tileset.Width / sourceSize;
+		var sourceRect = new Rectangle(
+			x: tileId % xTileCount * sourceSize,
+			y: tileId / xTileCount * sourceSize,
+			sourceSize,
+			sourceSize);
+		Raylib.DrawTexturePro(tileset, sourceRect, outline, Vector2.Zero, rotation: 0f, Color.WHITE);
+		
 		Raylib.DrawRectangleLinesEx(outline, lineThickness, Color.RED);
 	}
 
