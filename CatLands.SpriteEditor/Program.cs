@@ -5,10 +5,16 @@ using NativeFileDialogSharp;
 using Raylib_cs;
 using rlImGui_cs;
 
+Directory.SetCurrentDirectory(AppContext.BaseDirectory);
+
 string textureFilePath = string.Empty;
-Texture2D texture = default;
+SpriteAtlas? spriteAtlas = default;
 var camera = new Camera2D(Vector2.Zero, Vector2.Zero, 0f, 1f);
-Rectangle gizmoRect = new Rectangle(0, 0, 16, 16);
+float cameraMinZoom = 0.5f;
+float cameraMaxZoom = 20f;
+
+int tileSizeX = 16;
+int tileSizeY = 16;
 
 const string configFilePath = "LastFilePath.txt";
 
@@ -38,6 +44,8 @@ return;
 
 void Initialize()
 {
+	Image icon = Raylib.LoadImage("Icon.png");
+	Raylib.SetWindowIcon(icon);
 	Raylib.SetConfigFlags(ConfigFlags.FLAG_WINDOW_RESIZABLE | ConfigFlags.FLAG_VSYNC_HINT);
 	Raylib.InitWindow(width: 1280, height: 800, title: "CatLands SpriteEditor");
 	Raylib.SetTargetFPS(120);
@@ -49,13 +57,20 @@ void Initialize()
 
 	if (File.Exists(textureFilePath))
 	{
-		texture = Raylib.LoadTexture(textureFilePath);
+		spriteAtlas = SpriteAtlas.Load(textureFilePath);
 	}
 
-	RecenterCamera();
+	ResetCamera();
 }
 
 void Update()
+{
+	if (Raylib.IsKeyDown(KeyboardKey.KEY_SPACE) == false)
+		DrawMenu();
+	DrawScene();
+}
+
+void DrawMenu()
 {
 	ImGui.BeginMainMenuBar();
 	if (ImGui.BeginMenu("File"))
@@ -67,31 +82,84 @@ void Update()
 			{
 				textureFilePath = result.Path;
 				File.WriteAllText(configFilePath, textureFilePath);
-				texture = Raylib.LoadTexture(textureFilePath);
+				spriteAtlas = SpriteAtlas.Load(textureFilePath);
+				ResetCamera();
 			}
 		}
 
-		if (ImGui.MenuItem("Save"))
+		if (ImGui.MenuItem("Save", enabled: spriteAtlas != null))
 		{
+			spriteAtlas!.Save();
 		}
 
 		ImGui.EndMenu();
 	}
 
-	if (ImGui.MenuItem("Recenter"))
-		RecenterCamera();
+	if (ImGui.MenuItem("Slice", enabled: spriteAtlas != null))
+	{
+		ImGui.OpenPopup("SlicePopup");
+	}
+
+	if (ImGui.BeginPopup("SlicePopup"))
+	{
+		ImGui.LabelText("Tile Size", string.Empty);
+		ImGui.BeginGroup();
+		ImGui.Indent();
+		ImGui.InputInt("X", ref tileSizeX);
+		ImGui.InputInt("Y", ref tileSizeY);
+		ImGui.Unindent();
+		ImGui.EndGroup();
+		if (ImGui.Button("Slice"))
+		{
+			spriteAtlas!.Slice(tileSizeX, tileSizeY);
+		}
+
+		ImGui.EndPopup();
+	}
+
+	if (ImGui.MenuItem("Reset Camera"))
+		ResetCamera();
 
 	ImGui.EndMainMenuBar();
+}
 
+void DrawScene()
+{
+	Raylib.SetMouseCursor(MouseCursor.MOUSE_CURSOR_DEFAULT);
 	Raylib.BeginMode2D(camera);
 	UpdateCamera();
 	Vector2 mousePos = Raylib.GetMousePosition();
 
-	if (texture.Id != 0)
+	if (spriteAtlas != null)
 	{
-		Raylib.DrawTexture(texture, 0, 0, Color.WHITE);
-		gizmoRect = RectangleGizmo.Draw(gizmoRect, mousePos, camera);
-		ImGui.LabelText("Rect", $"{gizmoRect.X} {gizmoRect.Y} {gizmoRect.Width} {gizmoRect.Height}");
+		Raylib.DrawTexture(spriteAtlas.Texture, 0, 0, Color.WHITE);
+
+		ImGui.LabelText(string.Empty, "Gizmo Settings");
+		ImGui.Indent();
+		ImGui.Checkbox("Snap to pixel", ref RectangleGizmo.SnapToPixel);
+		ImGui.Unindent();
+
+		ImGui.LabelText(string.Empty, "Camera Zoom");
+		ImGui.Indent();
+		bool changed1 = ImGui.DragFloat("Min", ref cameraMinZoom, 0.05f, 0.01f, 1f);
+		bool changed2 = ImGui.DragFloat("Max", ref cameraMaxZoom, 0.05f, 1f, 100f);
+		if (changed1 || changed2)
+			UpdateCameraZoom();
+		ImGui.Unindent();
+
+		for (int i = 0; i < spriteAtlas.SpriteRects.Count; i++)
+		{
+			spriteAtlas.SpriteRects[i] = RectangleGizmo.Draw(spriteAtlas.SpriteRects[i], i, mousePos, camera);
+		}
+
+		// ImGui.LabelText("Rect", $"{gizmoRect.X} {gizmoRect.Y} {gizmoRect.Width} {gizmoRect.Height}");
+
+		if ((Raylib.IsKeyPressed(KeyboardKey.KEY_DELETE) || Raylib.IsKeyPressed(KeyboardKey.KEY_BACKSPACE)) &&
+		    RectangleGizmo.SelectedControlId != -1)
+		{
+			spriteAtlas.SpriteRects.RemoveAt(RectangleGizmo.SelectedControlId);
+			RectangleGizmo.SelectedControlId = -1;
+		}
 	}
 
 	Raylib.EndMode2D();
@@ -115,34 +183,48 @@ void UpdateCamera()
 		camera.Offset = Raylib.GetMousePosition();
 		camera.Target = mouseWorldPos;
 
-		const float zoomSpeed = 0.125f;
-		float zoomFactor = (float)Math.Log(camera.Zoom + 1, 10) * zoomSpeed;
-		camera.Zoom = Math.Clamp(camera.Zoom + Raylib.GetMouseWheelMove() * zoomFactor, 0.1f, 20f);
+		UpdateCameraZoom();
 	}
 
 	if (Raylib.IsKeyPressed(KeyboardKey.KEY_C))
 	{
-		RecenterCamera();
+		ResetCamera();
 	}
 }
 
-void RecenterCamera()
+void ResetCamera()
 {
-	camera.Target = Vector2.Zero;
-	var offset = new Vector2(Raylib.GetRenderWidth() / 2f, Raylib.GetRenderHeight() / 2f);
-
-	if (texture.Width != 0 && texture.Height != 0)
+	if (spriteAtlas != null && spriteAtlas.Width != 0 && spriteAtlas.Height != 0)
 	{
-		offset.X -= texture.Width / 2f;
-		offset.Y -= texture.Height / 2f;
-	}
+		// When zooming the camera to fit the texture into the viewport, account for the menubar and some extra space.
+		const int menuBarHeight = 19;
+		const int sizeOffset = menuBarHeight + 41;
 
-	camera.Offset = offset;
-	camera.Zoom = 1f;
+		float zoomWidth = Raylib.GetRenderWidth() / (float)spriteAtlas.Width;
+		float zoomHeight = (Raylib.GetRenderHeight() - sizeOffset) / (float)spriteAtlas.Height;
+		camera.Zoom = MathF.Min(zoomWidth, zoomHeight);
+		camera.Target = new Vector2(spriteAtlas.Width / 2f, spriteAtlas.Height / 2f);
+		camera.Offset = new Vector2(
+			(Raylib.GetRenderWidth() / 2f),
+			(Raylib.GetRenderHeight() - sizeOffset) / 2f + sizeOffset / 2f);
+	}
+	else
+	{
+		camera.Zoom = 1f;
+		camera.Target = Vector2.Zero;
+		camera.Offset = Vector2.Zero;
+	}
 }
 
 void Shutdown()
 {
 	rlImGui.Shutdown();
 	Raylib.CloseWindow();
+}
+
+void UpdateCameraZoom()
+{
+	const float zoomSpeed = 0.125f;
+	float zoomFactor = (float)Math.Log(camera.Zoom + 1, 10) * zoomSpeed;
+	camera.Zoom = Math.Clamp(camera.Zoom + Raylib.GetMouseWheelMove() * zoomFactor, cameraMinZoom, cameraMaxZoom);
 }

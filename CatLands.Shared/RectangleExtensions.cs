@@ -32,4 +32,14 @@ public static class RectangleExtensions
 		       point.Y >= rect.Y &&
 		       point.Y <= rect.Y + rect.Height;
 	}
+
+	public static Vector2 Position(this Rectangle rect)
+	{
+		return new Vector2(rect.X, rect.Y);
+	}
+
+	public static Vector2 Center(this Rectangle rect)
+	{
+		return new Vector2(rect.X + rect.Width / 2f, rect.Y + rect.Height / 2f);
+	}
 }

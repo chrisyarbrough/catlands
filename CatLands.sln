@@ -6,6 +6,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatLands.Tests", "CatLands.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatLands.Editor", "CatLands.Editor\CatLands.Editor.csproj", "{4DB6D7A3-F2CF-422B-8D50-E91346F70A1A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatLands.SpriteEditor", "CatLands.SpriteEditor\CatLands.SpriteEditor.csproj", "{4E93FA47-E86F-42EF-B2DB-94A5A92022F0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatLands.Shared", "CatLands.Shared\CatLands.Shared.csproj", "{141AD9F9-CEB7-4C64-85B6-A97162CC536B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +28,13 @@ Global
 		{4DB6D7A3-F2CF-422B-8D50-E91346F70A1A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4DB6D7A3-F2CF-422B-8D50-E91346F70A1A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4DB6D7A3-F2CF-422B-8D50-E91346F70A1A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E93FA47-E86F-42EF-B2DB-94A5A92022F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E93FA47-E86F-42EF-B2DB-94A5A92022F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E93FA47-E86F-42EF-B2DB-94A5A92022F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E93FA47-E86F-42EF-B2DB-94A5A92022F0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{141AD9F9-CEB7-4C64-85B6-A97162CC536B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{141AD9F9-CEB7-4C64-85B6-A97162CC536B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{141AD9F9-CEB7-4C64-85B6-A97162CC536B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{141AD9F9-CEB7-4C64-85B6-A97162CC536B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

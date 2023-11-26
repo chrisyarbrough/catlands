@@ -1,19 +1,26 @@
 namespace CatLands.SpriteEditor;
 
+using System.Globalization;
 using System.Numerics;
 using ImGuiNET;
 using Raylib_cs;
 
 public class RectangleGizmo
 {
-	private static bool snapToPixel = true;
+	public static bool SnapToPixel = true;
 
+	// Which gizmo is currently receiving the mouse input focus.
+	private static int activeControlId = -1;
+
+	public static int SelectedControlId = -1;
+
+	// The handle within this gizmo.
 	private static int hotControl = -1;
 	private static int hoveredControl = -1;
 	private static Vector2 accumulatedMouseDelta;
 
-	private static readonly Rectangle[] handleRects = new Rectangle[8];
-	private static readonly Vector2[] dimensions = new Vector2[8];
+	private static readonly Rectangle[] handleRects = new Rectangle[9];
+	private static readonly Vector2[] dimensions = new Vector2[9];
 
 	// To calculate where the handles are positioned relative to the main gizmo center.
 	private static readonly Vector2[] offsets =
@@ -25,31 +32,56 @@ public class RectangleGizmo
 		new(1, 0), // TopRight
 		new(1, 1), // BottomRight
 		new(0, 1), // BottomLeft
-		new(0, 0) // TopLeft
+		new(0, 0), // TopLeft
+		new(0.5f, 0.5f) // Center
 	};
 
-	private const float LineWidthWorld = 2f;
-
-	public static Rectangle Draw(Rectangle gizmoRect, Vector2 mousePos, Camera2D camera)
+	private static readonly MouseCursor[] cursors =
 	{
-		ImGui.Checkbox("Snap to pixel", ref snapToPixel);
+		MouseCursor.MOUSE_CURSOR_RESIZE_NS,
+		MouseCursor.MOUSE_CURSOR_RESIZE_EW,
+		MouseCursor.MOUSE_CURSOR_RESIZE_NS,
+		MouseCursor.MOUSE_CURSOR_RESIZE_EW,
+		MouseCursor.MOUSE_CURSOR_RESIZE_NESW,
+		MouseCursor.MOUSE_CURSOR_RESIZE_NWSE,
+		MouseCursor.MOUSE_CURSOR_RESIZE_NESW,
+		MouseCursor.MOUSE_CURSOR_RESIZE_NWSE,
+		MouseCursor.MOUSE_CURSOR_RESIZE_ALL
+	};
 
+	private const float lineWidthWorld = 2f;
+
+	public static Rectangle Draw(Rectangle gizmoRect, int controlId, Vector2 mousePos, Camera2D camera)
+	{
 		// To keep the same screen size.
 		float scaleFactor = 1.0f / camera.Zoom;
-		float lineWidth = LineWidthWorld * scaleFactor;
+		float lineWidth = lineWidthWorld * scaleFactor;
 
-		// Rectangle nonFlipped = new Rectangle(gizmoRect.xMin(), gizmoRect.yMin(), MathF.Abs(gizmoRect.Width),
-		// 	MathF.Abs(gizmoRect.Height));
-		Raylib.DrawRectangleLinesEx(gizmoRect, lineWidth, Color.WHITE);
+		// If the rectangle is too tiny on screen, there's no use trying to draw or select it.
+		float screenSize = MathF.Max(gizmoRect.Width * camera.Zoom, gizmoRect.Height * camera.Zoom);
+		if (screenSize < 8)
+			return gizmoRect;
+
+		Color color = controlId == activeControlId ? Color.ORANGE : controlId == SelectedControlId ? Color.ORANGE : Color.WHITE;
+		Raylib.DrawRectangleLinesEx(gizmoRect, lineWidth, color);
+
+		if (screenSize < 14)
+			return gizmoRect;
+
+		// Disable input if hovering over a window.
+		if (ImGui.GetIO().WantCaptureMouse)
+			return gizmoRect;
 
 		UpdateHandleRects(gizmoRect, scaleFactor);
 
 		hoveredControl = GetHoveredControl(mousePos, camera);
 
-		if (hoveredControl != -1 && Raylib.IsMouseButtonPressed(MouseButton.MOUSE_BUTTON_LEFT))
+		if (hoveredControl != -1 && Raylib.IsMouseButtonPressed(MouseButton.MOUSE_BUTTON_LEFT) && activeControlId == -1)
 		{
 			hotControl = hoveredControl;
 			accumulatedMouseDelta = Vector2.Zero;
+			activeControlId = controlId;
+			SelectedControlId = controlId;
 
 			// When switching from free to snapped mode, align with the pixel grid.
 			gizmoRect = ApplySnapping(gizmoRect);
@@ -57,21 +89,52 @@ public class RectangleGizmo
 
 		if (hotControl != -1)
 		{
-			if (Raylib.IsMouseButtonDown(MouseButton.MOUSE_BUTTON_LEFT))
+			if (Raylib.IsMouseButtonDown(MouseButton.MOUSE_BUTTON_LEFT) && activeControlId == controlId)
+			{
 				gizmoRect = DoMouseDrag(gizmoRect, camera);
+				DrawSizeLabels(gizmoRect, scaleFactor);
+			}
+
+			Raylib.SetMouseCursor(cursors[hotControl]);
 
 			if (Raylib.IsMouseButtonReleased(MouseButton.MOUSE_BUTTON_LEFT))
 			{
 				hotControl = -1;
+				activeControlId = -1;
 			}
 		}
-
-		for (int i = 0; i < handleRects.Length; i++)
+		else if (hoveredControl != -1)
 		{
-			Raylib.DrawRectangleRec(handleRects[i], GetHandleColor(i));
+			Raylib.DrawRectangleRec(handleRects[hoveredControl], GetHandleColor(hoveredControl));
+			Raylib.SetMouseCursor(cursors[hoveredControl]);
+		}
+
+		for (int i = 4; i < handleRects.Length; i++)
+		{
+			Raylib.DrawRing(handleRects[i].Center(), 3f * scaleFactor, 6f * scaleFactor, 0f, 360f, 16, Color.BLUE);
 		}
 
 		return gizmoRect;
+	}
+
+	private static void DrawSizeLabels(Rectangle gizmoRect, float scaleFactor)
+	{
+		int fontSize = (int)(28 * scaleFactor);
+		string formatString = SnapToPixel ? "0" : "0.00";
+		Vector2 shadowOffset = new Vector2(1, 1) * scaleFactor;
+
+		Vector2 pos = handleRects[0].Center();
+		string text = gizmoRect.Width.ToString(formatString, CultureInfo.InvariantCulture);
+		Vector2 textSize = LabelUtility.Measure(text, fontSize);
+		pos.X -= textSize.X / 2;
+		pos.Y -= textSize.Y + 4 * scaleFactor;
+		LabelUtility.Draw(text, pos, shadowOffset, fontSize);
+
+		pos = handleRects[1].Center();
+		pos.X += 8 * scaleFactor;
+		pos.Y -= textSize.Y / 2;
+		text = gizmoRect.Height.ToString(formatString, CultureInfo.InvariantCulture);
+		LabelUtility.Draw(text, pos, shadowOffset, fontSize);
 	}
 
 	private static Rectangle DoMouseDrag(Rectangle gizmoRect, Camera2D camera)
@@ -83,7 +146,7 @@ public class RectangleGizmo
 		float snappedX = ApplySnapping(accumulatedMouseDelta.X);
 		float snappedY = ApplySnapping(accumulatedMouseDelta.Y);
 
-		if (MathF.Abs(snappedX) >= 1 || MathF.Abs(snappedY) >= 1 || !snapToPixel)
+		if (MathF.Abs(snappedX) >= 1 || MathF.Abs(snappedY) >= 1 || !SnapToPixel)
 		{
 			switch (hotControl)
 			{
@@ -121,10 +184,14 @@ public class RectangleGizmo
 					gizmoRect.X += snappedX;
 					gizmoRect.Width -= snappedX;
 					break;
+				case 8: // Center
+					gizmoRect.X += snappedX;
+					gizmoRect.Y += snappedY;
+					break;
 			}
 
 			// Carry over the fractional part that exceeds the snap threshold.
-			if (snapToPixel)
+			if (SnapToPixel)
 			{
 				accumulatedMouseDelta.X -= MathF.Sign(snappedX) * MathF.Floor(MathF.Abs(snappedX));
 				accumulatedMouseDelta.Y -= MathF.Sign(snappedY) * MathF.Floor(MathF.Abs(snappedY));
@@ -140,22 +207,26 @@ public class RectangleGizmo
 
 	private static void UpdateHandleRects(Rectangle gizmoRect, float scaleFactor)
 	{
-		float shortSize = 15 * scaleFactor;
-		float longSize = 25 * scaleFactor;
+		float grabAreaSize = 15 * scaleFactor;
 
 		// Top, Bottom
 		for (int i = 0; i < 4; i += 2)
-			dimensions[i] = new Vector2(longSize, shortSize);
+			dimensions[i] = new Vector2(gizmoRect.Width - grabAreaSize, grabAreaSize);
 
 		// Right, Left
 		for (int i = 1; i < 4; i += 2)
-			dimensions[i] = new Vector2(shortSize, longSize);
+			dimensions[i] = new Vector2(grabAreaSize, gizmoRect.Height - grabAreaSize);
 
 		// Corners
 		for (int i = 4; i < 8; i++)
-			dimensions[i] = new Vector2(shortSize, shortSize);
+			dimensions[i] = new Vector2(grabAreaSize, grabAreaSize);
 
-		float halfLineWidth = LineWidthWorld / 2f * scaleFactor;
+		// Center
+		dimensions[8] = new Vector2(grabAreaSize * 2f, grabAreaSize * 2f);
+
+		// When drawing circles, we want them centered on the actual vector position corner,
+		// but when drawing a rectangle, we would want it to be offset so that it appears centered visually.
+		const float halfLineWidth = 0f; //lineWidthWorld / 2f * scaleFactor;
 
 		for (int i = 0; i < handleRects.Length; i++)
 		{
@@ -186,12 +257,14 @@ public class RectangleGizmo
 
 	private static Color GetHandleColor(int controlId)
 	{
-		return hotControl == controlId ? Color.YELLOW : hoveredControl == controlId ? Color.SKYBLUE : Color.BLUE;
+		Color color = hotControl == controlId ? Color.YELLOW : hoveredControl == controlId ? Color.SKYBLUE : Color.BLUE;
+		color.A = 128;
+		return color;
 	}
 
 	private static float ApplySnapping(float value)
 	{
-		if (snapToPixel)
+		if (SnapToPixel)
 			return (float)Math.Round(value);
 
 		return value;
