@@ -5,13 +5,18 @@ using System.Text;
 using ImGuiNET;
 using NativeFileDialogSharp;
 using Raylib_cs;
+using SpriteEditor;
 
 public class TileBrushWindow : Window
 {
-	private readonly MapTextures mapTextures = new();
+	// private readonly MapTextures mapTextures = new();
+
 	private int layerIndex = -1;
 	private int tileId = -1;
 	private Coord? selectedCoord;
+	private bool keepOriginalLayout = true;
+	private bool wasMouseOverSceneViewLastFrame;
+
 
 	public TileBrushWindow() : base("Tile Brush")
 	{
@@ -35,46 +40,68 @@ public class TileBrushWindow : Window
 		tileId = -1;
 	}
 
+	public override void Update()
+	{
+		if (SceneView.Current == null)
+			return;
+
+		bool mouseOverWindow = SceneView.Current.IsMouseOverWindow;
+
+		if (Raylib.GetMouseDelta().LengthSquared() > 0f && mouseOverWindow)
+		{
+			SceneView.RepaintAll();
+		}
+
+		if (mouseOverWindow == false && wasMouseOverSceneViewLastFrame)
+		{
+			// When leaving the window, remove the preview brush.
+			MapDisplay.RemovePreview();
+			SceneView.RepaintAll();
+		}
+
+		wasMouseOverSceneViewLastFrame = mouseOverWindow;
+
+		if (mouseOverWindow && Raylib.IsMouseButtonDown(MouseButton.MOUSE_BUTTON_LEFT))
+		{
+			Vector2 mouseWorldPosition = SceneView.Current.GetMouseWorldPosition();
+			Coord gridCoord = Grid.WorldToCoord(mouseWorldPosition);
+
+			if (selectedCoord != gridCoord)
+			{
+				selectedCoord = gridCoord;
+				CommandManager.Execute(new MapEditCommand(Map.Current, layerIndex, gridCoord, tileId));
+				SceneView.RepaintAll();
+			}
+		}
+	}
+
 	public override void OnSceneGui()
 	{
 		if (Map.Current == null || layerIndex == -1 || tileId == -1)
 			return;
+
+		layerIndex = Math.Clamp(layerIndex, 0, Map.Current.LayerCount - 1);
 
 		if (SceneView.Current != null && SceneView.Current.IsMouseOverWindow)
 		{
 			Vector2 mouseWorldPosition = SceneView.Current.GetMouseWorldPosition();
 			Coord gridCoord = Grid.WorldToCoord(mouseWorldPosition);
 
-			DrawOutline(gridCoord, Grid.TileRenderSize, 2);
+			float scaleFactor = 1.0f / SceneView.Current.camera.Zoom;
+			float lineWidth = 2 * scaleFactor;
 
-			if (Raylib.IsMouseButtonDown(MouseButton.MOUSE_BUTTON_LEFT))
-			{
-				if (selectedCoord != gridCoord)
-				{
-					selectedCoord = gridCoord;
-					CommandManager.Execute(new MapEditCommand(Map.Current, layerIndex, gridCoord, tileId));
-				}
-			}
+			DrawBrushIndicator(gridCoord, Grid.TileRenderSize, lineWidth);
 		}
 	}
 
-	private void DrawOutline(Coord gridCoord, int rectSize, float lineThickness)
+	private void DrawBrushIndicator(Coord gridCoord, int rectSize, float lineThickness)
 	{
-		Coord screenPos = Grid.CoordToWorld(gridCoord);
-		var outline = new Rectangle(screenPos.X, screenPos.Y, rectSize, rectSize);
+		MapDisplay.AddPreview(new TileRenderInfo(layerIndex, gridCoord, tileId));
 
-		string textureId = Map.Current.GetLayer(layerIndex).TexturePath;
-		Texture2D tileset = mapTextures.Get(textureId);
-		const int sourceSize = Grid.TileSourceSize;
-		int xTileCount = tileset.Width / sourceSize;
-		var sourceRect = new Rectangle(
-			x: tileId % xTileCount * sourceSize,
-			y: tileId / xTileCount * sourceSize,
-			sourceSize,
-			sourceSize);
-		Raylib.DrawTexturePro(tileset, sourceRect, outline, Vector2.Zero, rotation: 0f, Color.WHITE);
-		
-		Raylib.DrawRectangleLinesEx(outline, lineThickness, Color.RED);
+		// Outline
+		Coord screenPos = Grid.CoordToWorld(gridCoord);
+		var rect = new Rectangle(screenPos.X, screenPos.Y, rectSize, rectSize);
+		Raylib.DrawRectangleLinesEx(rect, lineThickness, Color.RED);
 	}
 
 	protected override void DrawContent()
@@ -84,74 +111,96 @@ public class TileBrushWindow : Window
 
 		DrawLayerDropdown();
 
-		mapTextures.UpdateLoadState();
+		MapTextures.UpdateLoadState();
 
-		if (mapTextures.TextureCount <= layerIndex || layerIndex == -1)
+		if (MapTextures.TextureCount <= layerIndex || layerIndex == -1)
 			return;
 
 		string textureId = Map.Current.GetLayer(layerIndex).TexturePath;
-		Texture2D tileset = mapTextures.Get(textureId);
+		Texture2D tileset = MapTextures.GetTexture(textureId);
+		var tileSetPointer = new IntPtr(tileset.Id);
+		SpriteAtlas atlas = MapTextures.GetAtlas(textureId);
 
-		DrawTileDropdown(tileset);
+		DrawTileDropdown(atlas);
+
+		ImGui.Checkbox("Keep original layout", ref keepOriginalLayout);
 
 		ImGui.NewLine();
 		ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(1, 1));
 		ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(0, 0));
 
-		int xTileCount = tileset.Width / Grid.TileSourceSize;
-		int yTileCount = tileset.Height / Grid.TileSourceSize;
-		for (int y = 0; y < yTileCount; y++)
+
+		float rightEdge = ImGui.GetWindowPos().X + ImGui.GetContentRegionMax().X;
+		Vector2 selectedRectMin = default;
+		Vector2 selectedRectMax = default;
+
+		Vector2 offset = ImGui.GetCursorPos();
+		const int upscale = 2;
+
+		for (int i = 0; i < atlas.SpriteRects.Count; i++)
 		{
-			for (int x = 0; x < xTileCount; x++)
+			Rectangle rect = atlas.SpriteRects[i];
+
+			if (keepOriginalLayout)
+				ImGui.SetCursorPos(offset + new Vector2(rect.X, rect.Y) * upscale);
+
+			ImGui.Image(
+				tileSetPointer,
+				new Vector2(rect.Width, rect.Height) * upscale,
+				new Vector2(rect.X / tileset.Width, rect.Y / tileset.Height),
+				new Vector2(rect.xMax() / tileset.Width, rect.yMax() / tileset.Height));
+
+			// Drawing an image and then checking for the click is much faster than using the ImageButton.
+			if (ImGui.IsItemClicked())
 			{
-				ImGui.SameLine();
-
-				int tileIndex = x + y * xTileCount;
-				float w = Grid.TileSourceSize / (float)tileset.Width;
-				float h = Grid.TileSourceSize / (float)tileset.Height;
-
-				if (ImGui.ImageButton(
-					    tileIndex.ToString(),
-					    new IntPtr(tileset.Id),
-					    new Vector2(32, 32),
-					    new Vector2(x * w, y * h),
-					    new Vector2(x * w + w, y * h + h)))
-				{
-					this.tileId = tileIndex;
-					Prefs.Set("TileBrushWindow.TileId", tileId);
-				}
-
-				if (tileIndex == this.tileId)
-				{
-					ImGui.GetWindowDrawList().AddRect(
-						ImGui.GetItemRectMin(),
-						ImGui.GetItemRectMax(),
-						ImGui.ColorConvertFloat4ToU32(new Vector4(1.0f, 0.0f, 0.0f, 1.0f)),
-						rounding: 0,
-						ImDrawFlags.None,
-						thickness: 2);
-				}
+				this.tileId = i;
+				Prefs.Set("TileBrushWindow.TileId", tileId);
 			}
-			ImGui.NewLine();
+
+			if (keepOriginalLayout == false)
+			{
+				float itemRightEdge = ImGui.GetItemRectMax().X;
+				if (rightEdge - itemRightEdge >= 32)
+					ImGui.SameLine();
+			}
+
+			if (i == tileId)
+			{
+				selectedRectMin = ImGui.GetItemRectMin();
+				selectedRectMax = ImGui.GetItemRectMax();
+			}
+
+			if (ImGui.IsItemHovered())
+			{
+				DrawRect(ImGui.GetItemRectMin(), ImGui.GetItemRectMax(), new Vector4(0.9f, 0.1f, 0.1f, 0.35f));
+			}
 		}
+
+		DrawRect(selectedRectMin, selectedRectMax, new Vector4(1f, 0f, 0f, 1f));
+
 
 		ImGui.PopStyleVar();
 		ImGui.PopStyleVar();
 	}
 
-	private void DrawTileDropdown(Texture2D tileset)
+	private static void DrawRect(Vector2 min, Vector2 max, Vector4 color)
+	{
+		ImGui.GetWindowDrawList().AddRect(
+			min + Vector2.One * 0.5f,
+			max - Vector2.One * 0.5f,
+			ImGui.ColorConvertFloat4ToU32(color),
+			rounding: 0,
+			ImDrawFlags.None,
+			thickness: 2);
+	}
+
+	private void DrawTileDropdown(SpriteAtlas atlas)
 	{
 		var sb = new StringBuilder();
-		int xTileCount = tileset.Width / Grid.TileSourceSize;
-		int yTileCount = tileset.Height / Grid.TileSourceSize;
 
-		for (int y = 0; y < yTileCount; y++)
+		for (int i = 0; i < atlas.SpriteRects.Count; i++)
 		{
-			for (int x = 0; x < xTileCount; x++)
-			{
-				int tileIndex = x + y * xTileCount;
-				sb.Append(tileIndex).Append('\0');
-			}
+			sb.Append(i).Append('\0');
 		}
 
 		if (ImGui.Combo("Tile", ref tileId, sb.ToString()))
@@ -174,9 +223,10 @@ public class TileBrushWindow : Window
 			DialogResult result = Dialog.FileOpen(defaultPath: "Assets");
 			if (result.IsOk)
 			{
-				CommandManager.Execute(new AddLayerCommand(Map.Current, result.Path));
-				if (layerIndex == -1)
-					layerIndex = 0;
+				var command = new AddLayerCommand(Map.Current, result.Path);
+				CommandManager.Execute(command);
+				layerIndex = command.AddedLayerId;
+				tileId = 0;
 			}
 		}
 	}

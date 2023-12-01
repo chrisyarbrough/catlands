@@ -6,6 +6,8 @@ using Raylib_cs;
 
 public class LogWindow : Window
 {
+	private bool initialScrollDone;
+
 	public LogWindow() : base("Console")
 	{
 	}
@@ -21,10 +23,17 @@ public class LogWindow : Window
 		ImGui.Separator();
 		ImGui.BeginChild("scrolling");
 		ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new System.Numerics.Vector2(0, 1));
-		if (copy) ImGui.LogToClipboard();
+		if (copy)
+			ImGui.LogToClipboard();
 
 		foreach (string message in LogBuffer.messages)
 			ImGui.TextUnformatted(message);
+
+		if (initialScrollDone == false)
+		{
+			ImGui.SetScrollHereY(1.0f);
+			initialScrollDone = true;
+		}
 
 		// Keep scrolling to the bottom if already there and new messages arrive.
 		if (ImGui.GetScrollY() / ImGui.GetScrollMaxY() > 0.99f)

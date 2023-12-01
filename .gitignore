@@ -4,3 +4,4 @@
 **/obj/
 .idea/
 imgui.ini
+.DS_Store

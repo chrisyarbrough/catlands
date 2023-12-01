@@ -10,6 +10,10 @@
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     </PropertyGroup>
 
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <DefineConstants>TRACE;PROFILING</DefineConstants>
+    </PropertyGroup>
+
     <ItemGroup>
         <PackageReference Include="ImGui.NET" Version="1.89.9.3"/>
         <PackageReference Include="NativeFileDialogSharp" Version="0.6.0-alpha"/>
@@ -19,6 +23,18 @@
     <ItemGroup>
         <ProjectReference Include="..\CatLands.Shared\CatLands.Shared.csproj" />
         <ProjectReference Include="..\CatLands\CatLands.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="EditorAssets\layout-default.ini">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="EditorAssets\hidden.png">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="EditorAssets\visible.png">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
 </Project>

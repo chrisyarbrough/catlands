@@ -8,9 +8,8 @@ using rlImGui_cs;
 internal static class Program
 {
 	public static string AssetsDirectory => Path.Combine(Directory.GetCurrentDirectory(), "Assets");
-	public static string EditorAssetsDirectory => Path.Combine(AppContext.BaseDirectory, "EditorAssets");
 
-	private const string Version = "1.0";
+	private const string version = "1.0";
 
 	private static readonly Scene scene = new();
 
@@ -30,8 +29,9 @@ internal static class Program
 
 		LogBuffer.Initialize();
 
-		Raylib.SetConfigFlags(ConfigFlags.FLAG_WINDOW_RESIZABLE | ConfigFlags.FLAG_VSYNC_HINT);
-		Raylib.InitWindow(width: 1280, height: 800, title: $"CatLands Editor {Version}");
+		Raylib.SetConfigFlags(ConfigFlags.FLAG_WINDOW_RESIZABLE | ConfigFlags.FLAG_INTERLACED_HINT |
+		                      ConfigFlags.FLAG_WINDOW_HIGHDPI);
+		Raylib.InitWindow(width: 1280, height: 800, title: $"CatLands Editor {version}");
 		Raylib.SetTargetFPS(120);
 
 		rlImGui.Setup(darkTheme: true, enableDocking: true);
@@ -50,12 +50,19 @@ internal static class Program
 			new HierarchyWindow(),
 			new Inspector(),
 			new LogWindow(),
-			new TileBrushWindow()
+			new TileBrushWindow(),
+			new LayersWindow(),
 		});
 
 		while (!Raylib.WindowShouldClose())
 		{
+			Profiler.BeginFrame();
+			Profiler.BeginSample("Main");
+
+			Profiler.BeginSample("Scene Update");
 			scene.Update();
+			Profiler.EndSample();
+
 			MainWindow.Update();
 			CommandManager.Update();
 
@@ -63,10 +70,16 @@ internal static class Program
 			rlImGui.Begin();
 
 			MainWindow.Draw();
-			scene.OnSceneGui();
 
+			Profiler.BeginSample("Draw: ImGui");
 			rlImGui.End();
+			Profiler.EndSample();
+
+			Profiler.BeginSample("Draw: Raylib");
 			Raylib.EndDrawing();
+			Profiler.EndSample();
+
+			Profiler.EndSample();
 		}
 
 		scene.Shutdown();

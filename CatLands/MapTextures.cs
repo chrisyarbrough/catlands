@@ -1,14 +1,15 @@
 namespace CatLands;
 
 using Raylib_cs;
+using SpriteEditor;
 
-public class MapTextures
+public static class MapTextures
 {
-	public int TextureCount => textures.Count;
+	public static int TextureCount => atlases.Count;
 
-	private readonly Dictionary<string, Texture2D> textures = new();
+	private static readonly Dictionary<string, SpriteAtlas> atlases = new();
 
-	public void UpdateLoadState()
+	public static void UpdateLoadState()
 	{
 		if (Map.Current == null)
 			return;
@@ -16,10 +17,19 @@ public class MapTextures
 		for (int i = 0; i < Map.Current.LayerCount; i++)
 		{
 			Layer layer = Map.Current.GetLayer(i);
-			if (!textures.ContainsKey(layer.TexturePath))
-				textures[layer.TexturePath] = Raylib.LoadTexture(layer.TexturePath);
+			if (!atlases.ContainsKey(layer.TexturePath))
+			{
+				atlases[layer.TexturePath] = SpriteAtlas.Load(layer.TexturePath);
+			}
 		}
 	}
 
-	public Texture2D Get(string id) => textures[id];
+	public static Texture2D GetTexture(string id) => atlases[id].Texture;
+
+	public static SpriteAtlas GetAtlas(string textureId) => atlases[textureId];
+
+	public static Rectangle GetSpriteRect(string textureId, int spriteId)
+	{
+		return atlases[textureId].SpriteRects[spriteId];
+	}
 }

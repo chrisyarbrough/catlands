@@ -1,58 +1,76 @@
-using System.Numerics;
-
 namespace CatLands;
 
 using Raylib_cs;
+using SpriteEditor;
+using System.Numerics;
 
 public class MapDisplay : GameObject
 {
-	private readonly MapTextures mapTextures = new();
+	private static Map? Map => Map.Current;
 
-	private Map? map => Map.Current;
+	private static TileRenderInfo preview;
+	private static bool drawPreview;
 
 	public override void OnSceneGui()
 	{
-		if (map == null)
+		if (Map == null)
 			return;
 
-		mapTextures.UpdateLoadState();
+		MapTextures.UpdateLoadState();
 
-		for (int i = 0; i < map.LayerCount; i++)
+		for (int i = 0; i < Map.LayerCount; i++)
 		{
-			Layer layer = map.GetLayer(i);
-			Texture2D texture = mapTextures.Get(layer.TexturePath);
-			DrawLayer(layer, texture);
+			Layer layer = Map.GetLayer(i);
+			if (layer.IsVisible)
+				DrawLayer(layer, i);
 		}
 	}
 
-	private void DrawLayer(Layer layer, Texture2D texture)
+	public static void AddPreview(TileRenderInfo preview)
 	{
-		const int sourceSize = Grid.TileSourceSize;
-		const float destSize = Grid.TileRenderSize;
+		MapDisplay.preview = preview;
+		drawPreview = true;
+	}
+
+	public static void RemovePreview()
+	{
+		drawPreview = false;
+	}
+
+	private void DrawLayer(Layer layer, int layerId)
+	{
+		SpriteAtlas atlas = MapTextures.GetAtlas(layer.TexturePath);
 
 		foreach ((Coord coord, int tileId) in layer.Tiles)
 		{
-			int xTileCount = texture.Width / sourceSize;
-
-			if (xTileCount == 0)
-				continue;
-
-			var sourceRect = new Rectangle(
-				x: tileId % xTileCount * sourceSize,
-				y: tileId / xTileCount * sourceSize,
-				sourceSize,
-				sourceSize);
-
-			var destinationRect = new Rectangle(
-				coord.X * destSize, coord.Y * destSize, destSize, destSize);
-
-			Raylib.DrawTexturePro(
-				texture,
-				sourceRect,
-				destinationRect,
-				Vector2.Zero,
-				0f,
-				Color.WHITE);
+			TileRenderInfo.DrawTile(atlas, tileId, coord);
 		}
+
+		if (drawPreview && preview.LayerId == layerId)
+		{
+			preview.Draw(atlas);
+		}
+	}
+}
+
+public readonly record struct TileRenderInfo(int LayerId, Coord Coord, int TileId)
+{
+	public void Draw(SpriteAtlas atlas)
+	{
+		DrawTile(atlas, TileId, Coord);
+	}
+
+	public static void DrawTile(SpriteAtlas atlas, int tileId, Coord coord)
+	{
+		const float destSize = Grid.TileRenderSize;
+		var destinationRect = new Rectangle(coord.X * destSize, coord.Y * destSize, destSize, destSize);
+
+		Raylib.DrawTexturePro(
+			atlas.Texture,
+			source: atlas.SpriteRects[tileId],
+			destinationRect,
+			Vector2.Zero,
+			0f,
+			Color.WHITE);
 	}
 }

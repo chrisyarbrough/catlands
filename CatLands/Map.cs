@@ -1,7 +1,5 @@
 namespace CatLands;
 
-using Newtonsoft.Json;
-
 public class Map
 {
 	public static event Action? CurrentChanged;
@@ -20,6 +18,10 @@ public class Map
 	}
 
 	private static Map? current;
+
+	public int LayerCount => layers.Count;
+	
+	public string? FilePath { get; set; }
 
 	// ReSharper disable once NotAccessedField.Global
 	// because it needs to be serialized in order to build backwards-compatibility later.
@@ -62,6 +64,4 @@ public class Map
 		layers.RemoveAt(index);
 		ChangeTracker.NotifyChange();
 	}
-
-	public int LayerCount => layers.Count;
 }

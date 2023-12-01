@@ -4,6 +4,19 @@ using Newtonsoft.Json;
 
 public class Layer
 {
+	public bool IsVisible
+	{
+		get => isVisible;
+		set
+		{
+			if (value != isVisible)
+			{
+				isVisible = value;
+				changeTracker?.NotifyChange();
+			}
+		}
+	}
+
 	public string Name => Path.GetFileNameWithoutExtension(TexturePath);
 	public string TexturePath => texturePath;
 
@@ -16,6 +29,7 @@ public class Layer
 	private Dictionary<Coord, int> tiles = new();
 
 	private ChangeTracker? changeTracker;
+	private bool isVisible = true;
 
 	[JsonConstructor]
 	private Layer()
@@ -60,20 +74,4 @@ public class Layer
 	{
 		this.changeTracker = changeTracker ?? throw new ArgumentNullException(nameof(changeTracker));
 	}
-
-	public void Add(Coord coord, int i)
-	{
-		tiles.Add(coord, i);
-	}
-
-	// public IEnumerator<(Coord, int)> GetEnumerator()
-	// {
-	// 	foreach((Coord c, int i) in tiles)
-	// 		yield return (c, i);
-	// }
-	//
-	// IEnumerator IEnumerable.GetEnumerator()
-	// {
-	// 	return GetEnumerator();
-	// }
 }

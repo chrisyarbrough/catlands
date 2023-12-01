@@ -1,8 +1,0 @@
-
-            // Fix for macOS highDPI OpenGL issue:
-            Vector2 scaleFactor = Raylib.GetWindowScaleDPI();
-            Rlgl.rlScissor(
-                (int)(x * scaleFactor.X), 
-                (int)((Raylib.GetScreenHeight() - (y + height)) * scaleFactor.Y), 
-                (int)(width * scaleFactor.X), 
-                (int)(height * scaleFactor.Y));

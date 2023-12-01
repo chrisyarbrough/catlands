@@ -15,7 +15,10 @@ public static class SaveFileManager
 			if (serializerLookup.TryGetValue(Path.GetExtension(filePath), out Func<ISerializer>? serializerFactory))
 			{
 				using FileStream stream = File.OpenRead(filePath);
-				return serializerFactory().Deserialize(stream);
+				Map? map = serializerFactory().Deserialize(stream);
+				if (map != null)
+					map.FilePath = filePath;
+				return map;
 			}
 		}
 		catch (Exception e)
@@ -33,6 +36,7 @@ public static class SaveFileManager
 			// Overwrite existing files. OpenWrite would not truncate a longer file.
 			using FileStream stream = File.Create(filePath);
 			serializerFactory().Serialize(map, stream);
+			map.FilePath = filePath;
 		}
 		else
 		{

@@ -2,9 +2,10 @@ namespace CatLands.Editor;
 
 public class AddLayerCommand : Command
 {
+	public int AddedLayerId { get; private set; }
+
 	private readonly Map map;
 	private readonly string textureId;
-	private int addedLayerId;
 
 	public AddLayerCommand(Map map, string textureId)
 	{
@@ -14,12 +15,12 @@ public class AddLayerCommand : Command
 
 	public override void Do()
 	{
-		addedLayerId = map.AddLayer(new Layer(textureId));
+		AddedLayerId = map.AddLayer(new Layer(textureId));
 	}
 
 	public override void Undo()
 	{
-		map.RemoveLayer(addedLayerId);
+		map.RemoveLayer(AddedLayerId);
 	}
 }
 
