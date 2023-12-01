@@ -9,6 +9,9 @@ Directory.SetCurrentDirectory(AppContext.BaseDirectory);
 
 string textureFilePath = string.Empty;
 SpriteAtlas? spriteAtlas = default;
+Texture2D checkerTexture = default;
+int checkerBaseValue = 128;
+int checkerAlpha = 0;
 var camera = new Camera2D(Vector2.Zero, Vector2.Zero, 0f, 1f);
 float cameraMinZoom = 0.5f;
 float cameraMaxZoom = 20f;
@@ -58,6 +61,7 @@ void Initialize()
 	if (File.Exists(textureFilePath))
 	{
 		spriteAtlas = SpriteAtlas.Load(textureFilePath);
+		checkerTexture = CreateCheckerTexture();
 	}
 
 	ResetCamera();
@@ -77,7 +81,11 @@ void DrawMenu()
 	{
 		if (ImGui.MenuItem("Open"))
 		{
-			DialogResult result = Dialog.FileOpen();
+			string? defaultPath = File.Exists(textureFilePath)
+				? Path.GetDirectoryName(textureFilePath)
+				: Directory.GetCurrentDirectory();
+
+			DialogResult result = Dialog.FileOpen(defaultPath: defaultPath);
 			if (result.IsOk)
 			{
 				textureFilePath = result.Path;
@@ -132,6 +140,11 @@ void DrawScene()
 
 	if (spriteAtlas != null)
 	{
+		ImGui.SliderInt("Background Alpha", ref checkerAlpha, 0, 255);
+		if (ImGui.SliderInt("Background Value", ref checkerBaseValue, 0, 255))
+			checkerTexture = CreateCheckerTexture();
+
+		Raylib.DrawTexture(checkerTexture, 0, 0, new Color(255, 255, 255, checkerAlpha));
 		Raylib.DrawTexture(spriteAtlas.Texture, 0, 0, Color.WHITE);
 
 		ImGui.LabelText(string.Empty, "Gizmo Settings");
@@ -152,7 +165,11 @@ void DrawScene()
 			spriteAtlas.SpriteRects[i] = RectangleGizmo.Draw(spriteAtlas.SpriteRects[i], i, mousePos, camera);
 		}
 
-		// ImGui.LabelText("Rect", $"{gizmoRect.X} {gizmoRect.Y} {gizmoRect.Width} {gizmoRect.Height}");
+		if (RectangleGizmo.SelectedControlId != -1)
+		{
+			Rectangle rect = spriteAtlas.SpriteRects[RectangleGizmo.SelectedControlId];
+			ImGui.LabelText("Rect", $"{rect.X} {rect.Y} {rect.Width} {rect.Height}");
+		}
 
 		if ((Raylib.IsKeyPressed(KeyboardKey.KEY_DELETE) || Raylib.IsKeyPressed(KeyboardKey.KEY_BACKSPACE)) &&
 		    RectangleGizmo.SelectedControlId != -1)
@@ -227,4 +244,18 @@ void UpdateCameraZoom()
 	const float zoomSpeed = 0.125f;
 	float zoomFactor = (float)Math.Log(camera.Zoom + 1, 10) * zoomSpeed;
 	camera.Zoom = Math.Clamp(camera.Zoom + Raylib.GetMouseWheelMove() * zoomFactor, cameraMinZoom, cameraMaxZoom);
+}
+
+Texture2D CreateCheckerTexture()
+{
+	const int contrast = 40;
+	int highValue = Math.Clamp(checkerBaseValue + contrast, 0, 255);
+	int lowValue = Math.Clamp(checkerBaseValue - contrast, 0, 255);
+	Image checkerImage = Raylib.GenImageChecked(
+		spriteAtlas.Texture.Width, spriteAtlas.Texture.Height, 1, 1,
+		new Color(lowValue, lowValue, lowValue, 255),
+		new Color(highValue, highValue, highValue, 255));
+	Texture2D texture = Raylib.LoadTextureFromImage(checkerImage);
+	Raylib.UnloadImage(checkerImage);
+	return texture;
 }
