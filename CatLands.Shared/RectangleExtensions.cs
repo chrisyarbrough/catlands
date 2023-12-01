@@ -25,6 +25,16 @@ public static class RectangleExtensions
 		return rect.Y + rect.Height;
 	}
 
+	public static Vector2 Min(this Rectangle rect)
+	{
+		return new Vector2(rect.xMin(), rect.yMin());
+	}
+	
+	public static Vector2 Max(this Rectangle rect)
+	{
+		return new Vector2(rect.xMax(), rect.yMax());
+	}
+
 	public static bool IsPointWithin(this Rectangle rect, Vector2 point)
 	{
 		return point.X >= rect.X &&
