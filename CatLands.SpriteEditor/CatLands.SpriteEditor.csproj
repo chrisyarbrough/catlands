@@ -18,6 +18,7 @@
         <PackageReference Include="NativeFileDialogSharp" Version="0.6.0-alpha"/>
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
         <PackageReference Include="Raylib-cs" Version="5.0.0"/>
+        <PackageReference Include="RectpackSharp" Version="1.1.0" />
     </ItemGroup>
 
     <ItemGroup>
@@ -27,6 +28,9 @@
 
     <ItemGroup>
       <None Update="MarchingAnts.glsl">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="ColorDilate.glsl">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
     </ItemGroup>

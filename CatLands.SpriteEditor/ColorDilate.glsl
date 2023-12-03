@@ -4,7 +4,6 @@ in vec2 fragTexCoord;
 out vec4 fragColor;
 
 uniform sampler2D textureSampler;
-//uniform vec2 delta;
 
 void main()
 {
@@ -16,7 +15,6 @@ void main()
         fragColor = col;
         return;
     }
-//    fragColor = vec4(1.0, 0.0, 0.0, 1.0);
 
     vec4 c0 = texture(textureSampler, fragTexCoord + vec2(0, delta.y));
     vec4 c1 = texture(textureSampler, fragTexCoord + vec2(delta.x, 0));

@@ -15,6 +15,7 @@ Slicer slicer = new();
 CheckerBackground checkerBackground = new();
 List<int> hoveredRects = new();
 int hoveredControl = -1;
+var colorDilation = new ColorDilation();
 
 Vector2 GetTextureSize()
 {
@@ -39,7 +40,9 @@ while (!Raylib.WindowShouldClose())
 	Raylib.BeginDrawing();
 	Raylib.ClearBackground(Color.DARKGRAY);
 	rlImGui.Begin();
-	Update();
+	// Update();
+	if (spriteAtlas != null)
+		colorDilation.Draw(spriteAtlas);
 	rlImGui.End();
 	Raylib.EndDrawing();
 }

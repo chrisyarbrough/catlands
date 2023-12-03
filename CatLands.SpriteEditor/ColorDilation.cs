@@ -1,11 +1,38 @@
 using System.Numerics;
+using CatLands;
+using CatLands.SpriteEditor;
+using ImGuiNET;
 using Raylib_cs;
+using RectpackSharp;
 
 public class ColorDilation
 {
-	/*
-	private void DoMagic(Texture2D originalTileset)
+	private Shader shader;
+	private bool initialized;
+
+	private bool useShader;
+
+	public void Draw(SpriteAtlas spriteAtlas)
 	{
+		DrawPreview(spriteAtlas);
+
+		PackingRectangle[] rectangles = new PackingRectangle[spriteAtlas.SpriteRects.Count];
+		for (int i = 0; i < spriteAtlas.SpriteRects.Count; i++)
+		{
+			Rectangle rect = spriteAtlas.SpriteRects[i];
+			rectangles[i] = new PackingRectangle((uint)rect.X, (uint)rect.Y, (uint)rect.Width, (uint)rect.Height, i);
+		}
+		
+		// RectanglePacker.Pack(rectangles, out PackingRectangle bounds, PackingHints.MostlySquared);
+
+		foreach (var r in rectangles)
+		{
+			Raylib.DrawRectangleLines((int)r.X, (int)r.Y, (int)r.Width, (int)r.Height, Color.RED);
+		}
+	
+		
+		return;
+		Texture2D originalTileset = spriteAtlas.Texture;
 		int borderSize = 2;
 		int tilesPerRow = originalTileset.Width / 16; // Assuming the width is a multiple of 16
 		int tilesPerColumn = originalTileset.Height / 16; // Assuming the height is a multiple of 16
@@ -19,12 +46,9 @@ public class ColorDilation
 		Raylib.SetTextureFilter(target.Texture, TextureFilter.TEXTURE_FILTER_POINT);
 
 		Raylib.BeginTextureMode(target);
-		Raylib.ClearBackground(Color.BLUE); // Clear to transparent or your desired background color
+		Raylib.ClearBackground(Color.BLUE);
 
-		spriteRects.Clear();
-
-		Image image = Raylib.LoadImage(TextureFilePath);
-
+		// spriteRects.Clear();
 
 		for (int y = 0; y < tilesPerColumn; ++y)
 		{
@@ -38,21 +62,6 @@ public class ColorDilation
 				Rectangle destRec =
 					new Rectangle(x * (16 + borderSize), newHeight - (y + 1) * (16 + borderSize), 16, 16);
 
-
-				// Draw tile to the new texture
-				Rectangle r = destRec;
-				r.X -= 1;
-				r.Width += 2;
-				r.Y -= 1;
-				r.Height += 2;
-				for (int i = 0; i < 16; i++)
-				{
-					for (int j = 0; j < 16; j++)
-					{
-						Color color = Raylib.GetImageColor(image, (int)sourceRec.X + i, (int)sourceRec.Y + j);
-					}
-				}
-
 				Raylib.DrawTexturePro(originalTileset, sourceRec, destRec, Vector2.Zero, 0f, Color.WHITE);
 
 
@@ -63,15 +72,38 @@ public class ColorDilation
 				Rectangle spriteRect = new Rectangle(newX, newY, 16, 16);
 
 				// Add the rectangle to the list
-				spriteRects.Add(spriteRect);
+				// spriteRects.Add(spriteRect);
 			}
 		}
 
 		Raylib.EndTextureMode();
 		Raylib.SetTextureWrap(target.Texture, TextureWrap.TEXTURE_WRAP_CLAMP);
-		AllTextures.Add(target.Texture);
 
-		this.texture = target.Texture;
+		// Raylib.DrawTexture(target.Texture);
+		// AllTextures.Add(target.Texture);
+		//
+		// this.texture = target.Texture;
 	}
-	*/
+
+	private void DrawPreview(SpriteAtlas spriteAtlas)
+	{
+		if (!initialized)
+		{
+			shader = Raylib.LoadShader(null, "ColorDilate.glsl");
+			initialized = true;
+		}
+
+		if (Raylib.IsKeyPressed(KeyboardKey.KEY_S))
+			useShader = !useShader;
+
+		ImGui.TextUnformatted("Use shader: " + useShader);
+
+		if (useShader)
+			Raylib.BeginShaderMode(shader);
+
+		Raylib.DrawTextureEx(spriteAtlas.Texture, Vector2.Zero, 0f, scale: 1f, Color.WHITE);
+
+		if (useShader)
+			Raylib.EndShaderMode();
+	}
 }
