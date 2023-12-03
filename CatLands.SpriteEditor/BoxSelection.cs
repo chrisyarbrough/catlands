@@ -13,9 +13,9 @@ public static class BoxSelection
 	private static bool initialized;
 	private static int timeShaderLocation;
 
-	public static void Draw(Camera2D camera, Action<Rectangle> onSelection)
+	public static void Draw(Camera2D camera, int controlId, Action<Rectangle> onSelection)
 	{
-		if (GuiUtility.HotControl.HasValue && GuiUtility.HotControl != 1234)
+		if (GuiUtility.HotControl != -1 && GuiUtility.HotControl != controlId)
 			return;
 		
 		// Disable input if hovering over a window.
@@ -29,7 +29,7 @@ public static class BoxSelection
 		if (Raylib.IsMouseButtonPressed(mouseButton))
 		{
 			startPosition = mouseWorld;
-			GuiUtility.HotControl = 1234;
+			GuiUtility.HotControl = controlId;
 		}
 		else if (Raylib.IsMouseButtonDown(mouseButton))
 		{
@@ -43,12 +43,11 @@ public static class BoxSelection
 			Raylib.DrawRectangleLinesEx(rectangle, lineWidth * scaleFactor, Color.RED);
 			Raylib.EndShaderMode();
 		}
-		else if (Raylib.IsMouseButtonReleased(mouseButton) && GuiUtility.HotControl == 1234)
+		else if (Raylib.IsMouseButtonReleased(mouseButton) && GuiUtility.HotControl == controlId)
 		{
 			Rectangle rectangle = CalculateRenderRect(startPosition, mouseWorld);
 			onSelection.Invoke(rectangle);
-			// TODO: Fix interaction between single selection and box selection.
-			GuiUtility.HotControl = null;
+			GuiUtility.HotControl = -1;
 		}
 	}
 

@@ -11,10 +11,9 @@ Directory.SetCurrentDirectory(AppContext.BaseDirectory);
 string textureFilePath = string.Empty;
 SpriteAtlas? spriteAtlas = default;
 var camera = new SpriteEditorCamera(GetTextureSize);
-
 Slicer slicer = new();
 CheckerBackground checkerBackground = new();
-
+List<int> hoveredRects = new();
 
 Vector2 GetTextureSize()
 {
@@ -66,15 +65,18 @@ void Initialize()
 		LoadSpriteAtlas();
 	}
 
-	SettingsWindow.Add("Selected Sprite", DrawSelectedSpriteGui);
+	SettingsWindow.Add("Selection", DrawSelectedSpriteGui);
 }
 
 void DrawSelectedSpriteGui()
 {
 	if (Selection.HasSelection() && spriteAtlas != null)
 	{
-		Rectangle rect = spriteAtlas.SpriteRects[Selection.GetSingleSelection()];
-		ImGui.TextUnformatted($"x:{rect.X} y:{rect.Y} w:{rect.Width} h:{rect.Height}");
+		foreach (int index in Selection.GetSelection())
+		{
+			Rectangle rect = spriteAtlas.SpriteRects[index];
+			ImGui.TextUnformatted($"{index} x:{rect.X} y:{rect.Y} w:{rect.Width} h:{rect.Height}");
+		}
 	}
 }
 
@@ -87,9 +89,7 @@ void LoadSpriteAtlas()
 
 void Update()
 {
-	GuiUtility.ResetControlId();
-	if (Raylib.IsKeyDown(KeyboardKey.KEY_SPACE) == false)
-		DrawMenu();
+	DrawMenu();
 	DrawScene();
 }
 
@@ -100,11 +100,12 @@ void DrawMenu()
 	{
 		if (ImGui.MenuItem("Open"))
 		{
+			// Use last opened directory.
 			string? defaultPath = File.Exists(textureFilePath)
 				? Path.GetDirectoryName(textureFilePath)
 				: Directory.GetCurrentDirectory();
 
-			DialogResult result = Dialog.FileOpen(defaultPath: defaultPath);
+			DialogResult result = Dialog.FileOpen(defaultPath);
 			if (result.IsOk)
 			{
 				textureFilePath = result.Path;
@@ -135,6 +136,7 @@ void DrawMenu()
 	ImGui.EndMainMenuBar();
 }
 
+
 void DrawScene()
 {
 	Raylib.SetMouseCursor(MouseCursor.MOUSE_CURSOR_DEFAULT);
@@ -147,7 +149,6 @@ void DrawScene()
 		checkerBackground.DrawScene(position);
 		Raylib.DrawTextureV(spriteAtlas.Texture, position, Color.WHITE);
 
-
 		SettingsWindow.Draw();
 
 		if (RectangleGizmo.DrawGizmos)
@@ -156,23 +157,41 @@ void DrawScene()
 			Vector2 mouseWorldPos = Raylib.GetScreenToWorld2D(Raylib.GetMousePosition(), camera.State);
 
 			int hoveredControl = -1;
+			hoveredRects.Clear();
 
-			// Draw hovered controls first to capture input.
-			for (int i = 0; i < spriteAtlas.SpriteRects.Count; i++)
+			if (GuiUtility.HotControl == -1)
 			{
-				if (Raylib.CheckCollisionRecs(spriteAtlas.SpriteRects[i], worldBounds))
+				// Draw hovered controls first to capture input.
+				for (int i = 0; i < spriteAtlas.SpriteRects.Count; i++)
 				{
-					if (spriteAtlas.SpriteRects[i].IsPointWithin(mouseWorldPos))
+					if (Raylib.CheckCollisionRecs(spriteAtlas.SpriteRects[i], worldBounds))
 					{
-						spriteAtlas.SpriteRects[i] = RectangleGizmo.Draw(
-							spriteAtlas.SpriteRects[i], i, mouseWorldPos, camera.State, spriteAtlas);
-
-						hoveredControl = i;
-						break;
+						if (spriteAtlas.SpriteRects[i].IsPointWithin(mouseWorldPos))
+						{
+							hoveredRects.Add(i);
+						}
 					}
+				}
+
+				// Chose the rect with the smallest area.
+				if (hoveredRects.Count > 0)
+				{
+					hoveredControl = hoveredRects.OrderBy(i => spriteAtlas.SpriteRects[i].Area()).First();
+					spriteAtlas.SpriteRects[hoveredControl] = RectangleGizmo.Draw(
+						spriteAtlas.SpriteRects[hoveredControl], hoveredControl, mouseWorldPos, camera.State, spriteAtlas,
+						UpdatePhase.Input, isHovered: true);
 				}
 			}
 
+			if (hoveredControl == -1 && GuiUtility.HotControl >= 0 &&
+			    GuiUtility.HotControl < spriteAtlas.SpriteRects.Count)
+			{
+				spriteAtlas.SpriteRects[GuiUtility.HotControl] = RectangleGizmo.Draw(
+					spriteAtlas.SpriteRects[GuiUtility.HotControl], GuiUtility.HotControl, mouseWorldPos, camera.State,
+					spriteAtlas, UpdatePhase.Input, isHovered: true);
+			}
+
+			// Draw default rects
 			for (int i = 0; i < spriteAtlas.SpriteRects.Count; i++)
 			{
 				if (Raylib.CheckCollisionRecs(spriteAtlas.SpriteRects[i], worldBounds))
@@ -180,12 +199,27 @@ void DrawScene()
 					if (i != hoveredControl)
 					{
 						spriteAtlas.SpriteRects[i] = RectangleGizmo.Draw(
-							spriteAtlas.SpriteRects[i], i, mouseWorldPos, camera.State, spriteAtlas);
+							spriteAtlas.SpriteRects[i], i, mouseWorldPos, camera.State, spriteAtlas, UpdatePhase.Draw,
+							isHovered: false);
 					}
 				}
 			}
 
-			BoxSelection.Draw(camera.State, rectangle =>
+			// Draw hovered control on top.
+			if (GuiUtility.HotControl >= 0 && GuiUtility.HotControl < spriteAtlas.SpriteRects.Count)
+			{
+				spriteAtlas.SpriteRects[GuiUtility.HotControl] = RectangleGizmo.Draw(
+					spriteAtlas.SpriteRects[GuiUtility.HotControl], GuiUtility.HotControl, mouseWorldPos, camera.State,
+					spriteAtlas, UpdatePhase.Draw, isHovered: true);
+			}
+			else if (hoveredControl != -1)
+			{
+				spriteAtlas.SpriteRects[hoveredControl] = RectangleGizmo.Draw(
+					spriteAtlas.SpriteRects[hoveredControl], hoveredControl, mouseWorldPos, camera.State, spriteAtlas,
+					UpdatePhase.Draw, isHovered: true);
+			}
+
+			BoxSelection.Draw(camera.State, controlId: spriteAtlas.SpriteRects.Count, rectangle =>
 			{
 				Selection.ClearSelection();
 				for (int i = 0; i < spriteAtlas.SpriteRects.Count; i++)
@@ -196,6 +230,9 @@ void DrawScene()
 					}
 				}
 			});
+
+			ImGui.LabelText("Hover", hoveredControl.ToString());
+			ImGui.LabelText("HotControl", GuiUtility.HotControl.ToString());
 		}
 
 		if ((Raylib.IsKeyPressed(KeyboardKey.KEY_DELETE) || Raylib.IsKeyPressed(KeyboardKey.KEY_BACKSPACE)) &&
