@@ -29,7 +29,7 @@ public static class RectangleExtensions
 	{
 		return new Vector2(rect.xMin(), rect.yMin());
 	}
-	
+
 	public static Vector2 Max(this Rectangle rect)
 	{
 		return new Vector2(rect.xMax(), rect.yMax());
@@ -51,5 +51,25 @@ public static class RectangleExtensions
 	public static Vector2 Center(this Rectangle rect)
 	{
 		return new Vector2(rect.X + rect.Width / 2f, rect.Y + rect.Height / 2f);
+	}
+
+	public static Vector2 TopLeft(this Rectangle rectangle)
+	{
+		return new Vector2(rectangle.xMin(), rectangle.yMin());
+	}
+
+	public static Vector2 TopRight(this Rectangle rectangle)
+	{
+		return new Vector2(rectangle.xMax(), rectangle.yMin());
+	}
+
+	public static Vector2 BottomLeft(this Rectangle rectangle)
+	{
+		return new Vector2(rectangle.xMin(), rectangle.yMax());
+	}
+
+	public static Vector2 BottomRight(this Rectangle rectangle)
+	{
+		return new Vector2(rectangle.xMax(), rectangle.yMax());
 	}
 }

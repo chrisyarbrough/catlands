@@ -8,11 +8,7 @@ using Raylib_cs;
 public class RectangleGizmo
 {
 	public static bool SnapToPixel = true;
-
-	// Which gizmo is currently receiving the mouse input focus.
-	private static int activeControlId = -1;
-
-	public static int SelectedControlId = -1;
+	public static bool DrawGizmos = true;
 
 	// The handle within this gizmo.
 	private static int hotControl = -1;
@@ -51,7 +47,22 @@ public class RectangleGizmo
 
 	private const float lineWidthWorld = 2f;
 
-	public static Rectangle Draw(Rectangle gizmoRect, int controlId, Vector2 mousePos, Camera2D camera)
+	static RectangleGizmo()
+	{
+		SettingsWindow.Add("Gizmos", () =>
+		{
+			ImGui.Checkbox("Snap to pixel (S)", ref SnapToPixel);
+			if (Raylib.IsKeyPressed(KeyboardKey.KEY_S))
+				SnapToPixel = !SnapToPixel;
+
+			ImGui.Checkbox("Draw Gizmos (G)", ref DrawGizmos);
+			if (Raylib.IsKeyPressed(KeyboardKey.KEY_G))
+				DrawGizmos = !DrawGizmos;
+		});
+	}
+
+	public static Rectangle Draw(
+		Rectangle gizmoRect, int controlId, Vector2 mouseWorldPos, Camera2D camera, SpriteAtlas spriteAtlas)
 	{
 		// To keep the same screen size.
 		float scaleFactor = 1.0f / camera.Zoom;
@@ -62,7 +73,8 @@ public class RectangleGizmo
 		if (screenSize < 8)
 			return gizmoRect;
 
-		Color color = controlId == activeControlId ? Color.ORANGE : controlId == SelectedControlId ? Color.ORANGE : Color.WHITE;
+		Color color = controlId == GuiUtility.HotControl ? Color.ORANGE :
+			Selection.IsSelected(controlId) ? Color.ORANGE : Color.WHITE;
 		Raylib.DrawRectangleLinesEx(gizmoRect, lineWidth, color);
 
 		if (screenSize < 14)
@@ -73,15 +85,20 @@ public class RectangleGizmo
 			return gizmoRect;
 
 		UpdateHandleRects(gizmoRect, scaleFactor);
+		
+		
 
-		hoveredControl = GetHoveredControl(mousePos, camera);
+		hoveredControl = GetHoveredControl(mouseWorldPos);
 
-		if (hoveredControl != -1 && Raylib.IsMouseButtonPressed(MouseButton.MOUSE_BUTTON_LEFT) && activeControlId == -1)
+		if (hoveredControl != -1 && Raylib.IsMouseButtonPressed(MouseButton.MOUSE_BUTTON_LEFT) &&
+		    !GuiUtility.HotControl.HasValue)
 		{
+			UndoManager.RecordSnapshot(spriteAtlas);
+
 			hotControl = hoveredControl;
 			accumulatedMouseDelta = Vector2.Zero;
-			activeControlId = controlId;
-			SelectedControlId = controlId;
+			GuiUtility.HotControl = controlId;
+			Selection.SetSingleSelection(controlId);
 
 			// When switching from free to snapped mode, align with the pixel grid.
 			gizmoRect = ApplySnapping(gizmoRect);
@@ -89,7 +106,7 @@ public class RectangleGizmo
 
 		if (hotControl != -1)
 		{
-			if (Raylib.IsMouseButtonDown(MouseButton.MOUSE_BUTTON_LEFT) && activeControlId == controlId)
+			if (Raylib.IsMouseButtonDown(MouseButton.MOUSE_BUTTON_LEFT) && GuiUtility.HotControl == controlId)
 			{
 				gizmoRect = DoMouseDrag(gizmoRect, camera);
 				DrawSizeLabels(gizmoRect, scaleFactor);
@@ -100,7 +117,7 @@ public class RectangleGizmo
 			if (Raylib.IsMouseButtonReleased(MouseButton.MOUSE_BUTTON_LEFT))
 			{
 				hotControl = -1;
-				activeControlId = -1;
+				GuiUtility.HotControl = null;
 			}
 		}
 		else if (hoveredControl != -1)
@@ -109,9 +126,12 @@ public class RectangleGizmo
 			Raylib.SetMouseCursor(cursors[hoveredControl]);
 		}
 
-		for (int i = 4; i < handleRects.Length; i++)
+		if (gizmoRect.IsPointWithin(mouseWorldPos))
 		{
-			Raylib.DrawRing(handleRects[i].Center(), 3f * scaleFactor, 6f * scaleFactor, 0f, 360f, 16, Color.BLUE);
+			for (int i = 4; i < handleRects.Length; i++)
+			{
+				Raylib.DrawRing(handleRects[i].Center(), 3f * scaleFactor, 6f * scaleFactor, 0f, 360f, 16, Color.BLUE);
+			}
 		}
 
 		return gizmoRect;
@@ -242,10 +262,8 @@ public class RectangleGizmo
 		}
 	}
 
-	private static int GetHoveredControl(Vector2 mousePos, Camera2D camera)
+	private static int GetHoveredControl(Vector2 mouseWorldPos)
 	{
-		Vector2 mouseWorldPos = Raylib.GetScreenToWorld2D(mousePos, camera);
-
 		for (int i = 0; i < handleRects.Length; i++)
 		{
 			if (handleRects[i].IsPointWithin(mouseWorldPos))

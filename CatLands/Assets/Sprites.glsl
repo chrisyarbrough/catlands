@@ -4,6 +4,8 @@ in vec2 fragTexCoord;
 
 uniform sampler2D texture0;
 
+
+
 out vec4 finalColor;
 
 // Requires filtering enabled on the texture.
