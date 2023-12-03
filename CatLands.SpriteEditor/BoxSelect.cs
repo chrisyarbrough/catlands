@@ -3,7 +3,7 @@ using CatLands.SpriteEditor;
 using ImGuiNET;
 using Raylib_cs;
 
-public static class BoxSelection
+public static class BoxSelect
 {
 	private const MouseButton mouseButton = MouseButton.MOUSE_BUTTON_LEFT;
 
@@ -18,20 +18,18 @@ public static class BoxSelection
 		if (GuiUtility.HotControl != -1 && GuiUtility.HotControl != controlId)
 			return;
 		
-		// Disable input if hovering over a window.
-		if (ImGui.GetIO().WantCaptureMouse)
-			return;
-		
 		InitializeShader();
 
 		Vector2 mouseWorld = Raylib.GetScreenToWorld2D(Raylib.GetMousePosition(), camera);
 
-		if (Raylib.IsMouseButtonPressed(mouseButton))
+		// Only take hot control if clicking on the render scene, but not when clicking overlay windows.
+		// Still allow releasing the mouse and finishing the selection, e.g. on the menu bar because it feels more responsive.
+		if (Raylib.IsMouseButtonPressed(mouseButton) && !ImGui.GetIO().WantCaptureMouse)
 		{
 			startPosition = mouseWorld;
 			GuiUtility.HotControl = controlId;
 		}
-		else if (Raylib.IsMouseButtonDown(mouseButton))
+		else if (Raylib.IsMouseButtonDown(mouseButton) && GuiUtility.HotControl == controlId)
 		{
 			Rectangle rectangle = CalculateRenderRect(startPosition, mouseWorld);
 			Raylib.SetShaderValue(

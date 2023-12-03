@@ -73,7 +73,6 @@ public class RectangleGizmo
 	{
 		// To keep the same screen size.
 		float scaleFactor = 1.0f / camera.Zoom;
-		float lineWidth = lineWidthWorld * scaleFactor;
 
 		// If the rectangle is too tiny on screen, there's no use trying to draw or select it.
 		float screenSize = MathF.Max(gizmoRect.Width * camera.Zoom, gizmoRect.Height * camera.Zoom);
@@ -83,8 +82,14 @@ public class RectangleGizmo
 		if (phase == UpdatePhase.Draw)
 		{
 			Color color = controlId == GuiUtility.HotControl ? Color.ORANGE :
-				Selection.IsSelected(controlId) ? Color.ORANGE : Color.WHITE;
-			Raylib.DrawRectangleLinesEx(gizmoRect, lineWidth, color);
+				Selection.IsSelected(controlId) ? Color.ORANGE : Color.RAYWHITE;
+
+			if (Selection.IsSelected(controlId))
+				Raylib.DrawRectangleLinesEx(gizmoRect.GrowBy(lineWidthWorld * 1f * scaleFactor),
+					lineWidthWorld * 2f * scaleFactor, Color.BLACK);
+
+			Raylib.DrawRectangleLinesEx(gizmoRect.GrowBy(lineWidthWorld * 0.5f * scaleFactor),
+				lineWidthWorld * scaleFactor, color);
 		}
 
 		if (screenSize < 14)

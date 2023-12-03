@@ -14,6 +14,7 @@ var camera = new SpriteEditorCamera(GetTextureSize);
 Slicer slicer = new();
 CheckerBackground checkerBackground = new();
 List<int> hoveredRects = new();
+int hoveredControl = -1;
 
 Vector2 GetTextureSize()
 {
@@ -70,6 +71,8 @@ void Initialize()
 
 void DrawSelectedSpriteGui()
 {
+	ImGui.TextUnformatted($"Hovered tile: {(hoveredControl != -1 ? hoveredControl.ToString() : string.Empty)}");
+
 	if (Selection.HasSelection() && spriteAtlas != null)
 	{
 		foreach (int index in Selection.GetSelection())
@@ -156,7 +159,7 @@ void DrawScene()
 			Rectangle worldBounds = camera.GetWorldBounds();
 			Vector2 mouseWorldPos = Raylib.GetScreenToWorld2D(Raylib.GetMousePosition(), camera.State);
 
-			int hoveredControl = -1;
+			hoveredControl = -1;
 			hoveredRects.Clear();
 
 			if (GuiUtility.HotControl == -1)
@@ -178,7 +181,8 @@ void DrawScene()
 				{
 					hoveredControl = hoveredRects.OrderBy(i => spriteAtlas.SpriteRects[i].Area()).First();
 					spriteAtlas.SpriteRects[hoveredControl] = RectangleGizmo.Draw(
-						spriteAtlas.SpriteRects[hoveredControl], hoveredControl, mouseWorldPos, camera.State, spriteAtlas,
+						spriteAtlas.SpriteRects[hoveredControl], hoveredControl, mouseWorldPos, camera.State,
+						spriteAtlas,
 						UpdatePhase.Input, isHovered: true);
 				}
 			}
@@ -196,7 +200,7 @@ void DrawScene()
 			{
 				if (Raylib.CheckCollisionRecs(spriteAtlas.SpriteRects[i], worldBounds))
 				{
-					if (i != hoveredControl)
+					if (i != hoveredControl && !Selection.IsSelected(i))
 					{
 						spriteAtlas.SpriteRects[i] = RectangleGizmo.Draw(
 							spriteAtlas.SpriteRects[i], i, mouseWorldPos, camera.State, spriteAtlas, UpdatePhase.Draw,
@@ -205,34 +209,47 @@ void DrawScene()
 				}
 			}
 
-			// Draw hovered control on top.
-			if (GuiUtility.HotControl >= 0 && GuiUtility.HotControl < spriteAtlas.SpriteRects.Count)
+			// Draw selection
+			for (int i = 0; i < spriteAtlas.SpriteRects.Count; i++)
 			{
-				spriteAtlas.SpriteRects[GuiUtility.HotControl] = RectangleGizmo.Draw(
-					spriteAtlas.SpriteRects[GuiUtility.HotControl], GuiUtility.HotControl, mouseWorldPos, camera.State,
-					spriteAtlas, UpdatePhase.Draw, isHovered: true);
+				if (Raylib.CheckCollisionRecs(spriteAtlas.SpriteRects[i], worldBounds))
+				{
+					if (Selection.IsSelected(i))
+					{
+						spriteAtlas.SpriteRects[i] = RectangleGizmo.Draw(
+							spriteAtlas.SpriteRects[i], i, mouseWorldPos, camera.State, spriteAtlas, UpdatePhase.Draw,
+							isHovered: false);
+					}
+				}
 			}
-			else if (hoveredControl != -1)
+
+			// Draw hovered control
+			if (hoveredControl != -1)
 			{
 				spriteAtlas.SpriteRects[hoveredControl] = RectangleGizmo.Draw(
 					spriteAtlas.SpriteRects[hoveredControl], hoveredControl, mouseWorldPos, camera.State, spriteAtlas,
 					UpdatePhase.Draw, isHovered: true);
 			}
 
-			BoxSelection.Draw(camera.State, controlId: spriteAtlas.SpriteRects.Count, rectangle =>
+			// Draw hot control
+			if (GuiUtility.HotControl >= 0 && GuiUtility.HotControl < spriteAtlas.SpriteRects.Count)
+			{
+				spriteAtlas.SpriteRects[GuiUtility.HotControl] = RectangleGizmo.Draw(
+					spriteAtlas.SpriteRects[GuiUtility.HotControl], GuiUtility.HotControl, mouseWorldPos, camera.State,
+					spriteAtlas, UpdatePhase.Draw, isHovered: true);
+			}
+
+			BoxSelect.Draw(camera.State, controlId: spriteAtlas.SpriteRects.Count, rectangle =>
 			{
 				Selection.ClearSelection();
 				for (int i = 0; i < spriteAtlas.SpriteRects.Count; i++)
 				{
-					if (rectangle.IsPointWithin(spriteAtlas.SpriteRects[i].Center()))
+					if (rectangle.Encloses(spriteAtlas.SpriteRects[i]))
 					{
 						Selection.AddToSelection(i);
 					}
 				}
 			});
-
-			ImGui.LabelText("Hover", hoveredControl.ToString());
-			ImGui.LabelText("HotControl", GuiUtility.HotControl.ToString());
 		}
 
 		if ((Raylib.IsKeyPressed(KeyboardKey.KEY_DELETE) || Raylib.IsKeyPressed(KeyboardKey.KEY_BACKSPACE)) &&

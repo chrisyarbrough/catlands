@@ -32,7 +32,7 @@ public static class Selection
 
 	public static int GetSingleSelection()
 	{
-		return ids.First();
+		return ids.Count > 0 ? ids.First() : -1;
 	}
 
 	public static IEnumerable<int> GetSelection()

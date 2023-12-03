@@ -43,6 +43,11 @@ public static class RectangleExtensions
 		       point.Y <= rect.Y + rect.Height;
 	}
 
+	public static bool Encloses(this Rectangle rect, Rectangle other)
+	{
+		return rect.IsPointWithin(other.Min()) && rect.IsPointWithin(other.Max());
+	}
+
 	public static Vector2 Position(this Rectangle rect)
 	{
 		return new Vector2(rect.X, rect.Y);
@@ -76,5 +81,14 @@ public static class RectangleExtensions
 	public static float Area(this Rectangle rectangle)
 	{
 		return rectangle.Width * rectangle.Height;
+	}
+
+	public static Rectangle GrowBy(this Rectangle rectangle, float size)
+	{
+		return new Rectangle(
+			rectangle.X - size,
+			rectangle.Y - size,
+			rectangle.Width + size * 2,
+			rectangle.Height + size * 2);
 	}
 }
