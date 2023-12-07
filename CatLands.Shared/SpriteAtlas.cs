@@ -39,22 +39,22 @@ public class SpriteAtlas
 		File.WriteAllText(spritesSavePath, json);
 	}
 
-	public static SpriteAtlas Load(string textureFilePath, TextureFilter filter)
+	public static SpriteAtlas Load(string textureFilePath)
 	{
 		Console.WriteLine("Loading sprite atlas: " + textureFilePath);
 		
 		if (textureFilePath.EndsWith(".json"))
 			throw new ArgumentException("Sprite atlas should be loaded by passing the texture file path.");
 		
-		return new SpriteAtlas(textureFilePath, filter);
+		return new SpriteAtlas(textureFilePath);
 	}
 
-	private SpriteAtlas(string textureFilePath, TextureFilter textureFilter)
+	private SpriteAtlas(string textureFilePath)
 	{
 		this.TextureFilePath = textureFilePath;
 		this.texture = Raylib.LoadTexture(textureFilePath);
 		Raylib.SetTextureWrap(texture, TextureWrap.TEXTURE_WRAP_CLAMP);
-		Raylib.SetTextureFilter(texture, textureFilter);
+		Raylib.SetTextureFilter(texture, TextureFilter.TEXTURE_FILTER_POINT);
 
 		string spriteFilePath = Path.ChangeExtension(textureFilePath, ".json");
 		if (File.Exists(spriteFilePath))

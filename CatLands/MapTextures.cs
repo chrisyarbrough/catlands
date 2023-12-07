@@ -19,7 +19,7 @@ public static class MapTextures
 			Layer layer = Map.Current.GetLayer(i);
 			if (!atlases.ContainsKey(layer.TexturePath))
 			{
-				atlases[layer.TexturePath] = SpriteAtlas.Load(layer.TexturePath, TextureFilter.TEXTURE_FILTER_BILINEAR);
+				atlases[layer.TexturePath] = SpriteAtlas.Load(layer.TexturePath);
 			}
 		}
 	}

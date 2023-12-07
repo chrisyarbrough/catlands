@@ -85,7 +85,7 @@ void DrawSelectedSpriteGui()
 
 void LoadSpriteAtlas()
 {
-	spriteAtlas = SpriteAtlas.Load(textureFilePath, TextureFilter.TEXTURE_FILTER_POINT);
+	spriteAtlas = SpriteAtlas.Load(textureFilePath);
 	checkerBackground.Refresh(spriteAtlas.TextureSize);
 	camera.Reset();
 }

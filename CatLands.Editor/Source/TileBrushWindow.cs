@@ -33,13 +33,20 @@ public class TileBrushWindow : Window
 
 	private void OnCurrentChanged()
 	{
-		layerIndex = -1;
-		tileId = -1;
+		if (Map.Current != null && Map.Current.LayerCount > 0)
+			layerIndex = 0;
+		else
+			layerIndex = -1;
+
+		if (Map.Current != null && Map.Current.LayerCount > 0 && Map.Current.Layers.First().Tiles.Any())
+			tileId = 0;
+		else
+			tileId = -1;
 	}
 
 	public override void Update()
 	{
-		if (SceneView.Current == null || Map.Current == null)
+		if (SceneView.Current == null || Map.Current == null || Map.Current.LayerCount == 0)
 			return;
 
 		bool mouseOverWindow = SceneView.Current.IsMouseOverWindow;
