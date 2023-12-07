@@ -1,7 +1,6 @@
 namespace CatLands;
 
 using System.Numerics;
-using ImGuiNET;
 using Raylib_cs;
 
 public class CameraController
@@ -12,6 +11,10 @@ public class CameraController
 	protected Camera2D Camera = new(Vector2.Zero, Vector2.Zero, rotation: 0f, zoom: 1f);
 
 	private bool hasHotControl;
+
+	private readonly MouseButtonAction panInputAction = new MouseButtonAction(
+		MouseButton.MOUSE_BUTTON_RIGHT,
+		MouseButton.MOUSE_BUTTON_MIDDLE);
 
 	/// <summary>
 	/// Returns a readonly copy of the camera state.
@@ -28,32 +31,21 @@ public class CameraController
 	public void Begin()
 	{
 		Raylib.BeginMode2D(Camera);
-		Update();
 	}
 
-	public void End()
-	{
-		Raylib.EndMode2D();
-	}
-
-	private void Update()
+	public void Update(bool canBeginInputAction)
 	{
 		if (Raylib.IsKeyPressed(KeyboardKey.KEY_R))
 		{
 			Reset();
 		}
 
-		bool isInputValid = !ImGui.GetIO().WantCaptureMouse;
-
-		if ((Raylib.IsMouseButtonPressed(MouseButton.MOUSE_BUTTON_RIGHT) ||
-		     Raylib.IsMouseButtonPressed(MouseButton.MOUSE_BUTTON_MIDDLE)) &&
-		    isInputValid)
+		if (canBeginInputAction && panInputAction.Begin())
 		{
 			hasHotControl = true;
 		}
 
-		if (Raylib.IsMouseButtonReleased(MouseButton.MOUSE_BUTTON_RIGHT) ||
-		    Raylib.IsMouseButtonReleased(MouseButton.MOUSE_BUTTON_MIDDLE))
+		if (panInputAction.End())
 		{
 			hasHotControl = false;
 		}
@@ -61,16 +53,10 @@ public class CameraController
 		if (hasHotControl)
 		{
 			Vector2 delta = Raylib.GetMouseDelta();
-			delta *= -1.0f / Camera.Zoom;
-
-			if (delta.LengthSquared() > 0f)
-			{
-				Camera.Target += delta;
-				OnChanged();
-			}
+			Pan(delta);
 		}
 
-		if (isInputValid && Math.Abs(Raylib.GetMouseWheelMove()) > 0)
+		if (canBeginInputAction && Math.Abs(Raylib.GetMouseWheelMove()) > 0)
 		{
 			Vector2 mouseWorldPos = GetMouseWorld(Camera);
 
@@ -80,29 +66,55 @@ public class CameraController
 			// under the cursor to the screen space point under the cursor at any zoom
 			Camera.Target = mouseWorldPos;
 
-			UpdateZoom();
+			Zoom(Raylib.GetMouseWheelMove());
 			OnChanged();
 		}
 	}
 
-	public void UpdateZoom()
+	private void Pan(Vector2 delta)
+	{
+		delta *= -1.0f / Camera.Zoom;
+
+		if (delta.LengthSquared() > 0f)
+		{
+			Camera.Target += delta;
+			OnChanged();
+		}
+	}
+
+	public void Zoom(float delta)
 	{
 		const float zoomSpeed = 0.125f;
 		float zoomFactor = (float)Math.Log(Camera.Zoom + 1, 10) * zoomSpeed;
 		Camera.Zoom = Math.Clamp(
-			Camera.Zoom + Raylib.GetMouseWheelMove() * zoomFactor,
+			Camera.Zoom + delta * zoomFactor,
 			CameraMinZoom,
 			CameraMaxZoom);
 	}
 
+	public void End()
+	{
+		Raylib.EndMode2D();
+	}
+
 	/// <summary>
-	/// A rectangle in world space describing the are that is visible.
+	/// A rectangle in world space describing the area that is visible.
 	/// </summary>
 	public Rectangle GetWorldBounds()
 	{
-		Vector2 topLeft = Raylib.GetScreenToWorld2D(new Vector2(0, 0), Camera);
-		Vector2 bottomRight = Raylib.GetScreenToWorld2D(new Vector2(Raylib.GetRenderWidth(), Raylib.GetRenderHeight()), Camera);
-		return new Rectangle(topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y);
+		Vector2 topLeft = Raylib.GetScreenToWorld2D(
+			new Vector2(0, 0),
+			Camera);
+
+		Vector2 bottomRight = Raylib.GetScreenToWorld2D(
+			new Vector2(Raylib.GetRenderWidth(), Raylib.GetRenderHeight()),
+			Camera);
+
+		return new Rectangle(
+			topLeft.X,
+			topLeft.Y,
+			bottomRight.X - topLeft.X,
+			bottomRight.Y - topLeft.Y);
 	}
 
 	protected virtual Vector2 GetMouseWorld(Camera2D camera)

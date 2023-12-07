@@ -4,6 +4,7 @@ using ImGuiNET;
 using Raylib_cs;
 using System.Numerics;
 using rlImGui_cs;
+using Shared;
 using SpriteEditor;
 
 public class SceneView : Window
@@ -17,7 +18,8 @@ public class SceneView : Window
 	/// </summary>
 	public bool IsMouseOverWindow { get; private set; }
 
-	public Camera2D camera = new(Vector2.Zero, Vector2.Zero, rotation: 0f, zoom: 1f);
+	public float CameraZoom => cameraController.State.Zoom;
+
 	private readonly CameraController cameraController;
 
 	private RenderTexture2D target;
@@ -30,7 +32,7 @@ public class SceneView : Window
 
 	public SceneView() : base("Scene View")
 	{
-		cameraController = new CameraController(this);
+		cameraController = new SceneViewCameraController(this);
 	}
 
 	public override void Setup()
@@ -91,7 +93,7 @@ public class SceneView : Window
 			// Fit to entire viewport. If we wanted to render a fitted fixed resolution, we could set it here.
 			const int upscale = 1;
 			target = Raylib.LoadRenderTexture((int)viewportSize.X * upscale, (int)viewportSize.Y * upscale);
-			Raylib.SetTextureFilter(target.Texture, TextureFilter.TEXTURE_FILTER_BILINEAR);
+			Raylib.SetTextureFilter(target.Texture, TextureFilter.TEXTURE_FILTER_POINT);
 			Repaint();
 		}
 
@@ -113,16 +115,6 @@ public class SceneView : Window
 			redrawIndicator.DrawFrame();
 
 		ImGui.PopStyleVar();
-
-		if (Raylib.IsKeyPressed(KeyboardKey.KEY_S))
-		{
-			useShader = !useShader;
-			foreach (var tex in SpriteAtlas.AllTextures)
-			{
-				Raylib.SetTextureFilter(tex, useShader ? TextureFilter.TEXTURE_FILTER_BILINEAR : TextureFilter.TEXTURE_FILTER_POINT);
-			}
-			Repaint();
-		}
 	}
 
 	public static void RepaintAll()
@@ -131,32 +123,18 @@ public class SceneView : Window
 			instance.Repaint();
 	}
 
-	private bool useShader = false;
-
 	public void Repaint()
 	{
 		Raylib.BeginTextureMode(target);
+		Raylib.SetTextureFilter(target.Texture, TextureFilter.TEXTURE_FILTER_POINT);
 		Raylib.ClearBackground(Color.SKYBLUE);
-		Raylib.BeginMode2D(camera);
+		cameraController.Begin();
 
-		if (useShader)
-			Raylib.BeginShaderMode(spriteShader);
-		
 		foreach (GameObject gameObject in Scene.Current.Children)
 			gameObject.OnSceneGui();
 
 		MainWindow.OnSceneGui();
 
-		for (int i = 0; i < SpriteAtlas.AllTextures.Count; i++)
-		{
-			Texture2D tex = SpriteAtlas.AllTextures[i];
-			Raylib.DrawTexture(tex, i * tex.Width * 2, 400, Color.WHITE);
-		}
-
-
-		if (useShader)
-			Raylib.EndShaderMode();
-		
 		Raylib.EndTextureMode();
 
 		if (EnableGrid)
@@ -164,10 +142,8 @@ public class SceneView : Window
 
 		if (IsMouseOverWindow && DebugMode.Enabled)
 			DrawMousePosition();
-		
-		
 
-		Raylib.EndMode2D();
+		cameraController.End();
 
 		redrawIndicator.AdvanceFrame();
 	}
@@ -181,13 +157,11 @@ public class SceneView : Window
 		ImGui.Spacing();
 		if (ImGui.MenuItem("Reset Camera", enabled: Map.Current != null))
 		{
-			camera = cameraController.Reset(camera);
+			cameraController.Reset();
 			Repaint();
 		}
 
 		ImGui.EndMenuBar();
-		
-		ImGui.Text("Use shader: " + useShader);
 	}
 
 	private void DrawMousePosition()
@@ -211,7 +185,7 @@ public class SceneView : Window
 			ImGui.SetWindowFocus(Name);
 		}
 
-		camera = cameraController.Update(camera);
+		cameraController.Update(canBeginInputAction: isMouseInHotRect);
 	}
 
 	public Vector2 ViewportCenter()
@@ -222,7 +196,7 @@ public class SceneView : Window
 	public Vector2 GetMouseWorldPosition()
 	{
 		Vector2 viewportScreen = GetMouseScreenPosition();
-		return Raylib.GetScreenToWorld2D(viewportScreen, camera);
+		return Raylib.GetScreenToWorld2D(viewportScreen, cameraController.State);
 	}
 
 	public Vector2 GetMouseScreenPosition()

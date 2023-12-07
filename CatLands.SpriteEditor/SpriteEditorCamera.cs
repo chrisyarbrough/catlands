@@ -38,7 +38,7 @@ public class SpriteEditorCamera : CameraController
 		bool changed1 = ImGui.DragFloat("Min", ref CameraMinZoom, 0.05f, 0.01f, 1f);
 		bool changed2 = ImGui.DragFloat("Max", ref CameraMaxZoom, 0.05f, 1f, 100f);
 		if (changed1 || changed2)
-			UpdateZoom();
+			Zoom(0f);
 
 		if (ImGui.Button("Reset (R)"))
 			Reset();

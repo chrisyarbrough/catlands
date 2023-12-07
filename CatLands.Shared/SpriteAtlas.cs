@@ -53,7 +53,6 @@ public class SpriteAtlas
 	{
 		this.TextureFilePath = textureFilePath;
 		this.texture = Raylib.LoadTexture(textureFilePath);
-		Raylib.GenTextureMipmaps(ref texture);
 		Raylib.SetTextureWrap(texture, TextureWrap.TEXTURE_WRAP_CLAMP);
 		Raylib.SetTextureFilter(texture, textureFilter);
 

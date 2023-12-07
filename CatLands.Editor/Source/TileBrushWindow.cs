@@ -9,14 +9,11 @@ using SpriteEditor;
 
 public class TileBrushWindow : Window
 {
-	// private readonly MapTextures mapTextures = new();
-
 	private int layerIndex = -1;
 	private int tileId = -1;
 	private Coord? selectedCoord;
 	private bool keepOriginalLayout = true;
 	private bool wasMouseOverSceneViewLastFrame;
-
 
 	public TileBrushWindow() : base("Tile Brush")
 	{
@@ -42,7 +39,7 @@ public class TileBrushWindow : Window
 
 	public override void Update()
 	{
-		if (SceneView.Current == null)
+		if (SceneView.Current == null || Map.Current == null)
 			return;
 
 		bool mouseOverWindow = SceneView.Current.IsMouseOverWindow;
@@ -77,7 +74,7 @@ public class TileBrushWindow : Window
 
 	public override void OnSceneGui()
 	{
-		if (Map.Current == null || layerIndex == -1 || tileId == -1)
+		if (Map.Current == null || layerIndex == -1 || tileId == -1 || Map.Current.LayerCount == 0)
 			return;
 
 		layerIndex = Math.Clamp(layerIndex, 0, Map.Current.LayerCount - 1);
@@ -87,7 +84,7 @@ public class TileBrushWindow : Window
 			Vector2 mouseWorldPosition = SceneView.Current.GetMouseWorldPosition();
 			Coord gridCoord = Grid.WorldToCoord(mouseWorldPosition);
 
-			float scaleFactor = 1.0f / SceneView.Current.camera.Zoom;
+			float scaleFactor = 1.0f / SceneView.Current.CameraZoom;
 			float lineWidth = 2 * scaleFactor;
 
 			DrawBrushIndicator(gridCoord, Grid.TileRenderSize, lineWidth);
@@ -117,15 +114,22 @@ public class TileBrushWindow : Window
 			return;
 
 		string textureId = Map.Current.GetLayer(layerIndex).TexturePath;
-		Texture2D tileset = MapTextures.GetTexture(textureId);
-		var tileSetPointer = new IntPtr(tileset.Id);
 		SpriteAtlas atlas = MapTextures.GetAtlas(textureId);
 
 		DrawTileDropdown(atlas);
-
-		ImGui.Checkbox("Keep original layout", ref keepOriginalLayout);
-
+		ImGui.Checkbox("Original Layout", ref keepOriginalLayout);
 		ImGui.NewLine();
+
+		ImGui.BeginChild("Tileset");
+		DrawTileSelector(atlas, textureId);
+		ImGui.EndChild();
+	}
+
+	private void DrawTileSelector(SpriteAtlas atlas, string textureId)
+	{
+		Texture2D tileset = MapTextures.GetTexture(textureId);
+		var tileSetPointer = new IntPtr(tileset.Id);
+
 		ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(1, 1));
 		ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(0, 0));
 

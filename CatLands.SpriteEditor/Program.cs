@@ -15,11 +15,10 @@ Slicer slicer = new();
 CheckerBackground checkerBackground = new();
 List<int> hoveredRects = new();
 int hoveredControl = -1;
-var colorDilation = new ColorDilation();
 
 Vector2 GetTextureSize()
 {
-	return spriteAtlas != null ? spriteAtlas.TextureSize : Vector2.Zero;
+	return spriteAtlas?.TextureSize ?? Vector2.Zero;
 }
 
 const string configFilePath = "LastFilePath.txt";
@@ -40,9 +39,7 @@ while (!Raylib.WindowShouldClose())
 	Raylib.BeginDrawing();
 	Raylib.ClearBackground(Color.DARKGRAY);
 	rlImGui.Begin();
-	// Update();
-	if (spriteAtlas != null)
-		colorDilation.Draw(spriteAtlas);
+	Update();
 	rlImGui.End();
 	Raylib.EndDrawing();
 }

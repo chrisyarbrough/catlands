@@ -2,14 +2,12 @@
   "FileVersion": 1,
   "layers": [
     {
-      "<TexturePath>k__BackingField": "Assets/Tilesets/ground tiles/Old tiles/Grass.png",
+      "texturePath": "Assets/Tilesets/ground tiles/Old tiles/Grass.png",
       "tiles": {
         "0|0": 0,
-        "0|-1": 0,
-        "-1|0": 0,
-        "1|1": 23,
-        "1|0": 7,
-        "2|0": 7
+        "1|1": 0,
+        "2|2": 0,
+        "3|1": 0
       }
     }
   ]

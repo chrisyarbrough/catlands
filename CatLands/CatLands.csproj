@@ -15,4 +15,8 @@
     <ItemGroup>
       <ProjectReference Include="..\CatLands.Shared\CatLands.Shared.csproj" />
     </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Assets\Maps\" />
+    </ItemGroup>
 </Project>
