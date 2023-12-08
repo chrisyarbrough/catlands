@@ -14,6 +14,9 @@ public class TileBrushWindow : Window
 	private Coord? selectedCoord;
 	private bool keepOriginalLayout = true;
 	private bool wasMouseOverSceneViewLastFrame;
+	private Coord? lastHoveredGridCoord;
+	private Rectangle[]? screenRects;
+	private readonly DirectionalInputAction directionalInputAction = new();
 
 	public TileBrushWindow() : base("Tile Brush")
 	{
@@ -54,6 +57,7 @@ public class TileBrushWindow : Window
 		if (mouseOverWindow == false && wasMouseOverSceneViewLastFrame)
 		{
 			// When leaving the window, remove the preview brush.
+			lastHoveredGridCoord = null;
 			MapDisplay.RemovePreview();
 			SceneView.RepaintAll();
 		}
@@ -81,13 +85,49 @@ public class TileBrushWindow : Window
 			if (gridCoord != lastHoveredGridCoord)
 			{
 				lastHoveredGridCoord = gridCoord;
-				MapDisplay.AddPreview(new TileRenderInfo(layerIndex, gridCoord, tileId));
+				MapDisplay.SetPreview(new TileRenderInfo(layerIndex, gridCoord, tileId));
+				SceneView.RepaintAll();
+			}
+		}
+
+		if (directionalInputAction.Begin(out Coord direction) && screenRects != null)
+		{
+			Vector2 startCenter = screenRects[tileId].Center();
+			int closestTileId = tileId;
+			float closestDistance = float.MaxValue;
+
+			for (int i = 0; i < screenRects.Length; i++)
+			{
+				if (i == tileId)
+					continue;
+
+				Vector2 targetCenter = screenRects[i].Center();
+				Vector2 diff = targetCenter - startCenter;
+
+				bool isInDirection = (direction.X < 0 && diff.X < 0) ||
+				                     (direction.X > 0 && diff.X > 0) ||
+				                     (direction.Y < 0 && diff.Y < 0) ||
+				                     (direction.Y > 0 && diff.Y > 0);
+
+				if (isInDirection)
+				{
+					float distance = diff.LengthSquared();
+					if (distance < closestDistance)
+					{
+						closestDistance = distance;
+						closestTileId = i;
+					}
+				}
+			}
+
+			tileId = closestTileId;
+			if (lastHoveredGridCoord != null)
+			{
+				MapDisplay.RefreshPreview(new TileRenderInfo(layerIndex, lastHoveredGridCoord.Value, tileId));
 				SceneView.RepaintAll();
 			}
 		}
 	}
-
-	private Coord lastHoveredGridCoord;
 
 	public override void OnSceneGui()
 	{
@@ -155,6 +195,9 @@ public class TileBrushWindow : Window
 		Vector2 offset = ImGui.GetCursorPos();
 		const int upscale = 2;
 
+		if (screenRects == null || screenRects.Length != atlas.SpriteRects.Count)
+			screenRects = new Rectangle[atlas.SpriteRects.Count];
+
 		for (int i = 0; i < atlas.SpriteRects.Count; i++)
 		{
 			Rectangle rect = atlas.SpriteRects[i];
@@ -174,6 +217,12 @@ public class TileBrushWindow : Window
 				this.tileId = i;
 				Prefs.Set("TileBrushWindow.TileId", tileId);
 			}
+
+			screenRects[i] = new Rectangle(
+				ImGui.GetItemRectMin().X,
+				ImGui.GetItemRectMin().Y,
+				ImGui.GetItemRectMax().X - ImGui.GetItemRectMin().X,
+				ImGui.GetItemRectMax().Y - ImGui.GetItemRectMin().Y);
 
 			if (keepOriginalLayout == false)
 			{

@@ -26,10 +26,18 @@ public class MapDisplay : GameObject
 		}
 	}
 
-	public static void AddPreview(TileRenderInfo preview)
+	public static void SetPreview(TileRenderInfo preview)
 	{
 		MapDisplay.preview = preview;
 		drawPreview = true;
+	}
+
+	public static void RefreshPreview(TileRenderInfo preview)
+	{
+		if (drawPreview)
+		{
+			MapDisplay.preview = preview;
+		}
 	}
 
 	public static void RemovePreview()
