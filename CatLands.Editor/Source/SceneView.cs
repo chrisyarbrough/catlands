@@ -4,8 +4,6 @@ using ImGuiNET;
 using Raylib_cs;
 using System.Numerics;
 using rlImGui_cs;
-using Shared;
-using SpriteEditor;
 
 public class SceneView : Window
 {
@@ -18,12 +16,19 @@ public class SceneView : Window
 	/// </summary>
 	public bool IsMouseOverWindow { get; private set; }
 
-	public float CameraZoom => cameraController.State.Zoom;
+	public float CameraZoom
+	{
+		get => cameraController.State.Zoom;
+		set
+		{
+			cameraController.SetZoom(value);
+			Repaint();
+		}
+	}
 
 	private readonly CameraController cameraController;
 
 	private RenderTexture2D target;
-	private Shader spriteShader;
 	private readonly RedrawIndicator redrawIndicator = new();
 
 	private Vector2 gameViewportPos;
@@ -38,7 +43,6 @@ public class SceneView : Window
 	public override void Setup()
 	{
 		Console.WriteLine(Directory.GetCurrentDirectory());
-		spriteShader = Raylib.LoadShader(null, "Assets/Sprites.glsl");
 		Map.CurrentChanged += OnCurrentChanged;
 	}
 
@@ -61,7 +65,8 @@ public class SceneView : Window
 		return ImGuiWindowFlags.NoScrollbar |
 		       ImGuiWindowFlags.NoScrollWithMouse |
 		       ImGuiWindowFlags.NoCollapse |
-		       ImGuiWindowFlags.MenuBar;
+		       ImGuiWindowFlags.MenuBar |
+		       ImGuiWindowFlags.NoBringToFrontOnFocus;
 	}
 
 	protected override void DrawContent()
@@ -115,6 +120,8 @@ public class SceneView : Window
 			redrawIndicator.DrawFrame();
 
 		ImGui.PopStyleVar();
+
+		CameraWidget.Draw(this);
 	}
 
 	public static void RepaintAll()
@@ -135,15 +142,16 @@ public class SceneView : Window
 
 		MainWindow.OnSceneGui();
 
-		Raylib.EndTextureMode();
 
 		if (EnableGrid)
 			DrawGrid();
 
+		cameraController.End();
+
+		Raylib.EndTextureMode();
+
 		if (IsMouseOverWindow && DebugMode.Enabled)
 			DrawMousePosition();
-
-		cameraController.End();
 
 		redrawIndicator.AdvanceFrame();
 	}
@@ -153,13 +161,6 @@ public class SceneView : Window
 		ImGui.BeginMenuBar();
 		if (Map.Current != null)
 			ImGui.MenuItem("Name: " + Path.GetFileNameWithoutExtension(Map.Current.FilePath), enabled: false);
-
-		ImGui.Spacing();
-		if (ImGui.MenuItem("Reset Camera", enabled: Map.Current != null))
-		{
-			cameraController.Reset();
-			Repaint();
-		}
 
 		ImGui.EndMenuBar();
 	}
@@ -185,7 +186,7 @@ public class SceneView : Window
 			ImGui.SetWindowFocus(Name);
 		}
 
-		cameraController.Update(canBeginInputAction: isMouseInHotRect);
+		cameraController.Update(canBeginInputAction: isMouseInHotRect && ImGui.IsWindowHovered());
 	}
 
 	public Vector2 ViewportCenter()
@@ -211,5 +212,11 @@ public class SceneView : Window
 		Vector2 mousePosScreen = Raylib.GetMousePosition();
 		Vector2 viewportNormalized = (mousePosScreen - gameViewportPos) / gameViewportSize;
 		return viewportNormalized;
+	}
+
+	public void ResetCamera()
+	{
+		cameraController.Reset();
+		Repaint();
 	}
 }

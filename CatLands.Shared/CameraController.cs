@@ -66,7 +66,7 @@ public class CameraController
 			// under the cursor to the screen space point under the cursor at any zoom
 			Camera.Target = mouseWorldPos;
 
-			Zoom(Raylib.GetMouseWheelMove());
+			ApplyZoomDelta(Raylib.GetMouseWheelMove());
 			OnChanged();
 		}
 	}
@@ -82,12 +82,17 @@ public class CameraController
 		}
 	}
 
-	public void Zoom(float delta)
+	public void ApplyZoomDelta(float delta)
 	{
 		const float zoomSpeed = 0.125f;
 		float zoomFactor = (float)Math.Log(Camera.Zoom + 1, 10) * zoomSpeed;
+		SetZoom(Camera.Zoom + delta * zoomFactor);
+	}
+
+	public void SetZoom(float zoom)
+	{
 		Camera.Zoom = Math.Clamp(
-			Camera.Zoom + delta * zoomFactor,
+			zoom,
 			CameraMinZoom,
 			CameraMaxZoom);
 	}

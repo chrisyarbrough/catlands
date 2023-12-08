@@ -6,6 +6,7 @@ using ImGuiNET;
 internal class RedrawIndicator
 {
 	private int frame;
+	private int direction = 1;
 
 	private readonly uint[] colors;
 
@@ -15,13 +16,17 @@ internal class RedrawIndicator
 		for (int i = 0; i < colors.Length; i++)
 		{
 			float t = i / (float)colors.Length;
-			colors[i] = ImGui.ColorConvertFloat4ToU32(new Vector4(t, 1f - t, t, 1f));
+			colors[i] = ImGui.ColorConvertFloat4ToU32(new Vector4(t, t, t, 1f));
 		}
 	}
 
 	public void AdvanceFrame()
 	{
-		frame = (frame + 1) % colors.Length;
+		frame += direction;
+		if (frame == 0 || frame == colors.Length - 1)
+		{
+			direction *= -1;
+		}
 	}
 
 	public void DrawFrame()

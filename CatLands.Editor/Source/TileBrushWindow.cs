@@ -51,11 +51,6 @@ public class TileBrushWindow : Window
 
 		bool mouseOverWindow = SceneView.Current.IsMouseOverWindow;
 
-		if (Raylib.GetMouseDelta().LengthSquared() > 0f && mouseOverWindow)
-		{
-			SceneView.RepaintAll();
-		}
-
 		if (mouseOverWindow == false && wasMouseOverSceneViewLastFrame)
 		{
 			// When leaving the window, remove the preview brush.
@@ -77,7 +72,22 @@ public class TileBrushWindow : Window
 				SceneView.RepaintAll();
 			}
 		}
+
+		if (mouseOverWindow)
+		{
+			Vector2 mouseWorldPosition = SceneView.Current.GetMouseWorldPosition();
+			Coord gridCoord = Grid.WorldToCoord(mouseWorldPosition);
+
+			if (gridCoord != lastHoveredGridCoord)
+			{
+				lastHoveredGridCoord = gridCoord;
+				MapDisplay.AddPreview(new TileRenderInfo(layerIndex, gridCoord, tileId));
+				SceneView.RepaintAll();
+			}
+		}
 	}
+
+	private Coord lastHoveredGridCoord;
 
 	public override void OnSceneGui()
 	{
@@ -100,8 +110,6 @@ public class TileBrushWindow : Window
 
 	private void DrawBrushIndicator(Coord gridCoord, int rectSize, float lineThickness)
 	{
-		MapDisplay.AddPreview(new TileRenderInfo(layerIndex, gridCoord, tileId));
-
 		// Outline
 		Coord screenPos = Grid.CoordToWorld(gridCoord);
 		var rect = new Rectangle(screenPos.X, screenPos.Y, rectSize, rectSize);
@@ -125,7 +133,6 @@ public class TileBrushWindow : Window
 
 		DrawTileDropdown(atlas);
 		ImGui.Checkbox("Original Layout", ref keepOriginalLayout);
-		ImGui.NewLine();
 
 		ImGui.BeginChild("Tileset");
 		DrawTileSelector(atlas, textureId);
