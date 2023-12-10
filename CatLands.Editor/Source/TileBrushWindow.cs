@@ -54,6 +54,9 @@ public class TileBrushWindow : Window
 		if (SceneView.Current == null || Map.Current == null || Map.Current.LayerCount == 0)
 			return;
 
+		if (MapTextures.TextureCount <= layerIndex || layerIndex == -1)
+			return;
+
 		string textureId = Map.Current.GetLayer(layerIndex).TexturePath;
 		SpriteAtlas atlas = MapTextures.GetAtlas(textureId);
 		bool mouseOverWindow = SceneView.Current.IsMouseOverWindow;

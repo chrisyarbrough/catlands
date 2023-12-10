@@ -18,6 +18,7 @@ public static class UndoManager
 		{
 			redoStack.Push(spriteAtlas.GetMemento());
 			spriteAtlas.SetMemento(undoStack.Pop());
+			SaveDirtyTracker.EvaluateDirty(spriteAtlas);
 		}
 	}
 
@@ -27,6 +28,7 @@ public static class UndoManager
 		{
 			undoStack.Push(spriteAtlas.GetMemento());
 			spriteAtlas.SetMemento(redoStack.Pop());
+			SaveDirtyTracker.EvaluateDirty(spriteAtlas);
 		}
 	}
 }

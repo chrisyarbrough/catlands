@@ -91,4 +91,12 @@ public static class RectangleExtensions
 			rectangle.Width + size * 2,
 			rectangle.Height + size * 2);
 	}
+
+	public static bool HasSameValues(this Rectangle rectangle, Rectangle other)
+	{
+		return Math.Abs(rectangle.X - other.X) <= float.Epsilon &&
+		       Math.Abs(rectangle.Y - other.Y) <= float.Epsilon &&
+		       Math.Abs(rectangle.Width - other.Width) <= float.Epsilon &&
+		       Math.Abs(rectangle.Height - other.Height) <= float.Epsilon;
+	}
 }

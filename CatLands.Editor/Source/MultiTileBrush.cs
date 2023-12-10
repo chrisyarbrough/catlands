@@ -88,7 +88,7 @@ public class MultiTileBrush : Brush
 
 		Vector2 textureCoord = (ImGui.GetMousePos() - offset) / upscale;
 
-		if (ImGui.IsMouseClicked(ImGuiMouseButton.Left) && ImGui.IsItemHovered())
+		if (ImGui.IsMouseClicked(ImGuiMouseButton.Left) && ImGui.IsWindowHovered())
 		{
 			selectionStart = textureCoord;
 			isSelecting = true;

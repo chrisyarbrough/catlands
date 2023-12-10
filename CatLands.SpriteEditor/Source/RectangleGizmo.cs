@@ -57,12 +57,12 @@ public class RectangleGizmo
 	{
 		SettingsWindow.Add("Gizmos", () =>
 		{
-			ImGui.Checkbox("Snap to pixel (S)", ref SnapToPixel);
-			if (Raylib.IsKeyPressed(KeyboardKey.KEY_S))
+			ImGui.Checkbox("Snap to pixel (G)", ref SnapToPixel);
+			if (Raylib.IsKeyPressed(KeyboardKey.KEY_G))
 				SnapToPixel = !SnapToPixel;
 
-			ImGui.Checkbox("Draw Gizmos (G)", ref DrawGizmos);
-			if (Raylib.IsKeyPressed(KeyboardKey.KEY_G))
+			ImGui.Checkbox("Draw Gizmos (T)", ref DrawGizmos);
+			if (Raylib.IsKeyPressed(KeyboardKey.KEY_T))
 				DrawGizmos = !DrawGizmos;
 		});
 	}
@@ -71,6 +71,8 @@ public class RectangleGizmo
 		Rectangle gizmoRect, int controlId, Vector2 mouseWorldPos, Camera2D camera, SpriteAtlas spriteAtlas,
 		UpdatePhase phase, bool isHovered)
 	{
+		Rectangle originalRect = gizmoRect;
+
 		// To keep the same screen size.
 		float scaleFactor = 1.0f / camera.Zoom;
 
@@ -149,6 +151,9 @@ public class RectangleGizmo
 				Raylib.DrawRing(handleRects[i].Center(), 3f * scaleFactor, 6f * scaleFactor, 0f, 360f, 16, Color.BLUE);
 			}
 		}
+
+		if (!gizmoRect.HasSameValues(originalRect))
+			SaveDirtyTracker.MarkDirty();
 
 		return gizmoRect;
 	}

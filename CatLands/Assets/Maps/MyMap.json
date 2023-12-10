@@ -9,6 +9,10 @@
         "2|2": 0,
         "3|1": 0
       }
+    },
+    {
+      "texturePath": "Assets/Tilesets/Building parts/Wooden House.png",
+      "tiles": {}
     }
   ]
 }
