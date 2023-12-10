@@ -1,22 +1,22 @@
 namespace CatLands.Editor;
 
-using System.Numerics;
-using System.Text;
 using ImGuiNET;
 using NativeFileDialogSharp;
-using Raylib_cs;
 using SpriteEditor;
 
 public class TileBrushWindow : Window
 {
 	private int layerIndex = -1;
-	private int tileId = -1;
-	private Coord? selectedCoord;
-	private bool keepOriginalLayout = true;
-	private bool wasMouseOverSceneViewLastFrame;
-	private Coord? lastHoveredGridCoord;
-	private Rectangle[]? screenRects;
-	private readonly DirectionalInputAction directionalInputAction = new();
+
+	private readonly Brush[] brushes =
+	{
+		new SingleTileBrush(),
+		new MultiTileBrush()
+	};
+
+	private int brushIndex;
+
+	private Brush CurrentBrush => brushes[brushIndex];
 
 	public TileBrushWindow() : base("Tile Brush")
 	{
@@ -25,7 +25,11 @@ public class TileBrushWindow : Window
 	public override void Setup()
 	{
 		layerIndex = Prefs.Get("TileBrushWindow.LayerIndex", defaultValue: layerIndex);
-		tileId = Prefs.Get("TileBrushWindow.TileId", defaultValue: tileId);
+		brushIndex = Prefs.Get("TileBrushWindow.BrushIndex", defaultValue: brushIndex);
+
+		foreach (Brush brush in brushes)
+			brush.Initialize();
+
 		Map.CurrentChanged += OnCurrentChanged;
 	}
 
@@ -41,10 +45,8 @@ public class TileBrushWindow : Window
 		else
 			layerIndex = -1;
 
-		if (Map.Current != null && Map.Current.LayerCount > 0 && Map.Current.Layers.First().Tiles.Any())
-			tileId = 0;
-		else
-			tileId = -1;
+		foreach (Brush brush in brushes)
+			brush.OnLayersChanged();
 	}
 
 	public override void Update()
@@ -52,108 +54,13 @@ public class TileBrushWindow : Window
 		if (SceneView.Current == null || Map.Current == null || Map.Current.LayerCount == 0)
 			return;
 
+		string textureId = Map.Current.GetLayer(layerIndex).TexturePath;
+		SpriteAtlas atlas = MapTextures.GetAtlas(textureId);
 		bool mouseOverWindow = SceneView.Current.IsMouseOverWindow;
 
-		if (mouseOverWindow == false && wasMouseOverSceneViewLastFrame)
-		{
-			// When leaving the window, remove the preview brush.
-			lastHoveredGridCoord = null;
-			MapDisplay.RemovePreview();
-			SceneView.RepaintAll();
-		}
-
-		wasMouseOverSceneViewLastFrame = mouseOverWindow;
-
-		if (mouseOverWindow && Raylib.IsMouseButtonDown(MouseButton.MOUSE_BUTTON_LEFT))
-		{
-			Vector2 mouseWorldPosition = SceneView.Current.GetMouseWorldPosition();
-			Coord gridCoord = Grid.WorldToCoord(mouseWorldPosition);
-
-			if (selectedCoord != gridCoord)
-			{
-				selectedCoord = gridCoord;
-				CommandManager.Execute(new MapEditCommand(Map.Current, layerIndex, gridCoord, tileId));
-				SceneView.RepaintAll();
-			}
-		}
-
-		if (mouseOverWindow)
-		{
-			Vector2 mouseWorldPosition = SceneView.Current.GetMouseWorldPosition();
-			Coord gridCoord = Grid.WorldToCoord(mouseWorldPosition);
-
-			if (gridCoord != lastHoveredGridCoord)
-			{
-				lastHoveredGridCoord = gridCoord;
-				MapDisplay.SetPreview(new TileRenderInfo(layerIndex, gridCoord, tileId));
-				SceneView.RepaintAll();
-			}
-		}
-
-		if (directionalInputAction.Begin(out Coord direction) && screenRects != null)
-		{
-			Vector2 startCenter = screenRects[tileId].Center();
-			int closestTileId = tileId;
-			float closestDistance = float.MaxValue;
-
-			for (int i = 0; i < screenRects.Length; i++)
-			{
-				if (i == tileId)
-					continue;
-
-				Vector2 targetCenter = screenRects[i].Center();
-				Vector2 diff = targetCenter - startCenter;
-
-				bool isInDirection = (direction.X < 0 && diff.X < 0) ||
-				                     (direction.X > 0 && diff.X > 0) ||
-				                     (direction.Y < 0 && diff.Y < 0) ||
-				                     (direction.Y > 0 && diff.Y > 0);
-
-				if (isInDirection)
-				{
-					float distance = diff.LengthSquared();
-					if (distance < closestDistance)
-					{
-						closestDistance = distance;
-						closestTileId = i;
-					}
-				}
-			}
-
-			tileId = closestTileId;
-			if (lastHoveredGridCoord != null)
-			{
-				MapDisplay.RefreshPreview(new TileRenderInfo(layerIndex, lastHoveredGridCoord.Value, tileId));
-				SceneView.RepaintAll();
-			}
-		}
-	}
-
-	public override void OnSceneGui()
-	{
-		if (Map.Current == null || layerIndex == -1 || tileId == -1 || Map.Current.LayerCount == 0)
-			return;
+		CurrentBrush.Update(atlas, layerIndex, mouseOverWindow);
 
 		layerIndex = Math.Clamp(layerIndex, 0, Map.Current.LayerCount - 1);
-
-		if (SceneView.Current != null && SceneView.Current.IsMouseOverWindow)
-		{
-			Vector2 mouseWorldPosition = SceneView.Current.GetMouseWorldPosition();
-			Coord gridCoord = Grid.WorldToCoord(mouseWorldPosition);
-
-			float scaleFactor = 1.0f / SceneView.Current.CameraZoom;
-			float lineWidth = 2 * scaleFactor;
-
-			DrawBrushIndicator(gridCoord, Grid.TileRenderSize, lineWidth);
-		}
-	}
-
-	private void DrawBrushIndicator(Coord gridCoord, int rectSize, float lineThickness)
-	{
-		// Outline
-		Coord screenPos = Grid.CoordToWorld(gridCoord);
-		var rect = new Rectangle(screenPos.X, screenPos.Y, rectSize, rectSize);
-		Raylib.DrawRectangleLinesEx(rect, lineThickness, Color.RED);
 	}
 
 	protected override void DrawContent()
@@ -171,115 +78,29 @@ public class TileBrushWindow : Window
 		string textureId = Map.Current.GetLayer(layerIndex).TexturePath;
 		SpriteAtlas atlas = MapTextures.GetAtlas(textureId);
 
-		DrawTileDropdown(atlas);
-		ImGui.Checkbox("Original Layout", ref keepOriginalLayout);
+		DrawToolSelection();
 
-		ImGui.BeginChild("Tileset");
-		DrawTileSelector(atlas, textureId);
-		ImGui.EndChild();
+		CurrentBrush.DrawUI(atlas, textureId);
 	}
 
-	private void DrawTileSelector(SpriteAtlas atlas, string textureId)
+	private void DrawToolSelection()
 	{
-		Texture2D tileset = MapTextures.GetTexture(textureId);
-		var tileSetPointer = new IntPtr(tileset.Id);
-
-		ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(1, 1));
-		ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(0, 0));
-
-
-		float rightEdge = ImGui.GetWindowPos().X + ImGui.GetContentRegionMax().X;
-		Vector2 selectedRectMin = default;
-		Vector2 selectedRectMax = default;
-
-		Vector2 offset = ImGui.GetCursorPos();
-		const int upscale = 2;
-
-		if (screenRects == null || screenRects.Length != atlas.SpriteRects.Count)
-			screenRects = new Rectangle[atlas.SpriteRects.Count];
-
-		for (int i = 0; i < atlas.SpriteRects.Count; i++)
+		for (int i = 0; i < brushes.Length; i++)
 		{
-			Rectangle rect = atlas.SpriteRects[i];
-
-			if (keepOriginalLayout)
-				ImGui.SetCursorPos(offset + new Vector2(rect.X, rect.Y) * upscale);
-
-			ImGui.Image(
-				tileSetPointer,
-				new Vector2(rect.Width, rect.Height) * upscale,
-				new Vector2(rect.X / tileset.Width, rect.Y / tileset.Height),
-				new Vector2(rect.xMax() / tileset.Width, rect.yMax() / tileset.Height));
-
-			// Drawing an image and then checking for the click is much faster than using the ImageButton.
-			if (ImGui.IsItemClicked())
-			{
-				this.tileId = i;
-				Prefs.Set("TileBrushWindow.TileId", tileId);
-			}
-
-			screenRects[i] = new Rectangle(
-				ImGui.GetItemRectMin().X,
-				ImGui.GetItemRectMin().Y,
-				ImGui.GetItemRectMax().X - ImGui.GetItemRectMin().X,
-				ImGui.GetItemRectMax().Y - ImGui.GetItemRectMin().Y);
-
-			if (keepOriginalLayout == false)
-			{
-				float itemRightEdge = ImGui.GetItemRectMax().X;
-				if (rightEdge - itemRightEdge >= 32)
-					ImGui.SameLine();
-			}
-
-			if (i == tileId)
-			{
-				selectedRectMin = ImGui.GetItemRectMin();
-				selectedRectMax = ImGui.GetItemRectMax();
-			}
-
-			if (ImGui.IsItemHovered())
-			{
-				DrawRect(ImGui.GetItemRectMin(), ImGui.GetItemRectMax(), new Vector4(0.9f, 0.1f, 0.1f, 0.35f));
-			}
+			if (ImGui.RadioButton(brushes[i].DisplayName, ref brushIndex, i))
+				Prefs.Set("TileBrushWindow.BrushIndex", i);
 		}
-
-		DrawRect(selectedRectMin, selectedRectMax, new Vector4(1f, 0f, 0f, 1f));
-
-
-		ImGui.PopStyleVar();
-		ImGui.PopStyleVar();
-	}
-
-	private static void DrawRect(Vector2 min, Vector2 max, Vector4 color)
-	{
-		ImGui.GetWindowDrawList().AddRect(
-			min + Vector2.One * 0.5f,
-			max - Vector2.One * 0.5f,
-			ImGui.ColorConvertFloat4ToU32(color),
-			rounding: 0,
-			ImDrawFlags.None,
-			thickness: 2);
-	}
-
-	private void DrawTileDropdown(SpriteAtlas atlas)
-	{
-		var sb = new StringBuilder();
-
-		for (int i = 0; i < atlas.SpriteRects.Count; i++)
-		{
-			sb.Append(i).Append('\0');
-		}
-
-		if (ImGui.Combo("Tile", ref tileId, sb.ToString()))
-			Prefs.Set("TileBrushWindow.TileId", tileId);
 	}
 
 	private void DrawLayerDropdown()
 	{
+		// TODO: draw layers one by one (maybe in separate layer window) to select it via single click.
 		string[] options = Map.Current!.Layers.Select(x => x.Name).ToArray();
 		if (ImGui.Combo("Layer", ref layerIndex, options, options.Length))
 		{
-			tileId = 0;
+			foreach (Brush brush in brushes)
+				brush.Initialize();
+
 			Prefs.Set("TileBrushWindow.LayerIndex", layerIndex);
 		}
 
@@ -293,7 +114,8 @@ public class TileBrushWindow : Window
 				var command = new AddLayerCommand(Map.Current, result.Path);
 				CommandManager.Execute(command);
 				layerIndex = command.AddedLayerId;
-				tileId = 0;
+				foreach (Brush brush in brushes)
+					brush.OnLayersChanged();
 			}
 		}
 	}

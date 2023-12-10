@@ -2,6 +2,7 @@ namespace CatLands.Editor;
 
 using Newtonsoft.Json;
 
+// TODO: Turn into object/value classes.
 public static class Prefs
 {
 	private static readonly FileInfo file = new(Path.Combine(AppContext.BaseDirectory, "Prefs.json"));

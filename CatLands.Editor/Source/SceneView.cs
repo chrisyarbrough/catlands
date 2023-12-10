@@ -138,10 +138,9 @@ public class SceneView : Window
 		cameraController.Begin();
 
 		foreach (GameObject gameObject in Scene.Current.Children)
-			gameObject.OnSceneGui();
+			gameObject.OnSceneGui(cameraController.State);
 
 		MainWindow.OnSceneGui();
-
 
 		if (EnableGrid)
 			DrawGrid();

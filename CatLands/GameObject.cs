@@ -1,5 +1,7 @@
 namespace CatLands;
 
+using Raylib_cs;
+
 public class GameObject
 {
 	public string Name
@@ -48,10 +50,11 @@ public class GameObject
 	/// <summary>
 	/// An editor callback invoked by each SceneView when it renders.
 	/// </summary>
-	public virtual void OnSceneGui()
+	/// <param name="camera"></param>
+	public virtual void OnSceneGui(Camera2D camera)
 	{
 		foreach (GameObject child in children)
-			child.OnSceneGui();
+			child.OnSceneGui(camera);
 	}
 
 	public void AddChild(GameObject gameObject) => children.Add(gameObject);

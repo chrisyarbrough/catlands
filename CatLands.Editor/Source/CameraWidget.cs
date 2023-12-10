@@ -7,13 +7,13 @@ using System.Numerics;
 public static class CameraWidget
 {
 	private static readonly IntPtr iconPtr;
-	private static readonly Vector2 size = new(48, 48);
-	private static readonly int[] zoomLevels = { 50, 100, 150 };
+	private static readonly Vector2 size = new(44, 44);
+	private static readonly int[] zoomLevels = { 25, 50, 75, 100, 150, 200 };
 
 	static CameraWidget()
 	{
 		Texture2D iconTexture = Raylib.LoadTexture(
-			"/Users/christopher.yarbrough/repos/CatLands/CatLands.Editor/EditorAssets/camera-icon.png");
+			"../CatLands.Editor/EditorAssets/camera-icon.png");
 
 		Raylib.SetTextureFilter(iconTexture, TextureFilter.TEXTURE_FILTER_BILINEAR);
 		iconPtr = new IntPtr(iconTexture.Id);
@@ -48,7 +48,7 @@ public static class CameraWidget
 		{
 			foreach (int zoomLevel in zoomLevels)
 			{
-				if (ImGui.Button(zoomLevel + "%"))
+				if (ImGui.Button(zoomLevel + "%", new Vector2(50, 25)))
 				{
 					sceneView.CameraZoom = zoomLevel / 100f;
 					ImGui.CloseCurrentPopup();
@@ -58,6 +58,7 @@ public static class CameraWidget
 			if (ImGui.Button("Reset All"))
 			{
 				sceneView.ResetCamera();
+				ImGui.CloseCurrentPopup();
 			}
 		}
 
