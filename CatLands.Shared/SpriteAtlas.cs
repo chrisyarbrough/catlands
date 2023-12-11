@@ -18,18 +18,23 @@ public class SpriteAtlas
 	}
 
 	public Vector2 TextureSize => new(texture.Width, texture.Height);
+	public IList<Animation> Animations => animations;
 
 	private Texture2D texture;
 	private List<Rectangle> spriteRects = new();
+	private List<Animation> animations = new();
 
 	public string GetMemento()
 	{
-		return JsonConvert.SerializeObject(spriteRects, Formatting.Indented);
+		return JsonConvert.SerializeObject(new { spriteRects, animations }, Formatting.Indented);
 	}
 
 	public void SetMemento(string json)
 	{
-		spriteRects = JsonConvert.DeserializeObject<List<Rectangle>>(json)!;
+		var v = new { spriteRects, animations };
+		v = JsonConvert.DeserializeAnonymousType(json, v)!;
+		this.spriteRects = v.spriteRects;
+		this.animations = v.animations;
 	}
 
 	public void Save()
@@ -42,10 +47,10 @@ public class SpriteAtlas
 	public static SpriteAtlas Load(string textureFilePath)
 	{
 		Console.WriteLine("Loading sprite atlas: " + textureFilePath);
-		
+
 		if (textureFilePath.EndsWith(".json"))
 			throw new ArgumentException("Sprite atlas should be loaded by passing the texture file path.");
-		
+
 		return new SpriteAtlas(textureFilePath);
 	}
 
@@ -72,5 +77,17 @@ public class SpriteAtlas
 	{
 		spriteRects.Clear();
 		slicer.Invoke(texture, spriteRects);
+	}
+
+	public void Add(Animation animation)
+	{
+		animations.Add(animation);
+	}
+
+	public int Add(Rectangle spriteRect)
+	{
+		int id = spriteRects.Count;
+		spriteRects.Add(spriteRect);
+		return id;
 	}
 }

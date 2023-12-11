@@ -164,6 +164,7 @@ internal class Program
 				Raylib.DrawTextureV(spriteAtlas.Texture, position, Color.WHITE);
 
 				SettingsWindow.Draw();
+				AnimationEditor.Draw(spriteAtlas);
 
 				if (RectangleGizmo.DrawGizmos)
 				{
@@ -273,6 +274,8 @@ internal class Program
 				{
 					UndoManager.RecordSnapshot(spriteAtlas);
 
+					// TODO: Removing rects will cause all tile IDs to shift and break existing maps.
+					// Probably better to use more stable ids for the tiles.
 					foreach (int i in Selection.GetSelection().OrderByDescending(x => x))
 						spriteAtlas.SpriteRects.RemoveAt(i);
 
@@ -290,6 +293,34 @@ internal class Program
 				          Raylib.IsKeyDown(KeyboardKey.KEY_LEFT_CONTROL)))
 				{
 					UndoManager.Redo(spriteAtlas);
+				}
+
+				// Merge selected rects.
+				if (Raylib.IsKeyPressed(KeyboardKey.KEY_M) && Selection.HasSelection() && !ImGui.GetIO().WantCaptureKeyboard)
+				{
+					Rectangle mergedRect = spriteAtlas.SpriteRects[Selection.GetSelection().First()];
+
+					foreach (int i in Selection.GetSelection())
+					{
+						Rectangle spriteRect = spriteAtlas.SpriteRects[i];
+
+						// Expand the mergedRect to include the current spriteRect
+						float minX = Math.Min(mergedRect.X, spriteRect.X);
+						float minY = Math.Min(mergedRect.Y, spriteRect.Y);
+						float maxX = Math.Max(mergedRect.X + mergedRect.Width, spriteRect.X + spriteRect.Width);
+						float maxY = Math.Max(mergedRect.Y + mergedRect.Height, spriteRect.Y + spriteRect.Height);
+
+						mergedRect.X = minX;
+						mergedRect.Y = minY;
+						mergedRect.Width = maxX - minX;
+						mergedRect.Height = maxY - minY;
+					}
+					
+					foreach (int i in Selection.GetSelection().OrderByDescending(x => x))
+						spriteAtlas.SpriteRects.RemoveAt(i);
+					
+					int id = spriteAtlas.Add(mergedRect);
+					Selection.SetSingleSelection(id);
 				}
 			}
 

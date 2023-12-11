@@ -58,11 +58,11 @@ public class RectangleGizmo
 		SettingsWindow.Add("Gizmos", () =>
 		{
 			ImGui.Checkbox("Snap to pixel (G)", ref SnapToPixel);
-			if (Raylib.IsKeyPressed(KeyboardKey.KEY_G))
+			if (Raylib.IsKeyPressed(KeyboardKey.KEY_G) && !ImGui.GetIO().WantCaptureKeyboard)
 				SnapToPixel = !SnapToPixel;
 
 			ImGui.Checkbox("Draw Gizmos (T)", ref DrawGizmos);
-			if (Raylib.IsKeyPressed(KeyboardKey.KEY_T))
+			if (Raylib.IsKeyPressed(KeyboardKey.KEY_T) && !ImGui.GetIO().WantCaptureKeyboard)
 				DrawGizmos = !DrawGizmos;
 		});
 	}
