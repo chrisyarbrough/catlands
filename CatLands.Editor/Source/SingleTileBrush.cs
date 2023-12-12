@@ -162,11 +162,8 @@ public class SingleTileBrush : Brush
 			if (keepOriginalLayout)
 				ImGui.SetCursorPos(offset + new Vector2(rect.X, rect.Y) * upscale);
 
-			ImGui.Image(
-				tileSetPointer,
-				new Vector2(rect.Width, rect.Height) * upscale,
-				new Vector2(rect.X / tileset.Width, rect.Y / tileset.Height),
-				new Vector2(rect.xMax() / tileset.Width, rect.yMax() / tileset.Height));
+			atlas.GetRenderInfo(i, out Vector2 size, out Vector2 uv0, out Vector2 uv1);
+			ImGui.Image(tileSetPointer, size * upscale, uv0, uv1);
 
 			// Drawing an image and then checking for the click is much faster than using the ImageButton.
 			if (ImGui.IsItemClicked())

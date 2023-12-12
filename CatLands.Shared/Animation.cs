@@ -23,6 +23,12 @@ public class Animation
 		}
 	}
 
+	public int FrameCount => frames.Count;
+
+	public bool Loop = true;
+
+	public Frame FrameAt(int index) => frames[index];
+
 	private string name = string.Empty;
 	private List<Frame> frames = new();
 

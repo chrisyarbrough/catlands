@@ -164,7 +164,7 @@ internal class Program
 				Raylib.DrawTextureV(spriteAtlas.Texture, position, Color.WHITE);
 
 				SettingsWindow.Draw();
-				AnimationEditor.Draw(spriteAtlas);
+				AnimationSelectorWindow.Draw(spriteAtlas);
 
 				if (RectangleGizmo.DrawGizmos)
 				{

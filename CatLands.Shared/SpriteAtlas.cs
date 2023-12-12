@@ -90,4 +90,12 @@ public class SpriteAtlas
 		spriteRects.Add(spriteRect);
 		return id;
 	}
+
+	public void GetRenderInfo(int tileId, out Vector2 size, out Vector2 uv0, out Vector2 uv1)
+	{
+		Rectangle rect = spriteRects[tileId];
+		size = new Vector2(rect.Width, rect.Height);
+		uv0 = new Vector2(rect.X / texture.Width, rect.Y / texture.Height);
+		uv1 = new Vector2(rect.xMax() / texture.Width, rect.yMax() / texture.Height);
+	}
 }
