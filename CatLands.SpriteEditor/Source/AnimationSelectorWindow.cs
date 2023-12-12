@@ -4,20 +4,25 @@ using ImGuiNET;
 
 internal class AnimationSelectorWindow
 {
-	private static int selectedAnimationIndex;
+	private readonly AnimationEditorData data;
 
 	private const ImGuiTableFlags tableFlags =
 		ImGuiTableFlags.Resizable | ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders;
 
-	public static void Draw(SpriteAtlas spriteAtlas)
+	public AnimationSelectorWindow(AnimationEditorData data)
+	{
+		this.data = data;
+	}
+
+	public void Draw(SpriteAtlas spriteAtlas)
 	{
 		ImGui.ShowDemoWindow();
 		DrawAnimationsSelectionWindow(spriteAtlas);
-		AnimationEditorWindow.Draw(spriteAtlas, selectedAnimationIndex);
-		AnimationPreviewWindow.Draw(spriteAtlas, selectedAnimationIndex);
+		AnimationEditorWindow.Draw(spriteAtlas, data.selectedAnimationIndex);
+		AnimationPreviewWindow.Draw(spriteAtlas, data.selectedAnimationIndex);
 	}
 
-	private static void DrawAnimationsSelectionWindow(SpriteAtlas spriteAtlas)
+	private void DrawAnimationsSelectionWindow(SpriteAtlas spriteAtlas)
 	{
 		if (ImGui.Begin("Animations"))
 		{
@@ -52,11 +57,11 @@ internal class AnimationSelectorWindow
 				ImGui.TableSetColumnIndex(0);
 				if (ImGui.Selectable(
 					    i.ToString(),
-					    selectedAnimationIndex == i,
+					    data.selectedAnimationIndex == i,
 					    ImGuiSelectableFlags.SpanAllColumns,
 					    new Vector2(0, 17)))
 				{
-					selectedAnimationIndex = i;
+					data.selectedAnimationIndex = i;
 				}
 
 				ImGui.TableSetColumnIndex(1);

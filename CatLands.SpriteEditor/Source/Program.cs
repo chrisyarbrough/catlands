@@ -21,6 +21,8 @@ internal class Program
 		CheckerBackground checkerBackground = new();
 		List<int> hoveredRects = new();
 		int hoveredControl = -1;
+		AnimationEditorData animationEditorData = new();
+		AnimationSelectorWindow animationSelectorWindow = new(animationEditorData);
 
 		Vector2 GetTextureSize()
 		{
@@ -95,6 +97,7 @@ internal class Program
 			checkerBackground.Refresh(spriteAtlas.TextureSize);
 			camera.Reset();
 			SaveDirtyTracker.MarkClean(spriteAtlas!);
+			animationEditorData.SetSpriteAtlas(spriteAtlas);
 		}
 
 		void Update()
@@ -149,7 +152,6 @@ internal class Program
 			ImGui.EndMainMenuBar();
 		}
 
-
 		void DrawScene()
 		{
 			Raylib.SetMouseCursor(MouseCursor.MOUSE_CURSOR_DEFAULT);
@@ -164,7 +166,7 @@ internal class Program
 				Raylib.DrawTextureV(spriteAtlas.Texture, position, Color.WHITE);
 
 				SettingsWindow.Draw();
-				AnimationSelectorWindow.Draw(spriteAtlas);
+				animationSelectorWindow.Draw(spriteAtlas);
 
 				if (RectangleGizmo.DrawGizmos)
 				{

@@ -3,26 +3,27 @@ namespace CatLands.SpriteEditor;
 public class AnimationPlayer
 {
 	public float Speed = 1f;
-	
-	private Animation currentAnimation;
-	private int currentFrameIndex;
+
+	private Animation? animation;
+	private int frameIndex;
 	private float elapsedTimeInFrame;
 
-	public AnimationPlayer(Animation animation)
+	public void SetAnimation(Animation animation)
 	{
-		currentAnimation = animation;
-		currentFrameIndex = 0;
-		elapsedTimeInFrame = 0.0f;
+		this.animation = animation;
+		this.frameIndex = 0;
+		this.elapsedTimeInFrame = 0f;
 	}
 
-	public int Update(float deltaTime)
+	public bool Update(float deltaTime, out int frameIndex)
 	{
-		if (currentAnimation.FrameCount == 0)
+		if (animation == null || animation.FrameCount == 0)
 		{
-			return -1;
+			frameIndex = -1;
+			return false;
 		}
 
-		Animation.Frame currentFrame = currentAnimation.Frames[currentFrameIndex];
+		Animation.Frame currentFrame = animation.Frames[this.frameIndex];
 
 		elapsedTimeInFrame += deltaTime * Math.Abs(Speed);
 
@@ -33,15 +34,16 @@ public class AnimationPlayer
 		{
 			elapsedTimeInFrame -= currentFrame.Duration;
 
-			currentFrameIndex += Math.Sign(Speed);
+			this.frameIndex += Math.Sign(Speed);
 
-			if (currentFrameIndex < 0)
-				currentFrameIndex = currentAnimation.Frames.Count - 1;
+			if (this.frameIndex < 0)
+				this.frameIndex = animation.Frames.Count - 1;
 
-			else if (currentFrameIndex >= currentAnimation.Frames.Count)
-				currentFrameIndex = 0;
+			else if (this.frameIndex >= animation.Frames.Count)
+				this.frameIndex = 0;
 		}
 
-		return currentFrameIndex;
+		frameIndex = this.frameIndex;
+		return true;
 	}
 }

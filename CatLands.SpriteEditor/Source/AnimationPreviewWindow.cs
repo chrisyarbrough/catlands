@@ -6,24 +6,26 @@ using Raylib_cs;
 internal class AnimationPreviewWindow
 {
 	private static IntPtr texturePtr;
-	private static AnimationPlayer? player;
+	private static AnimationPlayer player = new();
+	private static int lastSelectedIndex = -1;
 
 	public static void Draw(SpriteAtlas spriteAtlas, int selectedAnimationIndex)
 	{
 		if (ImGui.Begin("Animation Preview"))
 		{
 			Animation animation = spriteAtlas.Animations[selectedAnimationIndex];
-			if (player == null)
+			
+			if (selectedAnimationIndex != lastSelectedIndex)
 			{
-				player = new AnimationPlayer(animation);
+				player.SetAnimation(animation);
 				texturePtr = new IntPtr(spriteAtlas.Texture.Id);
+				lastSelectedIndex = selectedAnimationIndex;
 			}
 			else
 			{
 				ImGui.DragFloat("Speed", ref player.Speed, v_speed: 0.1f, float.MinValue, float.MaxValue);
 
-				int frame = player.Update(Raylib.GetFrameTime());
-				if (frame != -1)
+				if (player.Update(Raylib.GetFrameTime(), out int frame))
 				{
 					int tileId = animation.FrameAt(frame).TileId;
 					spriteAtlas.GetRenderInfo(tileId, out Vector2 size, out Vector2 uv0, out Vector2 uv1);
