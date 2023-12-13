@@ -1,4 +1,5 @@
 using System.Numerics;
+using CatLands;
 using CatLands.SpriteEditor;
 using ImGuiNET;
 using Raylib_cs;
@@ -6,33 +7,63 @@ using Raylib_cs;
 internal class AnimationPreviewWindow
 {
 	private static IntPtr texturePtr;
-	private static AnimationPlayer player = new();
+	private static AnimationPlayer? player;
 	private static int lastSelectedIndex = -1;
+	private static Texture2D playIcon, pauseIcon;
+
+	static AnimationPreviewWindow()
+	{
+		playIcon = Raylib.LoadTexture("play.png");
+		pauseIcon = Raylib.LoadTexture("pause.png");
+	}
 
 	public static void Draw(SpriteAtlas spriteAtlas, int selectedAnimationIndex)
 	{
 		if (ImGui.Begin("Animation Preview"))
 		{
 			Animation animation = spriteAtlas.Animations[selectedAnimationIndex];
-			
+
 			if (selectedAnimationIndex != lastSelectedIndex)
 			{
-				player.SetAnimation(animation);
+				player = new OptimizedAnimationPlayer(animation);
 				texturePtr = new IntPtr(spriteAtlas.Texture.Id);
 				lastSelectedIndex = selectedAnimationIndex;
 			}
-			else
-			{
-				ImGui.DragFloat("Speed", ref player.Speed, v_speed: 0.1f, float.MinValue, float.MaxValue);
 
-				if (player.Update(Raylib.GetFrameTime(), out int frame))
-				{
-					int tileId = animation.FrameAt(frame).TileId;
-					spriteAtlas.GetRenderInfo(tileId, out Vector2 size, out Vector2 uv0, out Vector2 uv1);
-					size = FitToWindow(size);
-					ImGui.Image(texturePtr, size, uv0, uv1);
-				}
+			IntPtr icon = player!.IsPlaying ? new IntPtr(pauseIcon.Id) : new IntPtr(playIcon.Id);
+			if (ImGui.ImageButton("PlayPauseButton", icon, playIcon.Size()))
+			{
+				if (player.IsPlaying)
+					player.Pause();
+				else
+					player.Play();
 			}
+
+			ImGui.SameLine();
+
+			ImGui.DragFloat("Speed", ref player.Speed, v_speed: 0.1f, float.MinValue, float.MaxValue);
+
+			player.Update(Raylib.GetFrameTime());
+
+			int tileId = animation.FrameAt(player.FrameIndex).TileId;
+			spriteAtlas.GetRenderInfo(tileId, out Vector2 size, out Vector2 uv0, out Vector2 uv1);
+			size = FitToWindow(size);
+			ImGui.Image(texturePtr, size, uv0, uv1);
+
+			ImGui.BeginDisabled(player.IsPlaying);
+			int frameIndex = player.FrameIndex;
+			if (ImGui.SliderInt("Frame", ref frameIndex, 0, animation.FrameCount - 1))
+			{
+				player.FrameIndex = frameIndex;
+			}
+
+			float normalizedProgress = player.NormalizedTime;
+			if (ImGui.SliderFloat("Cycle Progress", ref normalizedProgress, 0f, 1f))
+			{
+				player.NormalizedTime = normalizedProgress;
+			}
+
+			ImGui.EndDisabled();
 		}
 
 		ImGui.End();

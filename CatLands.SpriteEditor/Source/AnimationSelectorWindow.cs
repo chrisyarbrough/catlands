@@ -16,7 +16,6 @@ internal class AnimationSelectorWindow
 
 	public void Draw(SpriteAtlas spriteAtlas)
 	{
-		ImGui.ShowDemoWindow();
 		DrawAnimationsSelectionWindow(spriteAtlas);
 		AnimationEditorWindow.Draw(spriteAtlas, data.selectedAnimationIndex);
 		AnimationPreviewWindow.Draw(spriteAtlas, data.selectedAnimationIndex);
@@ -71,7 +70,7 @@ internal class AnimationSelectorWindow
 				ImGui.Text(animation.Frames.Count.ToString());
 
 				ImGui.TableSetColumnIndex(3);
-				ImGui.Text($"{animation.Duration.TotalSeconds:F2}s");
+				ImGui.Text($"{animation.Duration:F2}s");
 			}
 
 			ImGui.EndTable();

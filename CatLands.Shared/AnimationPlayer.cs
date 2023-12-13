@@ -2,48 +2,88 @@ namespace CatLands.SpriteEditor;
 
 public class AnimationPlayer
 {
-	public float Speed = 1f;
+	private float time;
 
-	private Animation? animation;
-	private int frameIndex;
-	private float elapsedTimeInFrame;
+	private readonly Animation animation;
 
-	public void SetAnimation(Animation animation)
+	public AnimationPlayer(Animation animation)
 	{
 		this.animation = animation;
-		this.frameIndex = 0;
-		this.elapsedTimeInFrame = 0f;
+		Reset();
 	}
 
-	public bool Update(float deltaTime, out int frameIndex)
+	public void Update(float deltaTime)
 	{
-		if (animation == null || animation.FrameCount == 0)
+		if (IsPlaying == false)
+			return;
+
+		time += deltaTime * Speed;
+
+		if (time >= animation.Duration)
+			time -= animation.Duration;
+		else if (time < 0)
+			time += animation.Duration;
+	}
+
+	public void Reset() => time = 0f;
+	public void Play() => IsPlaying = true;
+	public void Pause() => IsPlaying = false;
+
+	public void Stop()
+	{
+		Pause();
+		Reset();
+	}
+
+	public float Speed = 1f;
+
+	public bool IsPlaying { get; private set; } = true;
+
+	/// <summary>
+	/// The animation time in seconds within one cycle.
+	/// </summary>
+	public float Time => time;
+
+	/// <summary>
+	/// The animation time within one cycle in the range 0 to 1.
+	/// </summary>
+	public float NormalizedTime
+	{
+		get => time / animation.Duration;
+		set => time = value * animation.Duration;
+	}
+
+	public virtual int FrameIndex
+	{
+		get
 		{
-			frameIndex = -1;
-			return false;
+			float sampledTime = 0f;
+
+			for (int frameIndex = 0; frameIndex < animation.FrameCount; frameIndex++)
+			{
+				sampledTime += animation.FrameDurationAt(frameIndex);
+
+				if (sampledTime > time)
+					return frameIndex;
+			}
+
+			if (sampledTime >= time)
+				return animation.FrameCount - 1;
+
+			throw new Exception("Failed to sample animation at time: " + time);
 		}
-
-		Animation.Frame currentFrame = animation.Frames[this.frameIndex];
-
-		elapsedTimeInFrame += deltaTime * Math.Abs(Speed);
-
-		// Handle large deltaTime or speed values by capping the frame duration.
-		elapsedTimeInFrame = Math.Min(elapsedTimeInFrame, currentFrame.Duration);
-
-		if (elapsedTimeInFrame >= currentFrame.Duration)
+		set
 		{
-			elapsedTimeInFrame -= currentFrame.Duration;
+			if (value < 0 || value > animation.FrameCount)
+			{
+				throw new ArgumentOutOfRangeException(nameof(value),
+					$"Frame {value} is out of range. Must be greater 0 and less than {animation.FrameCount}.");
+			}
 
-			this.frameIndex += Math.Sign(Speed);
+			time = 0f;
 
-			if (this.frameIndex < 0)
-				this.frameIndex = animation.Frames.Count - 1;
-
-			else if (this.frameIndex >= animation.Frames.Count)
-				this.frameIndex = 0;
+			for (int frameIndex = 0; frameIndex < value; frameIndex++)
+				time += animation.FrameDurationAt(frameIndex);
 		}
-
-		frameIndex = this.frameIndex;
-		return true;
 	}
 }

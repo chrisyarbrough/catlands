@@ -14,20 +14,18 @@ public class Animation
 		set => frames = value;
 	}
 
-	public TimeSpan Duration
-	{
-		get
-		{
-			float totalDuration = frames.Sum(frame => frame.Duration);
-			return TimeSpan.FromSeconds(totalDuration);
-		}
-	}
+	/// <summary>
+	/// The time in seconds of one complete animation cycle.
+	/// </summary>
+	public float Duration => frames.Sum(frame => frame.Duration);
 
 	public int FrameCount => frames.Count;
 
 	public bool Loop = true;
 
 	public Frame FrameAt(int index) => frames[index];
+
+	public float FrameDurationAt(int index) => frames[index].Duration;
 
 	private string name = string.Empty;
 	private List<Frame> frames = new();

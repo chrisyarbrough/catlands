@@ -23,6 +23,7 @@ internal class Program
 		int hoveredControl = -1;
 		AnimationEditorData animationEditorData = new();
 		AnimationSelectorWindow animationSelectorWindow = new(animationEditorData);
+		bool showDemoWindow = false;
 
 		Vector2 GetTextureSize()
 		{
@@ -107,6 +108,9 @@ internal class Program
 
 			DrawMenu();
 			DrawScene();
+
+			if (showDemoWindow)
+				ImGui.ShowDemoWindow();
 		}
 
 		void DrawMenu()
@@ -147,6 +151,12 @@ internal class Program
 			{
 				slicer.DrawGui(spriteAtlas);
 				ImGui.EndPopup();
+			}
+
+			if (ImGui.BeginMenu("Window"))
+			{
+				ImGui.MenuItem("Show Demo", "", ref showDemoWindow);
+				ImGui.EndMenu();
 			}
 
 			ImGui.EndMainMenuBar();
@@ -191,7 +201,7 @@ internal class Program
 						}
 
 						// Chose the rect with the smallest area.
-						if (hoveredRects.Count > 0)
+						if (hoveredRects.Count > 0 && !ImGui.GetIO().WantCaptureMouse)
 						{
 							hoveredControl = hoveredRects.OrderBy(i => spriteAtlas.SpriteRects[i].Area()).First();
 							spriteAtlas.SpriteRects[hoveredControl] = RectangleGizmo.Draw(
@@ -298,7 +308,8 @@ internal class Program
 				}
 
 				// Merge selected rects.
-				if (Raylib.IsKeyPressed(KeyboardKey.KEY_M) && Selection.HasSelection() && !ImGui.GetIO().WantCaptureKeyboard)
+				if (Raylib.IsKeyPressed(KeyboardKey.KEY_M) && Selection.HasSelection() &&
+				    !ImGui.GetIO().WantCaptureKeyboard)
 				{
 					Rectangle mergedRect = spriteAtlas.SpriteRects[Selection.GetSelection().First()];
 
@@ -317,10 +328,10 @@ internal class Program
 						mergedRect.Width = maxX - minX;
 						mergedRect.Height = maxY - minY;
 					}
-					
+
 					foreach (int i in Selection.GetSelection().OrderByDescending(x => x))
 						spriteAtlas.SpriteRects.RemoveAt(i);
-					
+
 					int id = spriteAtlas.Add(mergedRect);
 					Selection.SetSingleSelection(id);
 				}
