@@ -2,7 +2,7 @@ namespace CatLands;
 
 public interface IAnimationPlayer
 {
-	bool IsPlaying { get; }
+	bool IsPlaying { get; set; }
 
 	/// <summary>
 	/// The animation time in seconds within one cycle.

@@ -6,7 +6,7 @@ public class SimpleAnimationPlayer : IAnimationPlayer
 
 	private readonly Animation animation;
 
-	public bool IsPlaying { get; private set; } = true;
+	public bool IsPlaying { get; set; } = true;
 
 	public float Time
 	{
@@ -21,7 +21,13 @@ public class SimpleAnimationPlayer : IAnimationPlayer
 
 	public float NormalizedTime
 	{
-		get => Time / animation.Duration;
+		get
+		{
+			if (animation.FrameCount == 0)
+				return 0f;
+
+			return Time / animation.Duration;
+		}
 		set
 		{
 			float elapsedTime = Math.Clamp(value, 0.0f, 1.0f) * animation.Duration;

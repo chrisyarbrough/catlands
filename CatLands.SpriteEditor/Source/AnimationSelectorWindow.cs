@@ -20,6 +20,7 @@ internal class AnimationSelectorWindow
 		DrawAnimationsSelectionWindow(spriteAtlas);
 		AnimationEditorWindow.Draw(spriteAtlas, data.selectedAnimationIndex);
 		AnimationPreviewWindow.Draw(spriteAtlas, data.selectedAnimationIndex);
+		AnimationTimelineWindow.Draw(data);
 	}
 
 	private void DrawAnimationsSelectionWindow(SpriteAtlas spriteAtlas)

@@ -2,7 +2,7 @@ namespace CatLands.SpriteEditor;
 
 internal class AnimationEditorData
 {
-	private SpriteAtlas spriteAtlas;
+	public SpriteAtlas spriteAtlas;
 	public int selectedAnimationIndex;
 
 	public void SetSpriteAtlas(SpriteAtlas spriteAtlas)

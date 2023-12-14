@@ -37,7 +37,7 @@ public class AnimationPlayer : IAnimationPlayer
 
 	public float Speed { get; set; } = 1f;
 
-	public bool IsPlaying { get; private set; } = true;
+	public bool IsPlaying { get; set; } = true;
 
 	/// <summary>
 	/// The animation time in seconds within one cycle.

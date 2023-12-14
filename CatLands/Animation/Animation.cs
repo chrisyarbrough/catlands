@@ -21,6 +21,10 @@ public class Animation
 
 	public int FrameCount => frames.Count;
 
+	public int FirstFrameIndex => 0;
+
+	public int LastFrameIndex => frames.Count - 1;
+
 	public bool Loop = true;
 
 	public Frame FrameAt(int index) => frames[index];

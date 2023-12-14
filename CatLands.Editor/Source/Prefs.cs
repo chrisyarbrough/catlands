@@ -2,22 +2,36 @@ namespace CatLands.Editor;
 
 using Newtonsoft.Json;
 
-// TODO: Turn into object/value classes.
 public static class Prefs
 {
 	private static readonly FileInfo file = new(Path.Combine(AppContext.BaseDirectory, "Prefs.json"));
-	private static readonly Dictionary<string, string> prefs = new();
+	private static readonly Dictionary<string, object> prefs = new();
 
-	public static void Set(string key, string value)
+	public static void Set(string key, object value)
 	{
 		prefs[key] = value;
 		Save();
 	}
 
-	public static void Set(string key, int value)
+	public static bool TryGet<T>(string key, out T? value)
 	{
-		prefs[key] = value.ToString();
-		Save();
+		if (prefs.TryGetValue(key, out object? obj))
+		{
+			value = (T)obj;
+			return true;
+		}
+
+		value = default;
+		return false;
+	}
+
+
+	public static T? Get<T>(string key, T? defaultValue = default)
+	{
+		if (TryGet(key, out T? value))
+			return value;
+
+		return defaultValue;
 	}
 
 	public static void Remove(string key)
@@ -42,30 +56,5 @@ public static class Prefs
 		var data = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
 		foreach (KeyValuePair<string, string> pair in data!)
 			prefs[pair.Key] = pair.Value;
-	}
-
-	public static bool TryGet(string key, out string value)
-	{
-		return prefs.TryGetValue(key, out value!);
-	}
-
-	public static bool TryGet(string key, out int value)
-	{
-		value = default;
-		return prefs.TryGetValue(key, out string? stringValue) && int.TryParse(stringValue, out value);
-	}
-
-	public static int Get(string key, int defaultValue)
-	{
-		if (TryGet(key, out int value))
-			return value;
-		return defaultValue;
-	}
-
-	public static string Get(string key, string defaultValue)
-	{
-		if (TryGet(key, out string value))
-			return value;
-		return defaultValue;
 	}
 }

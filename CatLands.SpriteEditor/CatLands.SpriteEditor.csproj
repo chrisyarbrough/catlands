@@ -23,6 +23,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\CatLands.Editor\CatLands.Editor.csproj" />
         <ProjectReference Include="..\CatLands.Shared\CatLands.Shared.csproj" />
         <ProjectReference Include="..\CatLands\CatLands.csproj" />
     </ItemGroup>
