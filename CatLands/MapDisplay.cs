@@ -1,7 +1,6 @@
 namespace CatLands;
 
 using Raylib_cs;
-using SpriteEditor;
 using System.Numerics;
 
 public class MapDisplay : GameObject

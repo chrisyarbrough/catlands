@@ -2,7 +2,6 @@ namespace CatLands.Editor;
 
 using ImGuiNET;
 using NativeFileDialogSharp;
-using SpriteEditor;
 
 public class TileBrushWindow : Window
 {

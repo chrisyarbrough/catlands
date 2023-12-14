@@ -1,5 +1,6 @@
+namespace CatLands.SpriteEditor;
+
 using System.Numerics;
-using CatLands.SpriteEditor;
 using ImGuiNET;
 
 internal class AnimationSelectorWindow

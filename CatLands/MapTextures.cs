@@ -1,7 +1,6 @@
 namespace CatLands;
 
 using Raylib_cs;
-using SpriteEditor;
 
 public static class MapTextures
 {

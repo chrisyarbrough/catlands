@@ -1,6 +1,6 @@
-namespace CatLands.SpriteEditor;
+namespace CatLands;
 
-public class AnimationPlayer
+public class AnimationPlayer : IAnimationPlayer
 {
 	private float time;
 
@@ -35,7 +35,7 @@ public class AnimationPlayer
 		Reset();
 	}
 
-	public float Speed = 1f;
+	public float Speed { get; set; } = 1f;
 
 	public bool IsPlaying { get; private set; } = true;
 

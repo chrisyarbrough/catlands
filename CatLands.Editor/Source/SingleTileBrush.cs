@@ -4,7 +4,6 @@ using System.Numerics;
 using System.Text;
 using ImGuiNET;
 using Raylib_cs;
-using SpriteEditor;
 
 public class SingleTileBrush : Brush
 {

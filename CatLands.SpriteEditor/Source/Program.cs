@@ -1,6 +1,7 @@
-﻿using System.Numerics;
+﻿namespace CatLands.SpriteEditor;
+
+using System.Numerics;
 using CatLands;
-using CatLands.SpriteEditor;
 using ImGuiNET;
 using NativeFileDialogSharp;
 using Raylib_cs;

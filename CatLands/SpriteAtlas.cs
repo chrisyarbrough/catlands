@@ -1,4 +1,4 @@
-namespace CatLands.SpriteEditor;
+namespace CatLands;
 
 using System.Numerics;
 using Newtonsoft.Json;

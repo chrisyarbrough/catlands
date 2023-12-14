@@ -3,7 +3,6 @@ namespace CatLands.Editor;
 using System.Numerics;
 using ImGuiNET;
 using Raylib_cs;
-using SpriteEditor;
 
 public class MultiTileBrush : Brush
 {

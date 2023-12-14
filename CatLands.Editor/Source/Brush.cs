@@ -2,7 +2,6 @@ namespace CatLands.Editor;
 
 using System.Numerics;
 using ImGuiNET;
-using SpriteEditor;
 
 public abstract class Brush
 {

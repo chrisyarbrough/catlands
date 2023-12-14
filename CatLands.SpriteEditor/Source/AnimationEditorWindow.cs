@@ -1,4 +1,5 @@
-using CatLands.SpriteEditor;
+namespace CatLands.SpriteEditor;
+
 using ImGuiNET;
 
 internal class AnimationEditorWindow

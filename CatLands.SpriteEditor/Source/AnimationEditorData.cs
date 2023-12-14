@@ -1,4 +1,4 @@
-using CatLands.SpriteEditor;
+namespace CatLands.SpriteEditor;
 
 internal class AnimationEditorData
 {

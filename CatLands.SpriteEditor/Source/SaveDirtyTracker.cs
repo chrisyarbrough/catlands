@@ -1,4 +1,5 @@
-using CatLands.SpriteEditor;
+namespace CatLands.SpriteEditor;
+
 using Raylib_cs;
 
 public static class SaveDirtyTracker

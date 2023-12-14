@@ -7,7 +7,7 @@ using Raylib_cs;
 internal class AnimationPreviewWindow
 {
 	private static IntPtr texturePtr;
-	private static AnimationPlayer? player;
+	private static IAnimationPlayer? player;
 	private static int lastSelectedIndex = -1;
 	private static Texture2D playIcon, pauseIcon;
 
@@ -25,7 +25,7 @@ internal class AnimationPreviewWindow
 
 			if (selectedAnimationIndex != lastSelectedIndex)
 			{
-				player = new OptimizedAnimationPlayer(animation);
+				player = new SimpleAnimationPlayer(animation);
 				texturePtr = new IntPtr(spriteAtlas.Texture.Id);
 				lastSelectedIndex = selectedAnimationIndex;
 			}
@@ -41,7 +41,9 @@ internal class AnimationPreviewWindow
 
 			ImGui.SameLine();
 
-			ImGui.DragFloat("Speed", ref player.Speed, v_speed: 0.1f, float.MinValue, float.MaxValue);
+			float speed = player.Speed;
+			if (ImGui.DragFloat("Speed", ref speed, v_speed: 0.1f, float.MinValue, float.MaxValue))
+				player.Speed = speed;
 
 			player.Update(Raylib.GetFrameTime());
 
@@ -53,15 +55,11 @@ internal class AnimationPreviewWindow
 			ImGui.BeginDisabled(player.IsPlaying);
 			int frameIndex = player.FrameIndex;
 			if (ImGui.SliderInt("Frame", ref frameIndex, 0, animation.FrameCount - 1))
-			{
 				player.FrameIndex = frameIndex;
-			}
 
 			float normalizedProgress = player.NormalizedTime;
 			if (ImGui.SliderFloat("Cycle Progress", ref normalizedProgress, 0f, 1f))
-			{
 				player.NormalizedTime = normalizedProgress;
-			}
 
 			ImGui.EndDisabled();
 		}
