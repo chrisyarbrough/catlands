@@ -78,6 +78,8 @@ public static class RectangleExtensions
 		return new Vector2(rectangle.xMax(), rectangle.yMax());
 	}
 
+	public static Vector2 Size(this Rectangle rectangle) => new(rectangle.Width, rectangle.Height);
+
 	public static float Area(this Rectangle rectangle)
 	{
 		return rectangle.Width * rectangle.Height;

@@ -68,6 +68,9 @@ internal class Program
 
 			rlImGui.Setup(darkTheme: true, enableDocking: true);
 			ImGui.PushStyleColor(ImGuiCol.WindowBg, new Vector4(0.125f, 0.125f, 0.125f, 1f));
+	
+			// Bug: the rounding causes a 1 pixel transparent gab between window title and content.
+			//ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 4f);
 
 			ImGui.GetIO().ConfigWindowsMoveFromTitleBarOnly = true;
 

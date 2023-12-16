@@ -79,18 +79,7 @@ internal class AnimationPreviewWindow
 
 		int tileId = animation.FrameAt(player.FrameIndex).TileId;
 		spriteAtlas.GetRenderInfo(tileId, out Vector2 size, out Vector2 uv0, out Vector2 uv1);
-		size = FitToWindow(size);
+		size = MathUtility.FitTo(size, ImGui.GetContentRegionAvail());
 		ImGui.Image(texturePtr, size, uv0, uv1);
-	}
-
-	private static Vector2 FitToWindow(Vector2 size)
-	{
-		Vector2 contentRegion = ImGui.GetContentRegionAvail();
-
-		float scaleX = contentRegion.X / size.X;
-		float scaleY = contentRegion.Y / size.Y;
-		float minScale = Math.Min(scaleX, scaleY);
-
-		return new Vector2(size.X * minScale, size.Y * minScale);
 	}
 }
