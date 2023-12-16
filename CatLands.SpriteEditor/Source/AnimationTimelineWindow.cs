@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Numerics;
 using CatLands;
 using CatLands.SpriteEditor;
@@ -11,43 +12,44 @@ internal class AnimationTimelineWindow
 	private static int? draggedSplitter;
 	private static bool debugDragArea = false;
 
+	private static readonly uint[] gridColors = new[] { U32Color.FromValue(0.5f), U32Color.FromValue(0.3f) };
+
 	public static void Draw(AnimationEditorData data)
 	{
 		if (ImGui.Begin("Timeline"))
 		{
-			ImGui.DragFloat("Scale", ref xScale, v_speed: 0.01f, v_min: 0.1f, v_max: 100f);
+			ImGui.DragFloat("Zoom", ref xScale, v_speed: 0.01f, v_min: 0.1f, v_max: 100f);
 
-			ImGui.BeginChild("TimelineChild", new Vector2(ImGui.GetContentRegionAvail().X, 170), true, ImGuiWindowFlags.HorizontalScrollbar);
-			
-			// ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 30);
+			ImGui.BeginChild("TimelineChild", new Vector2(ImGui.GetContentRegionAvail().X, 170), true,
+				ImGuiWindowFlags.HorizontalScrollbar);
+
 			Animation animation = data.spriteAtlas.Animations[data.selectedAnimationIndex];
+			
+			if (Raylib.GetMouseWheelMove() != 0)
+			{
+				xScale += Raylib.GetMouseWheelMove() * 0.02f;
+			}
 
 			float pos = ImGui.GetCursorPosX();
-			for (float time = 0; time <= animation.Duration; time += 1)
+			Vector2 cursor = ImGui.GetCursorScreenPos();
+			float height = 120;
+			for (float time = 0; time <= animation.Duration; time += 1f)
 			{
-				Vector2 frameStart = ImGui.GetCursorScreenPos();
+				float xPos = TimeToPixels(time);
+				Vector2 startPos = cursor + new Vector2(xPos, 0);
+				Vector2 endPos = startPos + new Vector2(0, height);
+				ImGui.GetWindowDrawList().AddLine(startPos, endPos, gridColors[0]);
 
-				Vector2 p = ImGui.GetCursorPos();
-				ImGui.SetCursorPos(new Vector2(p.X + 4, p.Y - 4));
+				ImGui.SetCursorScreenPos(new Vector2(cursor.X + xPos + 4, cursor.Y - 4));
 				ImGui.Text(time.ToString("N0"));
-				ImGui.SetCursorPos(p);
+				ImGui.SetCursorScreenPos(new Vector2(cursor.X + xPos, cursor.Y - 4));
 
-				ImGui.GetWindowDrawList().AddLine(frameStart, frameStart + new Vector2(0, 120), U32Color.FromValue(0.6f));
-				ImGui.SetCursorPosX(ImGui.GetCursorPosX() + TimeToPixels(1));
+				DrawGridRecursive(cursor, time, time + 1, xPos, TimeToPixels(time + 1f), 0f, height, level: 1);
 			}
+
 			ImGui.SetCursorPosX(pos);
-			
-			pos = ImGui.GetCursorPosX();
-			ImGui.SetCursorPosX(pos + TimeToPixels(0.5f));
-			for (float time = 0f; time < animation.Duration; time += 1f)
-			{
-				Vector2 frameStart = ImGui.GetCursorScreenPos();
-				ImGui.GetWindowDrawList().AddLine(frameStart + new Vector2(0, 10), frameStart + new Vector2(0, 100), U32Color.FromValue(0.4f));
-				ImGui.SetCursorPosX(ImGui.GetCursorPosX() + TimeToPixels(1f));
-			}
-			ImGui.SetCursorPosX(pos);
-			
-			ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 15);
+
+			ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 25);
 
 			DrawTimeline(data.spriteAtlas, animation);
 			ImGui.EndChild();
@@ -56,11 +58,42 @@ internal class AnimationTimelineWindow
 		ImGui.End();
 	}
 
+	private static void DrawGridRecursive(Vector2 cursor, float timeLeft, float timeRight, float startX, float endX,
+		float yPos, float height, int level)
+	{
+		const float minGridStepSize = 50;
+		if (endX - startX < minGridStepSize)
+			return;
+
+		float heightOffset = height * 0.03f;
+		float newYPos = yPos + heightOffset;
+		float newHeight = height - heightOffset * 2f;
+
+		// Draw mid.
+		float xMid = (startX + endX) * 0.5f;
+		Vector2 startPos = cursor + new Vector2(xMid, newYPos);
+		Vector2 endPos = new Vector2(startPos.X, startPos.Y + newHeight);
+		ImGui.GetWindowDrawList().AddLine(startPos, endPos, gridColors[level % 2]);
+
+		float timeMid = (timeLeft + timeRight) / 2f;
+
+		if (endX - startX > minGridStepSize * 2f)
+		{
+			ImGui.SetCursorScreenPos(new Vector2(cursor.X + xMid + 4, cursor.Y - 4));
+			ImGui.Text(timeMid.ToString("0.##", CultureInfo.InvariantCulture));
+			ImGui.SetCursorScreenPos(new Vector2(cursor.X + xMid, cursor.Y - 4));
+		}
+
+		float mid = (startX + endX) / 2f;
+		DrawGridRecursive(cursor, timeLeft, timeMid, startX, mid, newYPos, newHeight, level + 1);
+		DrawGridRecursive(cursor, timeMid, timeRight, mid, endX, newYPos, newHeight, level + 1);
+	}
+
 	private static void DrawTimeline(SpriteAtlas spriteAtlas, Animation animation)
 	{
-		HandleWindowDragging();
 		DrawFrames(spriteAtlas, animation);
 		HandleFrameResizing(animation);
+		HandleWindowDragging();
 	}
 
 	private static void HandleWindowDragging()
@@ -69,7 +102,7 @@ internal class AnimationTimelineWindow
 		    ImGui.GetIO().MouseDown[(int)ImGuiMouseButton.Middle])
 		{
 			ImGui.SetScrollX(ImGui.GetScrollX() - ImGui.GetIO().MouseDelta.X);
-			Raylib.SetMouseCursor(MouseCursor.MOUSE_CURSOR_RESIZE_ALL);
+			Cursor.Push(MouseCursor.MOUSE_CURSOR_RESIZE_ALL);
 		}
 	}
 
@@ -98,7 +131,8 @@ internal class AnimationTimelineWindow
 			ImGui.SetCursorScreenPos(new Vector2(rect.Center().X - fieldWidth / 2f, rect.Max().Y + 4));
 
 			float duration = frame.Duration;
-			if (ImGui.InputFloat($"##Duration{frameIndex}", ref duration, 0f, 0f, "%.2fs", ImGuiInputTextFlags.EnterReturnsTrue))
+			if (ImGui.InputFloat($"##Duration{frameIndex}", ref duration, 0f, 0f, "%.2fs",
+				    ImGuiInputTextFlags.EnterReturnsTrue))
 				frame.Duration = duration;
 
 			ImGui.SetCursorPos(pos);
@@ -115,6 +149,8 @@ internal class AnimationTimelineWindow
 			var dragAreaEnd = new Vector2(rect.xMax() + dragAreaSize, rect.yMax());
 
 			uint highlightColor = U32Color.FromValue(0.8f);
+			bool isHovered = false;
+
 			if (ImGui.IsMouseHoveringRect(dragAreaStart, dragAreaEnd))
 			{
 				highlightColor = U32Color.FromValue(1f);
@@ -124,7 +160,8 @@ internal class AnimationTimelineWindow
 					draggedSplitter = frameIndex;
 				}
 
-				Raylib.SetMouseCursor(MouseCursor.MOUSE_CURSOR_RESIZE_EW);
+				Cursor.Push(MouseCursor.MOUSE_CURSOR_RESIZE_EW);
+				isHovered = true;
 			}
 
 			if (frameIndex == draggedSplitter)
@@ -135,6 +172,13 @@ internal class AnimationTimelineWindow
 
 			if (debugDragArea)
 				ImGui.GetWindowDrawList().AddRect(dragAreaStart, dragAreaEnd, highlightColor);
+
+			if (isHovered || draggedSplitter == frameIndex)
+			{
+				Vector2 start = new Vector2((dragAreaStart.X + dragAreaEnd.X) * 0.5f, dragAreaStart.Y);
+				Vector2 end = new Vector2((dragAreaStart.X + dragAreaEnd.X) * 0.5f, dragAreaEnd.Y);
+				ImGui.GetWindowDrawList().AddLine(start, end, highlightColor);
+			}
 		}
 
 		if (draggedSplitter != null)
@@ -150,7 +194,7 @@ internal class AnimationTimelineWindow
 			}
 		}
 	}
-	
+
 	private static float TimeToPixels(float duration) => xScale * timelineHeight * duration;
 	private static float PixelsToTime(float pixels) => pixels / timelineHeight / xScale;
 

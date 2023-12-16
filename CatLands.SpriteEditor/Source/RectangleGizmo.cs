@@ -129,7 +129,7 @@ public class RectangleGizmo
 					DrawSizeLabels(gizmoRect, scaleFactor);
 				}
 
-				Raylib.SetMouseCursor(cursors[hotHandle]);
+				Cursor.Push(cursors[hotHandle]);
 
 				if (Raylib.IsMouseButtonReleased(MouseButton.MOUSE_BUTTON_LEFT))
 				{
@@ -140,7 +140,7 @@ public class RectangleGizmo
 			else if (hoveredHandle != -1)
 			{
 				Raylib.DrawRectangleRec(handleRects[hoveredHandle], GetHandleColor(hoveredHandle));
-				Raylib.SetMouseCursor(cursors[hoveredHandle]);
+				Cursor.Push(cursors[hoveredHandle]);
 			}
 		}
 

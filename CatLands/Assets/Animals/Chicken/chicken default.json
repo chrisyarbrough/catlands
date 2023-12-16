@@ -619,31 +619,31 @@
       "Frames": [
         {
           "TileId": 33,
-          "Duration": 0.25
+          "Duration": 1
         },
         {
           "TileId": 34,
-          "Duration": 0.25
+          "Duration": 1
         },
         {
           "TileId": 35,
-          "Duration": 0.25
+          "Duration": 1
         },
         {
           "TileId": 36,
-          "Duration": 0.25
+          "Duration": 1
         },
         {
           "TileId": 37,
-          "Duration": 0.25
+          "Duration": 1
         },
         {
           "TileId": 38,
-          "Duration": 0.25
+          "Duration": 1
         },
         {
           "TileId": 39,
-          "Duration": 0.25
+          "Duration": 1
         }
       ]
     }

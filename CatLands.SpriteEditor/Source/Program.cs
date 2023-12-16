@@ -68,7 +68,7 @@ internal class Program
 
 			rlImGui.Setup(darkTheme: true, enableDocking: true);
 			ImGui.PushStyleColor(ImGuiCol.WindowBg, new Vector4(0.125f, 0.125f, 0.125f, 1f));
-	
+
 			// Bug: the rounding causes a 1 pixel transparent gab between window title and content.
 			//ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 4f);
 
@@ -110,8 +110,10 @@ internal class Program
 			if (Raylib.IsKeyDown(KeyboardKey.KEY_LEFT_SUPER) && Raylib.IsKeyPressed(KeyboardKey.KEY_S))
 				Save(spriteAtlas);
 
+			Cursor.Reset();
 			DrawMenu();
 			DrawScene();
+			Cursor.Draw();
 
 			if (showDemoWindow)
 				ImGui.ShowDemoWindow();
@@ -168,7 +170,6 @@ internal class Program
 
 		void DrawScene()
 		{
-			Raylib.SetMouseCursor(MouseCursor.MOUSE_CURSOR_DEFAULT);
 			camera.Begin();
 			camera.Update(canBeginInputAction: !ImGui.GetIO().WantCaptureMouse);
 
