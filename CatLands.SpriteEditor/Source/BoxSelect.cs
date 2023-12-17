@@ -1,4 +1,5 @@
 using System.Numerics;
+using CatLands;
 using CatLands.SpriteEditor;
 using ImGuiNET;
 using Raylib_cs;
@@ -62,16 +63,6 @@ public static class BoxSelect
 	private static Rectangle CalculateRenderRect(Vector2 startPosition, Vector2 mousePosition)
 	{
 		// Create rectangle with positive width and height because Raylib doesn't draw inverted rects.
-		float minX = Math.Min(startPosition.X, mousePosition.X);
-		float minY = Math.Min(startPosition.Y, mousePosition.Y);
-		float maxX = Math.Max(startPosition.X, mousePosition.X);
-		float maxY = Math.Max(startPosition.Y, mousePosition.Y);
-
-		return new Rectangle(
-			minX,
-			minY,
-			maxX - minX,
-			maxY - minY
-		);
+		return RectangleExtensions.FromPoints(startPosition, mousePosition);
 	}
 }

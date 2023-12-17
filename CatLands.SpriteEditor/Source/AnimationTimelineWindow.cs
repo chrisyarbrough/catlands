@@ -11,8 +11,11 @@ internal class AnimationTimelineWindow
 	private static float xScale = 1f;
 	private static int? draggedSplitter;
 	private static bool debugDragArea = false;
+	private static HashSet<int> selection = new();
+	private static Vector2? mouseDownPos;
 
 	private static readonly uint[] gridColors = new[] { U32Color.FromValue(0.5f), U32Color.FromValue(0.3f) };
+	private const float dragAreaSize = 8f;
 
 	public static void Draw(AnimationEditorData data)
 	{
@@ -24,7 +27,7 @@ internal class AnimationTimelineWindow
 				ImGuiWindowFlags.HorizontalScrollbar);
 
 			Animation animation = data.spriteAtlas.Animations[data.selectedAnimationIndex];
-			
+
 			if (Raylib.GetMouseWheelMove() != 0)
 			{
 				xScale += Raylib.GetMouseWheelMove() * 0.02f;
@@ -93,7 +96,86 @@ internal class AnimationTimelineWindow
 	{
 		DrawFrames(spriteAtlas, animation);
 		HandleFrameResizing(animation);
+		HandleBoxSelect(animation);
 		HandleWindowDragging();
+	}
+
+	private static bool isResizingMultipleFrames;
+
+	private static void HandleBoxSelect(Animation animation)
+	{
+		if (draggedSplitter != null)
+			return;
+
+		Vector2 mousePos = Raylib.GetMousePosition();
+
+		if (selection.Count > 1)
+		{
+			float duration = animation.Frames.Take(selection.Max() + 1).Sum(x => x.Duration);
+			float x = TimeToPixels(duration);
+			Vector2 pos = ImGui.GetCursorScreenPos() + new Vector2(x + 20, 0f);
+			Vector2 pos2 = pos + new Vector2(0f, 100f);
+			ImGui.GetWindowDrawList().AddLine(pos, pos2, U32Color.Red);
+
+			var dragAreaStart = new Vector2(pos.X - dragAreaSize, pos.Y);
+			var dragAreaEnd = new Vector2(pos.X + dragAreaSize, pos.Y + 100f);
+
+			if (ImGui.IsMouseHoveringRect(dragAreaStart, dragAreaEnd))
+				Cursor.Push(MouseCursor.MOUSE_CURSOR_RESIZE_EW);
+
+			if (debugDragArea)
+				ImGui.GetWindowDrawList().AddRect(dragAreaStart, dragAreaEnd, U32Color.Green);
+
+			if (Raylib.IsMouseButtonPressed(MouseButton.MOUSE_BUTTON_LEFT) &&
+			    ImGui.IsMouseHoveringRect(dragAreaStart, dragAreaEnd))
+			{
+				isResizingMultipleFrames = true;
+			}
+
+			if (Raylib.IsMouseButtonReleased(MouseButton.MOUSE_BUTTON_LEFT))
+			{
+				isResizingMultipleFrames = false;
+			}
+
+			if (isResizingMultipleFrames)
+			{
+				float dragDelta = ImGui.GetIO().MouseDelta.X;
+				float draggedDurationDelta = PixelsToTime(dragDelta);
+				draggedDurationDelta /= selection.Count;
+				foreach (int frame in selection)
+				{
+					animation.FrameAt(frame).Duration += draggedDurationDelta;
+				}
+			}
+		}
+
+
+		if (ImGui.IsWindowHovered() && Raylib.IsMouseButtonPressed(MouseButton.MOUSE_BUTTON_LEFT) &&
+		    !isResizingMultipleFrames)
+		{
+			mouseDownPos = mousePos;
+			selection.Clear();
+		}
+
+
+		if (mouseDownPos != null)
+		{
+			ImGui.GetWindowDrawList().AddRect(mouseDownPos.Value, mousePos, U32Color.Red);
+		}
+
+		if (mouseDownPos != null && Raylib.IsMouseButtonReleased(MouseButton.MOUSE_BUTTON_LEFT))
+		{
+			foreach ((int frameIndex, Animation.Frame _, Rectangle rect) in GetFrameRects(animation))
+			{
+				var selectionRect = RectangleExtensions.FromPoints(mouseDownPos.Value, mousePos);
+				if (selectionRect.IsPointWithin(rect.Max()))
+				{
+					selection.Add(frameIndex);
+				}
+			}
+
+			mouseDownPos = null;
+		}
 	}
 
 	private static void HandleWindowDragging()
@@ -112,7 +194,9 @@ internal class AnimationTimelineWindow
 
 		foreach ((int frameIndex, Animation.Frame frame, Rectangle rect) in GetFrameRects(animation))
 		{
-			uint bgColor = frameIndex % 2 == 0 ? U32Color.FromValue(0.22f) : U32Color.FromValue(0.15f);
+			uint bgColor = frameIndex % 2 == 0
+				? U32Color.FromValue(0.22f, alpha: 0.8f)
+				: U32Color.FromValue(0.15f, alpha: 0.8f);
 			ImGui.GetWindowDrawList().AddRectFilled(rect.Min(), rect.Max(), bgColor);
 
 			// Draw preview.
@@ -144,7 +228,6 @@ internal class AnimationTimelineWindow
 		// Resize a frame rect to modify the duration.
 		foreach ((int frameIndex, Animation.Frame _, Rectangle rect) in GetFrameRects(animation))
 		{
-			const float dragAreaSize = 8f;
 			var dragAreaStart = new Vector2(rect.xMax() - dragAreaSize, rect.yMin());
 			var dragAreaEnd = new Vector2(rect.xMax() + dragAreaSize, rect.yMax());
 
@@ -164,7 +247,7 @@ internal class AnimationTimelineWindow
 				isHovered = true;
 			}
 
-			if (frameIndex == draggedSplitter)
+			if (frameIndex == draggedSplitter || selection.Contains(frameIndex))
 				highlightColor = U32Color.Orange;
 
 			if (ImGui.GetIO().MouseReleased[(int)ImGuiMouseButton.Left])
@@ -173,7 +256,7 @@ internal class AnimationTimelineWindow
 			if (debugDragArea)
 				ImGui.GetWindowDrawList().AddRect(dragAreaStart, dragAreaEnd, highlightColor);
 
-			if (isHovered || draggedSplitter == frameIndex)
+			if (isHovered || draggedSplitter == frameIndex || selection.Contains(frameIndex))
 			{
 				Vector2 start = new Vector2((dragAreaStart.X + dragAreaEnd.X) * 0.5f, dragAreaStart.Y);
 				Vector2 end = new Vector2((dragAreaStart.X + dragAreaEnd.X) * 0.5f, dragAreaEnd.Y);
@@ -181,7 +264,8 @@ internal class AnimationTimelineWindow
 			}
 		}
 
-		if (draggedSplitter != null)
+
+		if (selection.Count <= 1 && draggedSplitter != null)
 		{
 			// TODO: Deal with drag offset when scroll offset is changing.
 			float dragDelta = ImGui.GetIO().MouseDelta.X;

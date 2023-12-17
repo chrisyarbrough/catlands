@@ -101,4 +101,19 @@ public static class RectangleExtensions
 		       Math.Abs(rectangle.Width - other.Width) <= float.Epsilon &&
 		       Math.Abs(rectangle.Height - other.Height) <= float.Epsilon;
 	}
+
+	public static Rectangle FromPoints(Vector2 a, Vector2 b)
+	{
+		float minX = Math.Min(a.X, b.X);
+		float minY = Math.Min(a.Y, b.Y);
+		float maxX = Math.Max(a.X, b.X);
+		float maxY = Math.Max(a.Y, b.Y);
+
+		return new Rectangle(
+			minX,
+			minY,
+			maxX - minX,
+			maxY - minY
+		);
+	}
 }

@@ -23,7 +23,7 @@ public static class U32Color
 	/// <summary>
 	/// Converts color components [0..1] to a U32 representation.
 	/// </summary>
-	public static uint FromRGB(float r, float g, float b) => ImGui.ColorConvertFloat4ToU32(new Vector4(r, g, b, 1f));
+	public static uint FromRGB(float r, float g, float b, float a = 1f) => ImGui.ColorConvertFloat4ToU32(new Vector4(r, g, b, a));
 
-	public static uint FromValue(float value) => FromRGB(value, value, value);
+	public static uint FromValue(float value, float alpha = 1f) => FromRGB(value, value, value, alpha);
 }
