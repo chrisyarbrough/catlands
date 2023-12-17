@@ -11,7 +11,7 @@ public class SpriteEditorCamera : CameraController
 	public SpriteEditorCamera(Func<Vector2> getTextureSize)
 	{
 		this.getTextureSize = getTextureSize;
-		SettingsWindow.Add("Camera", DrawSettings);
+		SceneSettingsWindow.Add("Camera", DrawSettings);
 	}
 
 	public override void Reset()

@@ -2,67 +2,69 @@ namespace CatLands.SpriteEditor;
 
 using System.Numerics;
 using ImGuiNET;
+using Raylib_cs;
 
-internal class AnimationSelectorWindow
+internal class AnimationSelectorWindow : Window
 {
-	private readonly AnimationEditorData data;
+	private readonly AnimationEditor data;
 
 	private const ImGuiTableFlags tableFlags =
 		ImGuiTableFlags.Resizable | ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders;
 
-	public AnimationSelectorWindow(AnimationEditorData data)
+	public AnimationSelectorWindow(AnimationEditor data) : base("Animations")
 	{
 		this.data = data;
 	}
 
-	public void Draw(SpriteAtlas spriteAtlas)
+	protected override void DrawContent()
 	{
-		DrawAnimationsSelectionWindow(spriteAtlas);
-		AnimationEditorWindow.Draw(spriteAtlas, data.selectedAnimationIndex);
-		AnimationPreviewWindow.Draw(spriteAtlas, data.selectedAnimationIndex);
-		AnimationTimelineWindow.Draw(data);
-	}
-
-	private void DrawAnimationsSelectionWindow(SpriteAtlas spriteAtlas)
-	{
-		if (ImGui.Begin("Animations"))
+		if (ImGui.Button("Create New (N)") || Raylib.IsKeyPressed(KeyboardKey.KEY_N))
 		{
-			if (ImGui.Button("Create New"))
-			{
-				spriteAtlas.Add(new Animation()
-				{
-					Name = "New Animation",
-					Frames = Selection.GetSelection()
-						.Select(tileId => new Animation.Frame(tileId, 0.25f)).ToList(),
-				});
-				SaveDirtyTracker.MarkDirty();
-			}
+			AddNewAnimation();
+		}
 
-			ImGui.SameLine();
+		ImGui.SameLine();
 
-			HelpMarker(
-				"Select a range of tiles on the loaded sheet before creating a new animation to automatically add them as frames.");
+		ImGuiUtil.HelpMarker(
+			"Select a range of tiles on the loaded sheet before creating a new animation to automatically add them as frames.");
 
-			ImGui.BeginTable("Animations", 4, tableFlags);
+		ImGui.BeginDisabled(data.SelectedAnimationIndex == -1);
+		if (ImGui.Button("Delete"))
+		{
+			data.RemoveSelectedAnimation();
+		}
+
+		ImGui.EndDisabled();
+
+		if (ImGui.BeginTable("Animations", 4, tableFlags))
+		{
 			ImGui.TableSetupColumn("Id", ImGuiTableColumnFlags.WidthFixed, 40);
 			ImGui.TableSetupColumn("Name");
 			ImGui.TableSetupColumn("Frame Count");
 			ImGui.TableSetupColumn("Duration");
 			ImGui.TableHeadersRow();
 
-			for (int i = 0; i < spriteAtlas.Animations.Count; i++)
+			for (int i = 0; i < data.Animations.Count; i++)
 			{
-				Animation animation = spriteAtlas.Animations[i];
+				Animation animation = data.Animations[i];
 				ImGui.TableNextRow();
 
 				ImGui.TableSetColumnIndex(0);
 				if (ImGui.Selectable(
 					    i.ToString(),
-					    data.selectedAnimationIndex == i,
+					    data.SelectedAnimationIndex == i,
 					    ImGuiSelectableFlags.SpanAllColumns,
 					    new Vector2(0, 17)))
 				{
-					data.selectedAnimationIndex = i;
+					data.SelectedAnimationIndex = i;
+					if (data.TryGetSelectedAnimation(out Animation a))
+					{
+						TileSelection.ClearSelection();
+						for (int j = 0; j < a.FrameCount; j++)
+						{
+							TileSelection.AddToSelection(a.FrameAt(j).TileId);
+						}
+					}
 				}
 
 				ImGui.TableSetColumnIndex(1);
@@ -77,19 +79,15 @@ internal class AnimationSelectorWindow
 
 			ImGui.EndTable();
 		}
-
-		ImGui.End();
 	}
 
-	private static void HelpMarker(string text)
+	private void AddNewAnimation()
 	{
-		ImGui.TextDisabled("(?)");
-		if (ImGui.BeginItemTooltip())
+		data.AddAnimation(new Animation()
 		{
-			ImGui.PushTextWrapPos(ImGui.GetFontSize() * 35f);
-			ImGui.TextUnformatted(text);
-			ImGui.PopTextWrapPos();
-			ImGui.EndTooltip();
-		}
+			Name = "New Anim " + data.Animations.Count,
+			Frames = TileSelection.GetSelection()
+				.Select(tileId => new Animation.Frame(tileId, 0.25f)).ToList(),
+		});
 	}
 }

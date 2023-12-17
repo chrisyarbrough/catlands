@@ -1,30 +1,34 @@
 namespace CatLands.SpriteEditor;
 
+using System.Numerics;
 using ImGuiNET;
 
-internal class AnimationEditorWindow
+internal class AnimationFramesWindow : Window
 {
+	private readonly AnimationEditor data;
+
+	private static CatLands.Selection selection = new();
+
 	private const ImGuiTableFlags tableFlags =
 		ImGuiTableFlags.Resizable | ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders;
 
-	public static void Draw(SpriteAtlas spriteAtlas, int selectedAnimationIndex)
+	public AnimationFramesWindow(AnimationEditor data) : base("Frames")
 	{
-		if (ImGui.Begin("Animation Frames"))
-		{
-			if (spriteAtlas.Animations.Count > 0)
-			{
-				selectedAnimationIndex = Math.Clamp(selectedAnimationIndex, 0, spriteAtlas.Animations.Count);
-				DrawAnimationControls(spriteAtlas.Animations[selectedAnimationIndex]);
-			}
-			else
-			{
-				ImGui.Text("1) Select a range of tiles on the sheet.\n" +
-				           "2) Create a new animation in the Animations window.\n" +
-				           "3) Or, select the desired animation.");
-			}
-		}
+		this.data = data;
+	}
 
-		ImGui.End();
+	protected override void DrawContent()
+	{
+		if (data.TryGetSelectedAnimation(out Animation animation))
+		{
+			DrawAnimationControls(animation);
+		}
+		else
+		{
+			ImGui.Text("1) Select a range of tiles on the sheet.\n" +
+			           "2) Create a new animation in the Animations window.\n" +
+			           "3) Or, select the desired animation.");
+		}
 	}
 
 	private static void DrawAnimationControls(Animation animation)
@@ -51,12 +55,53 @@ internal class AnimationEditorWindow
 
 			ImGui.EndTable();
 		}
+
+		if (ImGui.Button("Add New"))
+		{
+			Animation.Frame frame = new(0, 0.25f);
+			if (selection.IsEmpty)
+				animation.Frames.Add(frame);
+			else
+				animation.Frames.Insert(selection.Max() + 1, frame);
+		}
+
+		ImGui.SameLine();
+
+		ImGui.BeginDisabled(selection.IsEmpty);
+		if (ImGui.Button("Remove"))
+		{
+			foreach (int i in selection.OrderByDescending(x => x))
+				animation.Frames.RemoveAt(i);
+
+			selection.Clear();
+		}
+
+		ImGui.EndDisabled();
+		ImGui.SameLine();
 	}
 
 	private static void DrawFrameControls(int i, Animation.Frame frame)
 	{
 		ImGui.TableSetColumnIndex(0);
-		ImGui.Text(i.ToString());
+		if (ImGui.Selectable(
+			    i.ToString(),
+			    selection.Contains(i),
+			    ImGuiSelectableFlags.None,
+			    new Vector2(0, 17)))
+		{
+			if (ImGui.GetIO().KeyShift)
+			{
+				selection.SelectRange(i);
+			}
+			else if (ImGui.GetIO().KeySuper || ImGui.GetIO().KeyCtrl)
+			{
+				selection.Toggle(i);
+			}
+			else
+			{
+				selection.Set(i);
+			}
+		}
 
 		ImGui.TableSetColumnIndex(1);
 		int tileId = frame.TileId;

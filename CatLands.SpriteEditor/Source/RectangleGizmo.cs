@@ -55,7 +55,7 @@ public class RectangleGizmo
 
 	static RectangleGizmo()
 	{
-		SettingsWindow.Add("Gizmos", () =>
+		SceneSettingsWindow.Add("Gizmos", () =>
 		{
 			ImGui.Checkbox("Snap to pixel (G)", ref SnapToPixel);
 			if (Raylib.IsKeyPressed(KeyboardKey.KEY_G) && !ImGui.GetIO().WantCaptureKeyboard)
@@ -84,9 +84,9 @@ public class RectangleGizmo
 		if (phase == UpdatePhase.Draw)
 		{
 			Color color = controlId == GuiUtility.HotControl ? Color.ORANGE :
-				Selection.IsSelected(controlId) ? Color.ORANGE : Color.RAYWHITE;
+				TileSelection.IsSelected(controlId) ? Color.ORANGE : Color.RAYWHITE;
 
-			if (Selection.IsSelected(controlId))
+			if (TileSelection.IsSelected(controlId))
 				Raylib.DrawRectangleLinesEx(gizmoRect.GrowBy(lineWidthWorld * 1f * scaleFactor),
 					lineWidthWorld * 2f * scaleFactor, Color.BLACK);
 
@@ -115,7 +115,7 @@ public class RectangleGizmo
 				hotHandle = hoveredHandle;
 				accumulatedMouseDelta = Vector2.Zero;
 				GuiUtility.HotControl = controlId;
-				Selection.SetSingleSelection(controlId);
+				TileSelection.SetSingleSelection(controlId);
 
 				// When switching from free to snapped mode, align with the pixel grid.
 				gizmoRect = ApplySnapping(gizmoRect);

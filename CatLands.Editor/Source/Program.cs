@@ -1,6 +1,7 @@
 ﻿namespace CatLands.Editor;
 
 using System.Numerics;
+using System.Security.Principal;
 using Raylib_cs;
 using ImGuiNET;
 using rlImGui_cs;
@@ -29,8 +30,7 @@ internal static class Program
 
 		LogBuffer.Initialize();
 
-		Raylib.SetConfigFlags(ConfigFlags.FLAG_WINDOW_RESIZABLE | ConfigFlags.FLAG_INTERLACED_HINT |
-		                      ConfigFlags.FLAG_WINDOW_HIGHDPI);
+		Raylib.SetConfigFlags(ConfigFlags.FLAG_WINDOW_RESIZABLE | ConfigFlags.FLAG_VSYNC_HINT);
 		Raylib.InitWindow(width: 1280, height: 800, title: $"CatLands Editor {version}");
 		Raylib.SetTargetFPS(120);
 
@@ -44,14 +44,14 @@ internal static class Program
 		scene.AddChild(mapDisplay);
 		scene.Setup();
 
-		MainWindow.InitializeLayout(new List<Window>
+		MainWindow.InitializeLayout(new List<Func<Window>>
 		{
-			new SceneView(),
-			new HierarchyWindow(),
-			new Inspector(),
-			new LogWindow(),
-			new TileBrushWindow(),
-			new LayersWindow(),
+			() => new SceneView(),
+			() => new HierarchyWindow(),
+			() => new Inspector(),
+			() => new LogWindow(),
+			() => new TileBrushWindow(),
+			() => new LayersWindow(),
 		});
 
 		while (!Raylib.WindowShouldClose())

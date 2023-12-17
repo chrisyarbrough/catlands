@@ -21,7 +21,7 @@ public class TileBrushWindow : Window
 	{
 	}
 
-	public override void Setup()
+	public override void Load()
 	{
 		layerIndex = Prefs.Get("TileBrushWindow.LayerIndex", defaultValue: layerIndex);
 		brushIndex = Prefs.Get("TileBrushWindow.BrushIndex", defaultValue: brushIndex);

@@ -2,6 +2,7 @@
 
 using System.Numerics;
 using CatLands;
+using Editor;
 using ImGuiNET;
 using NativeFileDialogSharp;
 using Raylib_cs;
@@ -22,8 +23,7 @@ internal class Program
 		CheckerBackground checkerBackground = new();
 		List<int> hoveredRects = new();
 		int hoveredControl = -1;
-		AnimationEditorData animationEditorData = new();
-		AnimationSelectorWindow animationSelectorWindow = new(animationEditorData);
+
 		bool showDemoWindow = false;
 
 		Vector2 GetTextureSize()
@@ -42,7 +42,21 @@ internal class Program
 			textureFilePath = File.ReadAllText(configFilePath);
 		}
 
+		AnimationEditor animationEditor = new();
+
 		Initialize();
+
+		MainWindow.InitializeLayout(new List<Func<Window>>
+		{
+			() => animationEditor.CreateWindow<AnimationSelectorWindow>(),
+			() => animationEditor.CreateWindow<AnimationFramesWindow>(),
+			() => animationEditor.CreateWindow<AnimationPreviewWindow>(),
+			() => animationEditor.CreateWindow<AnimationTimelineWindow>(),
+			() => new SceneSettingsWindow()
+		});
+
+		if (!File.Exists(ImGui.GetIO().IniFilename))
+			ImGui.LoadIniSettingsFromDisk("imgui_animation.ini");
 
 		while (!Raylib.WindowShouldClose())
 		{
@@ -79,16 +93,16 @@ internal class Program
 				LoadSpriteAtlas();
 			}
 
-			SettingsWindow.Add("Selection", DrawSelectedSpriteGui);
+			SceneSettingsWindow.Add("Selection", DrawSelectedSpriteGui);
 		}
 
 		void DrawSelectedSpriteGui()
 		{
 			ImGui.TextUnformatted($"Hovered tile: {(hoveredControl != -1 ? hoveredControl.ToString() : string.Empty)}");
 
-			if (Selection.HasSelection() && spriteAtlas != null)
+			if (TileSelection.HasSelection() && spriteAtlas != null)
 			{
-				foreach (int index in Selection.GetSelection())
+				foreach (int index in TileSelection.GetSelection())
 				{
 					Rectangle rect = spriteAtlas.SpriteRects[index];
 					ImGui.TextUnformatted($"{index} x:{rect.X} y:{rect.Y} w:{rect.Width} h:{rect.Height}");
@@ -102,7 +116,7 @@ internal class Program
 			checkerBackground.Refresh(spriteAtlas.TextureSize);
 			camera.Reset();
 			SaveDirtyTracker.MarkClean(spriteAtlas!);
-			animationEditorData.SetSpriteAtlas(spriteAtlas);
+			animationEditor.SetSpriteAtlas(spriteAtlas);
 		}
 
 		void Update()
@@ -110,9 +124,13 @@ internal class Program
 			if (Raylib.IsKeyDown(KeyboardKey.KEY_LEFT_SUPER) && Raylib.IsKeyPressed(KeyboardKey.KEY_S))
 				Save(spriteAtlas);
 
+			MainWindow.Update();
+
 			Cursor.Reset();
+			ImGui.DockSpaceOverViewport(ImGui.GetMainViewport(), ImGuiDockNodeFlags.PassthruCentralNode);
 			DrawMenu();
 			DrawScene();
+			ImGui.End(); // DockArea
 			Cursor.Draw();
 
 			if (showDemoWindow)
@@ -161,7 +179,12 @@ internal class Program
 
 			if (ImGui.BeginMenu("Window"))
 			{
-				ImGui.MenuItem("Show Demo", "", ref showDemoWindow);
+				if (ImGui.MenuItem("Save Layout"))
+				{
+					ImGui.SaveIniSettingsToDisk("MyLayout");
+				}
+
+				ImGui.Separator();
 				ImGui.EndMenu();
 			}
 
@@ -180,8 +203,7 @@ internal class Program
 				checkerBackground.DrawScene(position);
 				Raylib.DrawTextureV(spriteAtlas.Texture, position, Color.WHITE);
 
-				SettingsWindow.Draw();
-				animationSelectorWindow.Draw(spriteAtlas);
+				MainWindow.Draw();
 
 				if (RectangleGizmo.DrawGizmos)
 				{
@@ -230,7 +252,7 @@ internal class Program
 					{
 						if (Raylib.CheckCollisionRecs(spriteAtlas.SpriteRects[i], worldBounds))
 						{
-							if (i != hoveredControl && !Selection.IsSelected(i))
+							if (i != hoveredControl && !TileSelection.IsSelected(i))
 							{
 								spriteAtlas.SpriteRects[i] = RectangleGizmo.Draw(
 									spriteAtlas.SpriteRects[i], i, mouseWorldPos, camera.State, spriteAtlas,
@@ -245,7 +267,7 @@ internal class Program
 					{
 						if (Raylib.CheckCollisionRecs(spriteAtlas.SpriteRects[i], worldBounds))
 						{
-							if (Selection.IsSelected(i))
+							if (TileSelection.IsSelected(i))
 							{
 								spriteAtlas.SpriteRects[i] = RectangleGizmo.Draw(
 									spriteAtlas.SpriteRects[i], i, mouseWorldPos, camera.State, spriteAtlas,
@@ -275,28 +297,28 @@ internal class Program
 
 					BoxSelect.Draw(camera.State, controlId: spriteAtlas.SpriteRects.Count, rectangle =>
 					{
-						Selection.ClearSelection();
+						TileSelection.ClearSelection();
 						for (int i = 0; i < spriteAtlas.SpriteRects.Count; i++)
 						{
 							if (rectangle.Encloses(spriteAtlas.SpriteRects[i]))
 							{
-								Selection.AddToSelection(i);
+								TileSelection.AddToSelection(i);
 							}
 						}
 					});
 				}
 
 				if ((Raylib.IsKeyPressed(KeyboardKey.KEY_DELETE) || Raylib.IsKeyPressed(KeyboardKey.KEY_BACKSPACE)) &&
-				    Selection.HasSelection())
+				    TileSelection.HasSelection())
 				{
 					UndoManager.RecordSnapshot(spriteAtlas);
 
 					// TODO: Removing rects will cause all tile IDs to shift and break existing maps.
 					// Probably better to use more stable ids for the tiles.
-					foreach (int i in Selection.GetSelection().OrderByDescending(x => x))
+					foreach (int i in TileSelection.GetSelection().OrderByDescending(x => x))
 						spriteAtlas.SpriteRects.RemoveAt(i);
 
-					Selection.ClearSelection();
+					TileSelection.ClearSelection();
 					SaveDirtyTracker.EvaluateDirty(spriteAtlas);
 				}
 
@@ -313,12 +335,12 @@ internal class Program
 				}
 
 				// Merge selected rects.
-				if (Raylib.IsKeyPressed(KeyboardKey.KEY_M) && Selection.HasSelection() &&
+				if (Raylib.IsKeyPressed(KeyboardKey.KEY_M) && TileSelection.HasSelection() &&
 				    !ImGui.GetIO().WantCaptureKeyboard)
 				{
-					Rectangle mergedRect = spriteAtlas.SpriteRects[Selection.GetSelection().First()];
+					Rectangle mergedRect = spriteAtlas.SpriteRects[TileSelection.GetSelection().First()];
 
-					foreach (int i in Selection.GetSelection())
+					foreach (int i in TileSelection.GetSelection())
 					{
 						Rectangle spriteRect = spriteAtlas.SpriteRects[i];
 
@@ -334,11 +356,11 @@ internal class Program
 						mergedRect.Height = maxY - minY;
 					}
 
-					foreach (int i in Selection.GetSelection().OrderByDescending(x => x))
+					foreach (int i in TileSelection.GetSelection().OrderByDescending(x => x))
 						spriteAtlas.SpriteRects.RemoveAt(i);
 
 					int id = spriteAtlas.Add(mergedRect);
-					Selection.SetSingleSelection(id);
+					TileSelection.SetSingleSelection(id);
 				}
 			}
 

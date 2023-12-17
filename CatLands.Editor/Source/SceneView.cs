@@ -40,7 +40,7 @@ public class SceneView : Window
 		cameraController = new SceneViewCameraController(this);
 	}
 
-	public override void Setup()
+	public override void Load()
 	{
 		Console.WriteLine(Directory.GetCurrentDirectory());
 		Map.CurrentChanged += OnCurrentChanged;

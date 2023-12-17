@@ -1,4 +1,4 @@
-namespace CatLands.Editor;
+namespace CatLands;
 
 using System.Numerics;
 using ImGuiNET;
@@ -25,7 +25,7 @@ public abstract class Window
 	/// <summary>
 	/// If false, signal to the window management that this window should be destroyed and no longer updated.
 	/// </summary>
-	internal bool IsOpen = true;
+	public bool IsOpen = true;
 
 	protected Window(string name)
 	{
@@ -49,7 +49,10 @@ public abstract class Window
 		}
 	}
 
-	public virtual void Setup()
+	/// <summary>
+	/// Invoked after the resource management is initialized.
+	/// </summary>
+	public virtual void Load()
 	{
 	}
 

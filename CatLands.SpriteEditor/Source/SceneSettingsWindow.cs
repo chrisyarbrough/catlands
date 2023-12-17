@@ -2,9 +2,13 @@ namespace CatLands.SpriteEditor;
 
 using ImGuiNET;
 
-public static class SettingsWindow
+internal class SceneSettingsWindow : Window
 {
 	private static readonly List<(string, Action)> settings = new();
+
+	public SceneSettingsWindow() : base("Scene Settings")
+	{
+	}
 
 	public static void Add(string label, Action drawFunction)
 	{
@@ -12,21 +16,16 @@ public static class SettingsWindow
 		settings.Sort((a, b) => string.Compare(a.Item1, b.Item1, StringComparison.Ordinal));
 	}
 
-	public static void Draw()
+	protected override void DrawContent()
 	{
-		if (ImGui.Begin("Settings"))
+		foreach ((string label, Action draw) in settings)
 		{
-			foreach ((string label, Action draw) in settings)
+			if (ImGui.CollapsingHeader(label, ImGuiTreeNodeFlags.DefaultOpen))
 			{
-				if (ImGui.CollapsingHeader(label, ImGuiTreeNodeFlags.DefaultOpen))
-				{
-					ImGui.Indent();
-					draw.Invoke();
-					ImGui.Unindent();
-				}
+				ImGui.Indent();
+				draw.Invoke();
+				ImGui.Unindent();
 			}
 		}
-
-		ImGui.End();
 	}
 }

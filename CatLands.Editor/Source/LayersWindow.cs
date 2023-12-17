@@ -14,7 +14,7 @@ public class LayersWindow : Window
 	{
 	}
 
-	public override void Setup()
+	public override void Load()
 	{
 		hiddenImage = LoadTexture("hidden.png");
 		visibleImage = LoadTexture("visible.png");

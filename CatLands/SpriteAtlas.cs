@@ -79,9 +79,11 @@ public class SpriteAtlas
 		slicer.Invoke(texture, spriteRects);
 	}
 
-	public void Add(Animation animation)
+	public int Add(Animation animation)
 	{
+		int id = animations.Count;
 		animations.Add(animation);
+		return id;
 	}
 
 	public int Add(Rectangle spriteRect)

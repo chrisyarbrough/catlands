@@ -12,4 +12,16 @@ public static class ImGuiUtil
 		ImGui.SetCursorPos((windowWidth - textWidth) * 0.5f);
 		ImGui.Text(text);
 	}
+
+	public static void HelpMarker(string text)
+	{
+		ImGui.TextDisabled("(?)");
+		if (ImGui.BeginItemTooltip())
+		{
+			ImGui.PushTextWrapPos(ImGui.GetFontSize() * 35f);
+			ImGui.TextUnformatted(text);
+			ImGui.PopTextWrapPos();
+			ImGui.EndTooltip();
+		}
+	}
 }

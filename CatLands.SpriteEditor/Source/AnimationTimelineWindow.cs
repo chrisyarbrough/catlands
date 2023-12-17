@@ -5,7 +5,7 @@ using CatLands.SpriteEditor;
 using ImGuiNET;
 using Raylib_cs;
 
-internal class AnimationTimelineWindow
+internal class AnimationTimelineWindow : Window
 {
 	private static float timelineHeight = 80f;
 	private static float xScale = 1f;
@@ -17,48 +17,54 @@ internal class AnimationTimelineWindow
 	private static readonly uint[] gridColors = new[] { U32Color.FromValue(0.5f), U32Color.FromValue(0.3f) };
 	private const float dragAreaSize = 8f;
 
-	public static void Draw(AnimationEditorData data)
+	private static bool isResizingMultipleFrames;
+	private readonly AnimationEditor data;
+
+	public AnimationTimelineWindow(AnimationEditor data) : base("Timeline")
 	{
-		if (ImGui.Begin("Timeline"))
+		this.data = data;
+	}
+
+	protected override void DrawContent()
+	{
+		if (data.SpriteAtlas.Animations.Count == 0)
+			return;
+
+		ImGui.DragFloat("Zoom", ref xScale, v_speed: 0.01f, v_min: 0.1f, v_max: 100f);
+
+		ImGui.BeginChild("TimelineChild", new Vector2(ImGui.GetContentRegionAvail().X, 170), true,
+			ImGuiWindowFlags.HorizontalScrollbar);
+
+		Animation animation = data.SpriteAtlas.Animations[data.SelectedAnimationIndex];
+
+		if (ImGui.IsWindowHovered() && Raylib.GetMouseWheelMove() != 0)
 		{
-			ImGui.DragFloat("Zoom", ref xScale, v_speed: 0.01f, v_min: 0.1f, v_max: 100f);
-
-			ImGui.BeginChild("TimelineChild", new Vector2(ImGui.GetContentRegionAvail().X, 170), true,
-				ImGuiWindowFlags.HorizontalScrollbar);
-
-			Animation animation = data.spriteAtlas.Animations[data.selectedAnimationIndex];
-
-			if (Raylib.GetMouseWheelMove() != 0)
-			{
-				xScale += Raylib.GetMouseWheelMove() * 0.02f;
-			}
-
-			float pos = ImGui.GetCursorPosX();
-			Vector2 cursor = ImGui.GetCursorScreenPos();
-			float height = 120;
-			for (float time = 0; time <= animation.Duration; time += 1f)
-			{
-				float xPos = TimeToPixels(time);
-				Vector2 startPos = cursor + new Vector2(xPos, 0);
-				Vector2 endPos = startPos + new Vector2(0, height);
-				ImGui.GetWindowDrawList().AddLine(startPos, endPos, gridColors[0]);
-
-				ImGui.SetCursorScreenPos(new Vector2(cursor.X + xPos + 4, cursor.Y - 4));
-				ImGui.Text(time.ToString("N0"));
-				ImGui.SetCursorScreenPos(new Vector2(cursor.X + xPos, cursor.Y - 4));
-
-				DrawGridRecursive(cursor, time, time + 1, xPos, TimeToPixels(time + 1f), 0f, height, level: 1);
-			}
-
-			ImGui.SetCursorPosX(pos);
-
-			ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 25);
-
-			DrawTimeline(data.spriteAtlas, animation);
-			ImGui.EndChild();
+			xScale += Raylib.GetMouseWheelMove() * 0.02f;
 		}
 
-		ImGui.End();
+		float pos = ImGui.GetCursorPosX();
+		Vector2 cursor = ImGui.GetCursorScreenPos();
+		float height = 120;
+		for (float time = 0; time <= animation.Duration; time += 1f)
+		{
+			float xPos = TimeToPixels(time);
+			Vector2 startPos = cursor + new Vector2(xPos, 0);
+			Vector2 endPos = startPos + new Vector2(0, height);
+			ImGui.GetWindowDrawList().AddLine(startPos, endPos, gridColors[0]);
+
+			ImGui.SetCursorScreenPos(new Vector2(cursor.X + xPos + 4, cursor.Y - 4));
+			ImGui.Text(time.ToString("N0"));
+			ImGui.SetCursorScreenPos(new Vector2(cursor.X + xPos, cursor.Y - 4));
+
+			DrawGridRecursive(cursor, time, time + 1, xPos, TimeToPixels(time + 1f), 0f, height, level: 1);
+		}
+
+		ImGui.SetCursorPosX(pos);
+
+		ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 25);
+
+		DrawTimeline(data.SpriteAtlas, animation);
+		ImGui.EndChild();
 	}
 
 	private static void DrawGridRecursive(Vector2 cursor, float timeLeft, float timeRight, float startX, float endX,
@@ -99,8 +105,6 @@ internal class AnimationTimelineWindow
 		HandleBoxSelect(animation);
 		HandleWindowDragging();
 	}
-
-	private static bool isResizingMultipleFrames;
 
 	private static void HandleBoxSelect(Animation animation)
 	{

@@ -1,6 +1,6 @@
 namespace CatLands.SpriteEditor;
 
-public static class Selection
+public static class TileSelection
 {
 	private static readonly HashSet<int> ids = new();
 

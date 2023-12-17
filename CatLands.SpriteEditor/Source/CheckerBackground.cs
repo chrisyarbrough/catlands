@@ -13,7 +13,7 @@ public class CheckerBackground
 
 	public CheckerBackground()
 	{
-		SettingsWindow.Add("Background", DrawSettings);
+		SceneSettingsWindow.Add("Background", DrawSettings);
 	}
 
 	private void DrawSettings()

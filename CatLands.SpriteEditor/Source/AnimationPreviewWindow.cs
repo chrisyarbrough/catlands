@@ -1,42 +1,45 @@
+namespace CatLands.SpriteEditor;
+
 using System.Numerics;
 using CatLands;
-using CatLands.Editor;
+using Editor;
 using ImGuiNET;
 using Raylib_cs;
 
-internal class AnimationPreviewWindow
+internal class AnimationPreviewWindow : Window
 {
-	private static IntPtr texturePtr;
+	private readonly AnimationEditor data;
+
 	private static IAnimationPlayer? player;
-	private static int lastSelectedIndex = -1;
+	private static Animation? lastSelectedAnimation;
 	private static Texture2D playIcon, pauseIcon;
 	private static readonly Pref<bool> autoPlayPref = new("AutoPlay");
 
-	static AnimationPreviewWindow()
+	public AnimationPreviewWindow(AnimationEditor data) : base("Animation Preview")
+	{
+		this.data = data;
+	}
+
+	public override void Load()
 	{
 		playIcon = Raylib.LoadTexture("play.png");
 		pauseIcon = Raylib.LoadTexture("pause.png");
 	}
 
-	public static void Draw(SpriteAtlas spriteAtlas, int selectedAnimationIndex)
+	protected override void DrawContent()
 	{
-		if (ImGui.Begin("Animation Preview"))
+		if (data.TryGetSelectedAnimation(out Animation animation))
 		{
-			Animation animation = spriteAtlas.Animations[selectedAnimationIndex];
-
-			if (selectedAnimationIndex != lastSelectedIndex)
+			if (animation != lastSelectedAnimation)
 			{
 				player = new SimpleAnimationPlayer(animation);
 				player.IsPlaying = autoPlayPref.Value;
-				texturePtr = new IntPtr(spriteAtlas.Texture.Id);
-				lastSelectedIndex = selectedAnimationIndex;
+				lastSelectedAnimation = animation;
 			}
 
 			DrawControls(animation);
-			DrawAnimation(spriteAtlas, animation);
+			DrawAnimation(animation);
 		}
-
-		ImGui.End();
 	}
 
 	private static void DrawControls(Animation animation)
@@ -70,7 +73,7 @@ internal class AnimationPreviewWindow
 		ImGui.EndDisabled();
 	}
 
-	private static void DrawAnimation(SpriteAtlas spriteAtlas, Animation animation)
+	private void DrawAnimation(Animation animation)
 	{
 		if (animation.FrameCount == 0)
 			return;
@@ -78,8 +81,8 @@ internal class AnimationPreviewWindow
 		player!.Update(Raylib.GetFrameTime());
 
 		int tileId = animation.FrameAt(player.FrameIndex).TileId;
-		spriteAtlas.GetRenderInfo(tileId, out Vector2 size, out Vector2 uv0, out Vector2 uv1);
+		data.SpriteAtlas.GetRenderInfo(tileId, out Vector2 size, out Vector2 uv0, out Vector2 uv1);
 		size = MathUtility.FitTo(size, ImGui.GetContentRegionAvail());
-		ImGui.Image(texturePtr, size, uv0, uv1);
+		ImGui.Image(data.TexturePointer, size, uv0, uv1);
 	}
 }

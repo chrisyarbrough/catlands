@@ -3,7 +3,7 @@ namespace CatLands.Editor;
 using ImGuiNET;
 using Raylib_cs;
 
-internal static class MainWindowToolbar
+internal class MainWindowToolbar
 {
 	private static readonly Dictionary<string, Type> windowTypes = new()
 	{
