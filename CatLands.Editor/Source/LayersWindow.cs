@@ -47,27 +47,19 @@ public class LayersWindow : Window
 	{
 		ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0, 0, 0, 0));
 
-		// if (ImGui.ImageButton(layer.Name, layer.IsVisible ? visibleImage : hiddenImage, new Vector2(16, 16)))
-		if (ImGui.Button(layer.Name, new Vector2(16, 16)))
+		if (ImGui.ImageButton(layer.Name, layer.IsVisible ? visibleImage : hiddenImage, new Vector2(16, 16)))
 		{
 			layer.IsVisible = !layer.IsVisible;
 		}
-		
-		ImGui.PopStyleColor();
-		
-		// TODO
-		// ImGui.SameLine();
-		
-		// Vector2 textSize = ImGui.CalcTextSize(layer.Name);
-		// float textHeight = textSize.Y;
-		// float verticalOffset = (20 - textHeight) * 0.5f;
-		// float cursorPosY = ImGui.GetCursorPosY();
-		// ImGui.SetCursorPosY(cursorPosY + verticalOffset);
 
-		if (ImGui.RadioButton(layer.Name, ref selectedLayerIndex, i))
-		{
-			// This is never executed.
-			Console.WriteLine("Clicked: " + i);
-		}
+		ImGui.PopStyleColor();
+		ImGui.SameLine();
+
+		Vector2 textSize = ImGui.CalcTextSize(layer.Name);
+		float textHeight = textSize.Y;
+		float verticalOffset = (20 - textHeight) * 0.5f;
+		float cursorPosY = ImGui.GetCursorPosY();
+		ImGui.SetCursorPosY(cursorPosY + verticalOffset);
+		ImGui.Text(layer.Name);
 	}
 }

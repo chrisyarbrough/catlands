@@ -13,9 +13,8 @@ internal class MainWindowToolbar
 		{ "Profiler", typeof(ProfilerWindow) },
 	};
 
-	public static void Draw(List<Window> windows, ref bool showImGuiDemo)
+	public static void Draw(List<Window> windows)
 	{
-		ImGui.BeginMainMenuBar();
 		if (ImGui.BeginMenu("File"))
 		{
 			if (ImGui.MenuItem("New"))
@@ -48,7 +47,6 @@ internal class MainWindowToolbar
 
 			ImGui.Separator();
 
-			ImGui.MenuItem("ImGui Demo", string.Empty, ref showImGuiDemo);
 			ImGui.MenuItem("Debug Mode", string.Empty, ref DebugMode.Enabled);
 
 			ImGui.Separator();
@@ -64,8 +62,6 @@ internal class MainWindowToolbar
 
 		if (DebugMode.Enabled)
 			DrawFps();
-
-		ImGui.EndMainMenuBar();
 	}
 
 	private static void DrawFps()

@@ -7,6 +7,12 @@ public static class MainWindow
 	private static readonly List<Window> windows = new();
 	private static bool showImGuiDemo;
 	private static readonly Dictionary<string, Type> windowTypes = new();
+	private static Action<List<Window>>? toolbarDrawFunction;
+
+	public static void AddToolbar(Action<List<Window>> toolbarDrawFunction)
+	{
+		MainWindow.toolbarDrawFunction = toolbarDrawFunction;
+	}
 
 	public static void InitializeLayout(List<Func<Window>> windowFactories)
 	{
@@ -47,7 +53,7 @@ public static class MainWindow
 		ImGui.DockSpaceOverViewport(ImGui.GetMainViewport());
 
 		if (showImGuiDemo)
-			ImGui.ShowDemoWindow();
+			ImGui.ShowDemoWindow(ref showImGuiDemo);
 
 		foreach (Window window in windows)
 		{
@@ -72,6 +78,9 @@ public static class MainWindow
 	private static void DrawToolbar()
 	{
 		ImGui.BeginMainMenuBar();
+
+		toolbarDrawFunction?.Invoke(windows);
+
 		if (ImGui.BeginMenu("Window"))
 		{
 			foreach ((string key, Type type) in windowTypes)

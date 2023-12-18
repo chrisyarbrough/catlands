@@ -17,8 +17,15 @@ public static class Prefs
 	{
 		if (prefs.TryGetValue(key, out object? obj))
 		{
-			value = (T)obj;
-			return true;
+			try
+			{
+				value = (T)obj;
+				return true;
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine(e);
+			}
 		}
 
 		value = default;

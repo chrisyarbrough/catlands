@@ -19,6 +19,11 @@ public class MultiTileBrush : Brush
 	private Coord? lastHoveredGridCoord;
 	private Coord? drawnGridCoord;
 
+	public override void Initialize()
+	{
+		selectedTiles.Clear();
+	}
+
 	public override void Update(SpriteAtlas atlas, int layerIndex, bool mouseOverWindow)
 	{
 		if (mouseOverWindow)

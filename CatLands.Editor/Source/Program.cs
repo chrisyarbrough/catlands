@@ -44,6 +44,7 @@ internal static class Program
 		scene.AddChild(mapDisplay);
 		scene.Setup();
 
+		MainWindow.AddToolbar(MainWindowToolbar.Draw);
 		MainWindow.InitializeLayout(new List<Func<Window>>
 		{
 			() => new SceneView(),

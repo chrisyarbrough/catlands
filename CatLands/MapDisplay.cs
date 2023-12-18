@@ -91,12 +91,23 @@ public readonly record struct TileRenderInfo(int LayerId, Coord Coord, int TileI
 		const float destSize = Grid.TileRenderSize;
 		var destinationRect = new Rectangle(coord.X * destSize, coord.Y * destSize, destSize, destSize);
 
-		Raylib.DrawTexturePro(
-			atlas.Texture,
-			source: atlas.SpriteRects[tileId],
-			destinationRect,
-			Vector2.Zero,
-			0f,
-			Color.WHITE);
+		if (tileId < 0 || tileId >= atlas.SpriteRects.Count)
+			return;
+
+		try
+		{
+			Raylib.DrawTexturePro(
+				atlas.Texture,
+				source: atlas.SpriteRects[tileId],
+				destinationRect,
+				Vector2.Zero,
+				0f,
+				Color.WHITE);
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e);
+			throw;
+		}
 	}
 }

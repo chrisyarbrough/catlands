@@ -32,7 +32,15 @@ public class SpriteAtlas
 	public void SetMemento(string json)
 	{
 		var v = new { spriteRects, animations };
-		v = JsonConvert.DeserializeAnonymousType(json, v)!;
+		try
+		{
+			v = JsonConvert.DeserializeAnonymousType(json, v)!;
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e);
+		}
+
 		this.spriteRects = v.spriteRects;
 		this.animations = v.animations;
 	}
