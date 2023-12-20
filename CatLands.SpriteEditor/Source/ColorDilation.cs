@@ -5,6 +5,7 @@ using ImGuiNET;
 using Newtonsoft.Json;
 using Raylib_cs;
 using RectpackSharp;
+using File = System.IO.File;
 
 public class ColorDilation
 {
@@ -26,7 +27,7 @@ public class ColorDilation
 		PackingRectangle[] rectangles = new PackingRectangle[spriteAtlas.SpriteRects.Count];
 		for (int i = 0; i < spriteAtlas.SpriteRects.Count; i++)
 		{
-			Rectangle rect = spriteAtlas.SpriteRects[i].GrowBy(padding);
+			Rect rect = spriteAtlas.SpriteRects[i].Inflate(padding);
 			rectangles[i] = new PackingRectangle((uint)rect.X, (uint)rect.Y, (uint)rect.Width, (uint)rect.Height, i);
 		}
 

@@ -12,9 +12,7 @@ public class CameraController
 
 	private bool hasHotControl;
 
-	private readonly MouseButtonAction panInputAction = new MouseButtonAction(
-		MouseButton.MOUSE_BUTTON_RIGHT,
-		MouseButton.MOUSE_BUTTON_MIDDLE);
+	private static readonly IInputAction panInputAction = MouseButtonAction.Pan;
 
 	/// <summary>
 	/// Returns a readonly copy of the camera state.
@@ -40,12 +38,12 @@ public class CameraController
 			Reset();
 		}
 
-		if (canBeginInputAction && panInputAction.Begin())
+		if (canBeginInputAction && panInputAction.IsStarted())
 		{
 			hasHotControl = true;
 		}
 
-		if (panInputAction.End())
+		if (panInputAction.IsEnded())
 		{
 			hasHotControl = false;
 		}

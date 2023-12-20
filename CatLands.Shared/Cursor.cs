@@ -1,6 +1,6 @@
 using Raylib_cs;
 
-internal static class Cursor
+public static class Cursor
 {
 	private static readonly Stack<MouseCursor> cursors = new();
 	private static bool isDirty;

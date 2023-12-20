@@ -1,5 +1,7 @@
 namespace CatLands.Tests;
 
+using File = System.IO.File;
+
 public class SerializerTests
 {
 	private readonly Map sampleMap = new(new Layer[]

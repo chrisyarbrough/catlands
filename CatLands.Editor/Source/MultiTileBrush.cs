@@ -56,7 +56,7 @@ public class MultiTileBrush : Brush
 		}
 	}
 
-	private IEnumerable<(Coord, int)> BrushTiles(IList<Rectangle> spriteRects, Coord gridCoord)
+	private IEnumerable<(Coord, int)> BrushTiles(IList<Rect> spriteRects, Coord gridCoord)
 	{
 		Coord c = gridCoord;
 		Vector2? start = null;
@@ -65,12 +65,12 @@ public class MultiTileBrush : Brush
 		{
 			if (start == null)
 			{
-				start = spriteRects[tileId].Center();
+				start = spriteRects[tileId].Center;
 			}
 			else
 			{
 				// TODO: Handle freeform vs grid-based tilesets.
-				Vector2 current = spriteRects[tileId].Center();
+				Vector2 current = spriteRects[tileId].Center;
 				Vector2 offset = (current - start.Value) / 16f;
 				Coord gridOffset = new((int)offset.X, (int)offset.Y);
 				c = gridCoord + gridOffset;

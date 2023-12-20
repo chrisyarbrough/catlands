@@ -5,13 +5,40 @@ using System.Numerics;
 using ImGuiNET;
 using Raylib_cs;
 
+public class ChangeCheck : IDisposable
+{
+	private readonly UndoManager undoManager;
+	private readonly Action action;
+
+	public ChangeCheck(UndoManager undoManager, Action action)
+	{
+		this.undoManager = undoManager;
+		this.action = action;
+		Gui.BeginChangeCheck();
+	}
+
+	public void Dispose()
+	{
+		if (Gui.EndChangeCheck())
+		{
+			undoManager.RecordSnapshot();
+			action.Invoke();
+			undoManager.EvaluateDirty();
+		}
+	}
+
+	public void Record(Rectangle rect)
+	{
+	}
+}
+
 public enum UpdatePhase
 {
 	Input,
 	Draw
 }
 
-public class RectangleGizmo
+public static class RectangleGizmo
 {
 	public static bool SnapToPixel = true;
 	public static bool DrawGizmos = true;
@@ -68,8 +95,7 @@ public class RectangleGizmo
 	}
 
 	public static Rectangle Draw(
-		Rectangle gizmoRect, int controlId, Vector2 mouseWorldPos, Camera2D camera, SpriteAtlas spriteAtlas,
-		UpdatePhase phase, bool isHovered)
+		Rectangle gizmoRect, int controlId, Vector2 mouseWorldPos, Camera2D camera, UpdatePhase phase, bool isHovered)
 	{
 		Rectangle originalRect = gizmoRect;
 
@@ -110,8 +136,6 @@ public class RectangleGizmo
 			if (hoveredHandle != -1 && Raylib.IsMouseButtonPressed(MouseButton.MOUSE_BUTTON_LEFT) &&
 			    GuiUtility.HotControl == -1)
 			{
-				UndoManager.RecordSnapshot(spriteAtlas);
-
 				hotHandle = hoveredHandle;
 				accumulatedMouseDelta = Vector2.Zero;
 				GuiUtility.HotControl = controlId;
@@ -153,7 +177,7 @@ public class RectangleGizmo
 		}
 
 		if (!gizmoRect.HasSameValues(originalRect))
-			SaveDirtyTracker.MarkDirty();
+			Gui.SetChanged();
 
 		return gizmoRect;
 	}

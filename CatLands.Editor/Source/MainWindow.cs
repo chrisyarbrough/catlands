@@ -43,7 +43,7 @@ public static class MainWindow
 		}
 	}
 
-	public static void Draw()
+	public static void DrawWindows()
 	{
 		DrawToolbar();
 

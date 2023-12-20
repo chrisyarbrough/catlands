@@ -32,6 +32,7 @@ public class Animation
 	public float FrameDurationAt(int index) => frames[index].Duration;
 
 	private string name = string.Empty;
+	
 	private List<Frame> frames = new();
 
 	public class Frame
@@ -45,6 +46,10 @@ public class Animation
 		}
 
 		private float duration;
+
+		public Frame()
+		{
+		}
 
 		public Frame(int tileId, float duration)
 		{

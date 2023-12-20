@@ -1,7 +1,5 @@
 namespace CatLands;
 
-using Newtonsoft.Json;
-
 public class Layer
 {
 	public bool IsVisible
@@ -22,19 +20,12 @@ public class Layer
 
 	public IEnumerable<(Coord, int)> Tiles => tiles.Select(kvp => (kvp.Key, kvp.Value));
 
-	[SerializeMember]
 	private readonly string texturePath = string.Empty;
 
-	[SerializeMember]
 	private Dictionary<Coord, int> tiles = new();
 
 	private ChangeTracker? changeTracker;
 	private bool isVisible = true;
-
-	[JsonConstructor]
-	private Layer()
-	{
-	}
 
 	public Layer(string texturePath) : this(texturePath, Enumerable.Empty<(Coord, int)>())
 	{

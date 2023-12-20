@@ -24,7 +24,7 @@ public class Slicer
 		}
 	}
 
-	private void PerformSlicing(Texture2D texture, List<Rectangle> spriteRects)
+	private void PerformSlicing(Texture2D texture, List<Rect> spriteRects)
 	{
 		int cols = texture.Width / tileSizeX;
 		int rows = texture.Height / tileSizeY;
@@ -33,7 +33,7 @@ public class Slicer
 		{
 			for (int x = 0; x < cols; x++)
 			{
-				var tile = new Rectangle(x * tileSizeX, y * tileSizeY, tileSizeX, tileSizeY);
+				var tile = new Rect(x * tileSizeX, y * tileSizeY, tileSizeX, tileSizeY);
 				spriteRects.Add(tile);
 			}
 		}

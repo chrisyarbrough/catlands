@@ -1,12 +1,11 @@
 ﻿namespace CatLands.Editor;
 
 using System.Numerics;
-using System.Security.Principal;
 using Raylib_cs;
 using ImGuiNET;
 using rlImGui_cs;
 
-internal static class Program
+internal class Program
 {
 	public static string AssetsDirectory => Path.Combine(Directory.GetCurrentDirectory(), "Assets");
 
@@ -41,7 +40,7 @@ internal static class Program
 
 		var mapDisplay = new MapDisplay();
 
-		scene.AddChild(mapDisplay);
+		// scene.AddChild(mapDisplay);
 		scene.Setup();
 
 		MainWindow.AddToolbar(MainWindowToolbar.Draw);
@@ -70,7 +69,7 @@ internal static class Program
 			Raylib.BeginDrawing();
 			rlImGui.Begin();
 
-			MainWindow.Draw();
+			MainWindow.DrawWindows();
 
 			Profiler.BeginSample("Draw: ImGui");
 			rlImGui.End();

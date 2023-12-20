@@ -63,14 +63,16 @@ public static class SceneManager
 			}
 		}
 
-		SaveFileManager.Save(loadedMapFilePath, map);
+		map.FilePath = loadedMapFilePath;
+		AssetFile.Save(loadedMapFilePath, map);
 		Prefs.Set("LastMapFilePath", loadedMapFilePath);
 	}
 
-	private static void LoadMap(string value)
+	private static void LoadMap(string filePath)
 	{
-		Map.Current = SaveFileManager.Load(value)!;
-		Prefs.Set("LastMapFilePath", value);
+		Map.Current = AssetFile.Load<Map>(filePath)!;
+		Map.Current.FilePath = filePath;
+		Prefs.Set("LastMapFilePath", filePath);
 		CommandManager.Clear();
 	}
 

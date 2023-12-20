@@ -1,6 +1,7 @@
 namespace CatLands.Editor;
 
 using Newtonsoft.Json;
+using File = System.IO.File;
 
 public static class Prefs
 {

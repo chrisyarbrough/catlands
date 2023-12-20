@@ -23,15 +23,9 @@ public class Map
 	
 	public string? FilePath { get; set; }
 
-	// ReSharper disable once NotAccessedField.Global
-	// because it needs to be serialized in order to build backwards-compatibility later.
-	[SerializeMember]
-	public readonly int FileVersion = 1;
-
 	public readonly ChangeTracker ChangeTracker = new();
 	public IEnumerable<Layer> Layers => layers;
 
-	[SerializeMember]
 	private List<Layer> layers = new();
 
 	public Map()

@@ -1,34 +1,57 @@
 namespace CatLands.SpriteEditor;
 
-public static class UndoManager
+public class UndoManager
 {
-	private static readonly Stack<string> undoStack = new();
-	private static readonly Stack<string> redoStack = new();
+	public event Action? UndoRedoPerformed;
 
-	public static void RecordSnapshot(SpriteAtlas spriteAtlas)
+	private readonly Stack<string> undoStack = new();
+	private readonly Stack<string> redoStack = new();
+
+	private readonly IMementoOwner owner;
+	private readonly AppWindow window;
+
+	private string? lastCleanState;
+
+	public UndoManager(IMementoOwner owner, AppWindow window)
 	{
-		string json = spriteAtlas.GetMemento();
-		undoStack.Push(json);
+		this.owner = owner;
+		this.window = window;
+		MarkClean();
+	}
+
+	public void RecordSnapshot()
+	{
+		string memento = owner.CreateMemento();
+		undoStack.Push(memento);
 		redoStack.Clear();
 	}
 
-	public static void Undo(SpriteAtlas spriteAtlas)
+	public void Undo()
 	{
 		if (undoStack.Count > 0)
 		{
-			redoStack.Push(spriteAtlas.GetMemento());
-			spriteAtlas.SetMemento(undoStack.Pop());
-			SaveDirtyTracker.EvaluateDirty(spriteAtlas);
+			redoStack.Push(owner.CreateMemento());
+			owner.RestoreState(undoStack.Pop());
+			UndoRedoPerformed?.Invoke();
 		}
 	}
 
-	public static void Redo(SpriteAtlas spriteAtlas)
+	public void Redo()
 	{
 		if (redoStack.Count > 0)
 		{
-			undoStack.Push(spriteAtlas.GetMemento());
-			spriteAtlas.SetMemento(redoStack.Pop());
-			SaveDirtyTracker.EvaluateDirty(spriteAtlas);
+			undoStack.Push(owner.CreateMemento());
+			owner.RestoreState(redoStack.Pop());
+			UndoRedoPerformed?.Invoke();
 		}
+	}
+
+	public void MarkClean() => lastCleanState = owner.CreateMemento();
+
+	public bool IsDirty() => lastCleanState != owner.CreateMemento();
+
+	public void EvaluateDirty()
+	{
+		window.SetUnsavedChangesIndicator(IsDirty());
 	}
 }

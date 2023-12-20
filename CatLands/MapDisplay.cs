@@ -3,14 +3,14 @@ namespace CatLands;
 using Raylib_cs;
 using System.Numerics;
 
-public class MapDisplay : GameObject
+public class MapDisplay : ISystem
 {
 	private static Map? Map => Map.Current;
 
 	private static List<TileRenderInfo> previews = new();
 	private static bool drawPreview;
 
-	public override void OnSceneGui(Camera2D camera)
+	public void Draw(Camera2D camera)
 	{
 		if (Map == null)
 			return;

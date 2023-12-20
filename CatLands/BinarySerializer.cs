@@ -4,6 +4,8 @@
 //
 // public class BinarySerializer : ISerializer
 // {
+//	public string FileExtension => ".bin";
+//
 // 	public void Serialize(Map map, Stream stream)
 // 	{
 // 		using var writer = new BinaryWriter(stream, Encoding.UTF8, leaveOpen: true);

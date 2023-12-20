@@ -8,8 +8,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="AutoMapper" Version="12.0.1" />
       <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
       <PackageReference Include="Raylib-cs" Version="5.0.0" />
+      <PackageReference Include="YamlDotNet" Version="13.7.1" />
     </ItemGroup>
 
     <ItemGroup>
@@ -18,5 +20,11 @@
 
     <ItemGroup>
       <Folder Include="Assets\Maps\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="Assets\Maps\MyMap.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 </Project>

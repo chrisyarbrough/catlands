@@ -1,17 +1,62 @@
 namespace CatLands;
 
 using System.Numerics;
-using Newtonsoft.Json;
+using AutoMapper;
 using Raylib_cs;
+using SpriteEditor;
 
-public class SpriteAtlas
+public class SpriteAtlasDto
+{
+	public List<Rectangle>? SpriteRects { get; set; }
+	public List<AnimationDto>? Animations { get; set; }
+
+	public void Create(SpriteAtlas instance)
+	{
+		var config = new MapperConfiguration(cfg =>
+		{
+			cfg.CreateMap<SpriteAtlasDto, SpriteAtlas>();
+			cfg.CreateMap<AnimationDto, Animation>();
+			cfg.CreateMap<AnimationDto.FrameDto, Animation.Frame>();
+		});
+
+		IMapper mapper = config.CreateMapper();
+		mapper.Map(this, instance);
+	}
+	
+	public static SpriteAtlasDto CreateFrom(SpriteAtlas spriteAtlas)
+	{
+		var config = new MapperConfiguration(cfg =>
+		{
+			cfg.CreateMap<SpriteAtlas, SpriteAtlasDto>();
+			cfg.CreateMap<Animation, AnimationDto>();
+			cfg.CreateMap<Animation.Frame, AnimationDto.FrameDto>();
+		});
+
+		IMapper mapper = config.CreateMapper();
+		return mapper.Map<SpriteAtlasDto>(spriteAtlas);
+	}
+}
+
+public class AnimationDto
+{
+	public string Name { get; set; } = string.Empty;
+	public List<FrameDto>? Frames { get; set; }
+
+	public class FrameDto
+	{
+		public int TileId { get; set; }
+		public float Duration { get; set; }
+	}
+}
+
+public class SpriteAtlas : IMementoOwner
 {
 	public readonly string TextureFilePath;
 	public int Width => texture.Width;
 	public int Height => texture.Height;
 	public Texture2D Texture => texture;
 
-	public List<Rectangle> SpriteRects
+	public List<Rect> SpriteRects
 	{
 		get => spriteRects;
 		set => spriteRects = value;
@@ -21,34 +66,29 @@ public class SpriteAtlas
 	public IList<Animation> Animations => animations;
 
 	private Texture2D texture;
-	private List<Rectangle> spriteRects = new();
+
+	private List<Rect> spriteRects = new();
+
 	private List<Animation> animations = new();
 
-	public string GetMemento()
+	public string CreateMemento()
 	{
-		return JsonConvert.SerializeObject(new { spriteRects, animations }, Formatting.Indented);
+		return YamlSerializer.Serialize(SpriteAtlasDto.CreateFrom(this));
 	}
 
-	public void SetMemento(string json)
+	public void RestoreState(string json)
 	{
-		var v = new { spriteRects, animations };
-		try
-		{
-			v = JsonConvert.DeserializeAnonymousType(json, v)!;
-		}
-		catch (Exception e)
-		{
-			Console.WriteLine(e);
-		}
+		this.spriteRects = new List<Rect>();
+		this.animations = new List<Animation>();
 
-		this.spriteRects = v.spriteRects;
-		this.animations = v.animations;
+		var v = YamlSerializer.Deserialize<SpriteAtlasDto>(json);
+		v.Create(this);
 	}
 
 	public void Save()
 	{
-		string json = GetMemento();
-		string spritesSavePath = Path.ChangeExtension(TextureFilePath, ".json");
+		string json = CreateMemento();
+		string spritesSavePath = Path.ChangeExtension(TextureFilePath, ".yaml");
 		File.WriteAllText(spritesSavePath, json);
 	}
 
@@ -69,19 +109,19 @@ public class SpriteAtlas
 		Raylib.SetTextureWrap(texture, TextureWrap.TEXTURE_WRAP_CLAMP);
 		Raylib.SetTextureFilter(texture, TextureFilter.TEXTURE_FILTER_POINT);
 
-		string spriteFilePath = Path.ChangeExtension(textureFilePath, ".json");
-		if (File.Exists(spriteFilePath))
+		foreach (string extension in AssetFile.SupportedFileExtensions)
 		{
-			string json = File.ReadAllText(spriteFilePath);
-			SetMemento(json);
-		}
-		else
-		{
-			this.spriteRects = new List<Rectangle>();
+			string spritesSavePath = Path.ChangeExtension(textureFilePath, extension);
+			if (File.Exists(spritesSavePath))
+			{
+				var memento = AssetFile.Load<SpriteAtlasDto>(spritesSavePath);
+				memento.Create(this);
+				return;
+			}
 		}
 	}
 
-	public void GenerateSpriteRects(Action<Texture2D, List<Rectangle>> slicer)
+	public void GenerateSpriteRects(Action<Texture2D, List<Rect>> slicer)
 	{
 		spriteRects.Clear();
 		slicer.Invoke(texture, spriteRects);
@@ -101,11 +141,28 @@ public class SpriteAtlas
 		return id;
 	}
 
-	public void GetRenderInfo(int tileId, out Vector2 size, out Vector2 uv0, out Vector2 uv1)
+	public void RemoveTile(int tileId)
 	{
+		spriteRects.RemoveAt(tileId);
+
+		foreach (Animation animation in animations)
+			animation.Frames.RemoveAll(frame => frame.TileId == tileId);
+	}
+
+	public bool GetRenderInfo(int tileId, out Vector2 size, out Vector2 uv0, out Vector2 uv1)
+	{
+		if (tileId < 0 || tileId >= spriteRects.Count)
+		{
+			size = Vector2.Zero;
+			uv0 = Vector2.Zero;
+			uv1 = Vector2.Zero;
+			return false;
+		}
+
 		Rectangle rect = spriteRects[tileId];
 		size = new Vector2(rect.Width, rect.Height);
 		uv0 = new Vector2(rect.X / texture.Width, rect.Y / texture.Height);
 		uv1 = new Vector2(rect.xMax() / texture.Width, rect.yMax() / texture.Height);
+		return true;
 	}
 }

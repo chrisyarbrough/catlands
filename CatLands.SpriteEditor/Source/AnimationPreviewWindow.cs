@@ -81,8 +81,10 @@ internal class AnimationPreviewWindow : Window
 		player!.Update(Raylib.GetFrameTime());
 
 		int tileId = animation.FrameAt(player.FrameIndex).TileId;
-		data.SpriteAtlas.GetRenderInfo(tileId, out Vector2 size, out Vector2 uv0, out Vector2 uv1);
-		size = MathUtility.FitTo(size, ImGui.GetContentRegionAvail());
-		ImGui.Image(data.TexturePointer, size, uv0, uv1);
+		if (data.SpriteAtlas.GetRenderInfo(tileId, out Vector2 size, out Vector2 uv0, out Vector2 uv1))
+		{
+			size = MathUtility.FitTo(size, ImGui.GetContentRegionAvail());
+			ImGui.Image(data.TexturePointer, size, uv0, uv1);
+		}
 	}
 }

@@ -1,71 +1,54 @@
-using Newtonsoft.Json;
-
 namespace CatLands;
 
+using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
-using System.Reflection;
 
 public class JsonSerializer : ISerializer
 {
+	public string FileExtension => ".json";
+	
 	private static readonly JsonSerializerSettings settings;
 
 	static JsonSerializer()
 	{
 		settings = new JsonSerializerSettings
 		{
-			ContractResolver = new OnlyFieldsContractResolver(),
-			Formatting = Formatting.Indented
+			ContractResolver = new DefaultContractResolver()
+			{
+				NamingStrategy = new LowercaseNamingStrategy(),
+			},
+			Formatting = Formatting.Indented,
 		};
 	}
 
-	public void Serialize(Map map, Stream stream)
+	public void Serialize(object value, Stream stream)
 	{
-		using var writer = new StreamWriter(stream, leaveOpen: true);
-		string json = JsonConvert.SerializeObject(map, settings);
-		writer.Write(json);
+		string json = Serialize(value);
+		ISerializer.Write(json, stream);
 	}
 
-	public Map? Deserialize(Stream stream)
+	public string Serialize(object value)
+	{
+		return JsonConvert.SerializeObject(value, settings);
+	}
+
+	public T? Deserialize<T>(string json)
+	{
+		return JsonConvert.DeserializeObject<T>(json, settings);
+	}
+
+	public T? Deserialize<T>(Stream stream)
 	{
 		using var reader = new StreamReader(stream, leaveOpen: true);
 		string json = reader.ReadToEnd();
-		return JsonConvert.DeserializeObject<Map>(json, settings);
+		return Deserialize<T>(json);
 	}
 
-	private class OnlyFieldsContractResolver : DefaultContractResolver
+	private class LowercaseNamingStrategy : NamingStrategy
 	{
-		protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization)
+		protected override string ResolvePropertyName(string name)
 		{
-			// Get all public and non-public properties and fields
-			var memberInfos = type.GetMembers(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-				.Where(m => m.MemberType == MemberTypes.Property || m.MemberType == MemberTypes.Field);
-
-			var jsonProperties = new List<JsonProperty>();
-
-			foreach (var memberInfo in memberInfos)
-			{
-				var attribute = memberInfo.GetCustomAttribute<SerializeMemberAttribute>();
-				if (attribute != null)
-				{
-					var jsonProperty = base.CreateProperty(memberInfo, memberSerialization);
-
-					if (memberInfo is PropertyInfo propertyInfo)
-					{
-						jsonProperty.Writable = propertyInfo.CanWrite;
-						jsonProperty.Readable = propertyInfo.CanRead;
-					}
-					else if (memberInfo is FieldInfo)
-					{
-						jsonProperty.Writable = true;
-						jsonProperty.Readable = true;
-					}
-
-					jsonProperty.PropertyName = memberInfo.Name;
-					jsonProperty.ShouldSerialize = _ => true;
-					jsonProperties.Add(jsonProperty);
-				}
-			}
-			return jsonProperties;
+			return name.ToLower();
 		}
 	}
 }
