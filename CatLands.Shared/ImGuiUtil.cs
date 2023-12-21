@@ -5,6 +5,13 @@ using System.Numerics;
 
 public static class ImGuiUtil
 {
+	public static void DragFloat(string label, ref ClampedFloat clampedFloat, float speed = 1f, string format = "%.3f")
+	{
+		float value = clampedFloat.Value;
+		if (ImGui.DragFloat(label, ref value, speed, clampedFloat.Min, clampedFloat.Max, format, ImGuiSliderFlags.AlwaysClamp))
+			clampedFloat.Value = value;
+	}
+
 	public static void TextCentered(string text)
 	{
 		Vector2 windowWidth = ImGui.GetWindowSize();

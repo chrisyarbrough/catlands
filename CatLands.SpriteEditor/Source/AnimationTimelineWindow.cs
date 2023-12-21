@@ -15,15 +15,14 @@ internal class AnimationTimelineWindow : Window
 	/// <summary>
 	/// The height of the child scroll area in pixels.
 	/// </summary>
-	private static float viewportHeight = 180;
-	
-	private static float xScale = 1f;
+	private static float viewportHeight = 200;
+
+	private static ClampedFloat xZoom = new(1f, 0.05f, 100f);
 	private static int? draggedSplitter;
 	private static bool debugDragArea = false;
 	private static HashSet<int> selection = new();
 	private static Vector2? mouseDownPos;
 
-	private static readonly uint[] gridColors = new[] { U32Color.FromValue(0.5f), U32Color.FromValue(0.3f) };
 	private const float dragAreaSize = 8f;
 
 	private static bool isResizingMultipleFrames;
@@ -36,82 +35,79 @@ internal class AnimationTimelineWindow : Window
 		this.data = data;
 	}
 
+	protected override ImGuiWindowFlags SetupWindow()
+	{
+		return ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
+	}
+
 	protected override void DrawContent()
 	{
 		if (data.SpriteAtlas.Animations.Count == 0)
 			return;
 
-		ImGui.DragFloat("Zoom", ref xScale, v_speed: 0.01f, v_min: 0.1f, v_max: 100f);
+		ImGuiUtil.DragFloat("Zoom", ref xZoom, speed: 0.01f, "%.2f");
 
 		ImGui.BeginChild("TimelineChild", new Vector2(ImGui.GetContentRegionAvail().X, viewportHeight), true,
 			ImGuiWindowFlags.HorizontalScrollbar);
 
 		Animation animation = data.SpriteAtlas.Animations[data.SelectedAnimationIndex];
 
-		if (ImGui.IsWindowHovered() && Raylib.GetMouseWheelMove() != 0)
+		if (ImGui.IsWindowHovered() && Raylib.GetMouseWheelMove() != 0 && !ImGui.GetIO().KeyShift)
 		{
-			xScale += Raylib.GetMouseWheelMove() * 0.02f;
+			float zoomFactor = (float)Math.Log(xZoom + 1, 10) * 0.02f;
+			xZoom.Value += zoomFactor * Raylib.GetMouseWheelMove();
 		}
 
-		float pos = ImGui.GetCursorPosX();
+		var pos = ImGui.GetCursorPos();
 		Vector2 cursor = ImGui.GetCursorScreenPos();
-		float height = viewportHeight - 40f;
-		for (float time = 0; time <= animation.Duration; time += 1f)
-		{
-			float xPos = TimeToPixels(time);
-			Vector2 startPos = cursor + new Vector2(xPos, 0);
-			Vector2 endPos = startPos + new Vector2(0, height);
-			ImGui.GetWindowDrawList().AddLine(startPos, endPos, gridColors[0]);
+		float height = viewportHeight - 60f;
+		DrawTimelineGrid(animation, cursor, height);
 
-			ImGui.SetCursorScreenPos(new Vector2(cursor.X + xPos + 4, cursor.Y - 4));
-			ImGui.Text(time.ToString("N0"));
-			ImGui.SetCursorScreenPos(new Vector2(cursor.X + xPos, cursor.Y - 4));
+		ImGui.SetCursorPos(pos);
 
-			DrawGridRecursive(cursor, time, time + 1, xPos, TimeToPixels(time + 1f), 0f, height, level: 1, animation.Duration);
-		}
-
-		ImGui.SetCursorPosX(pos);
-
-		ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 25);
+		ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 31);
 
 		DrawTimeline(data.SpriteAtlas, animation);
 		ImGui.EndChild();
 	}
 
-	private static void DrawGridRecursive(
-		Vector2 cursor, float timeLeft, float timeRight, float startX, float endX,
-		float yPos, float height, int level, float animationDuration)
+	private void DrawTimelineGrid(Animation animation, Vector2 cursor, float height)
 	{
-		const float minGridStepSize = 50;
-		if (endX - startX < minGridStepSize)
-			return;
+		float timeStep = 1f;
 
-		float heightOffset = height * 0.03f;
-		float newYPos = yPos + heightOffset;
-		float newHeight = height - heightOffset * 2f;
-
-		float timeMid = (timeLeft + timeRight) / 2f;
-		float midX = (startX + endX) / 2f;
-
-		if (timeMid < animationDuration)
+		do
 		{
-			Vector2 startPos = cursor + new Vector2(midX, newYPos);
-			Vector2 endPos = startPos with { Y = startPos.Y + newHeight };
-			ImGui.GetWindowDrawList().AddLine(startPos, endPos, gridColors[level % 2]);
-
-			if (endX - startX > minGridStepSize * 2f)
+			for (float time = 0f; time <= animation.Duration; time += timeStep)
 			{
-				ImGui.SetCursorScreenPos(new Vector2(cursor.X + midX + 4, cursor.Y - 4));
-				ImGui.Text(timeMid.ToString("0.##", CultureInfo.InvariantCulture));
-				ImGui.SetCursorScreenPos(new Vector2(cursor.X + midX, cursor.Y - 4));
-			}
-			
-			// Draw right side of the segment.
-			DrawGridRecursive(cursor, timeMid, timeRight, midX, endX, newYPos, newHeight, level + 1, animationDuration);
-		}
+				// Skip the drawing if this time step was already drawn in a previous larger step.
+				if (timeStep < 1f && time % (timeStep * 2) == 0)
+					continue;
 
-		// Recursively draw left side of the segment.
-		DrawGridRecursive(cursor, timeLeft, timeMid, startX, midX, newYPos, newHeight, level + 1, animationDuration);
+				float xPos = TimeToPixels(time);
+				DrawLine(cursor, xPos, height, U32Color.FromValue(MathUtility.Lerp(0.3f, 1f, timeStep)));
+				DrawLabel(cursor, xPos, time);
+			}
+
+			timeStep /= 2;
+
+			const float lineHeightReduction = 3f;
+			height -= lineHeightReduction;
+			cursor.Y += lineHeightReduction;
+		} while (TimeToPixels(timeStep) > 50 && timeStep > 0.01f);
+	}
+
+	private void DrawLine(Vector2 cursor, float xPos, float height, uint color)
+	{
+		Vector2 startPos = cursor + new Vector2(xPos, 0);
+		Vector2 endPos = startPos + new Vector2(0, height);
+		ImGui.GetWindowDrawList().AddLine(startPos, endPos, color);
+	}
+
+	private void DrawLabel(Vector2 cursor, float xPos, float time)
+	{
+		ImGui.SetCursorScreenPos(new Vector2(cursor.X + xPos + 4, cursor.Y - 4));
+		ImGui.Text(time.ToString("0.##", CultureInfo.InvariantCulture));
+		ImGui.SetCursorScreenPos(new Vector2(cursor.X + xPos, cursor.Y - 4));
 	}
 
 	private static void DrawTimeline(SpriteAtlas spriteAtlas, Animation animation)
@@ -299,8 +295,8 @@ internal class AnimationTimelineWindow : Window
 		}
 	}
 
-	private static float TimeToPixels(float duration) => xScale * pixelsPerSecond * duration;
-	private static float PixelsToTime(float pixels) => pixels / pixelsPerSecond / xScale;
+	private static float TimeToPixels(float duration) => xZoom * pixelsPerSecond * duration;
+	private static float PixelsToTime(float pixels) => pixels / pixelsPerSecond / xZoom;
 
 	private static IEnumerable<(int, Animation.Frame, Rectangle)> GetFrameRects(Animation animation)
 	{
@@ -310,7 +306,7 @@ internal class AnimationTimelineWindow : Window
 			Animation.Frame frame = animation.FrameAt(i);
 			float frameWidth = TimeToPixels(frame.Duration);
 			Vector2 frameStart = ImGui.GetCursorScreenPos();
-			var rect = new Rectangle(frameStart.X, frameStart.Y, frameWidth, viewportHeight - 80f);
+			var rect = new Rectangle(frameStart.X, frameStart.Y, frameWidth, viewportHeight - 90f);
 			yield return (i, frame, rect);
 			ImGui.SetCursorPosX(ImGui.GetCursorPosX() + frameWidth);
 		}
