@@ -109,12 +109,12 @@ public class SpriteAtlas : IMementoOwner
 		Raylib.SetTextureWrap(texture, TextureWrap.TEXTURE_WRAP_CLAMP);
 		Raylib.SetTextureFilter(texture, TextureFilter.TEXTURE_FILTER_POINT);
 
-		foreach (string extension in AssetFile.SupportedFileExtensions)
+		foreach (string extension in SerializedAsset.SupportedFileExtensions)
 		{
 			string spritesSavePath = Path.ChangeExtension(textureFilePath, extension);
 			if (File.Exists(spritesSavePath))
 			{
-				var memento = AssetFile.Load<SpriteAtlasDto>(spritesSavePath);
+				var memento = SerializedAsset.Load<SpriteAtlasDto>(spritesSavePath);
 				memento.Create(this);
 				return;
 			}

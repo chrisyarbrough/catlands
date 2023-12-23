@@ -1,25 +1,13 @@
 namespace CatLands.Tests;
 
 using System.Numerics;
+using System.Reflection;
+using System.Text;
 using Xunit.Abstractions;
-using YamlDotNet.Core;
-using YamlDotNet.Core.Events;
-using YamlDotNet.Serialization;
-using File = System.IO.File;
-using ISerializer = CatLands.ISerializer;
-using Color = System.Drawing.Color;
 
 public class SerializerTests
 {
 	private readonly ITestOutputHelper testOutputHelper;
-
-	private readonly Map sampleMap = new(new Layer[]
-	{
-		// new Layer("FakeTextureId_0"),
-		// new Layer("FakeTextureId_1"),
-		new Layer("FakeTextureId_2",
-			new[] { (new Coord(1, 2), 3) }),
-	});
 
 	public SerializerTests(ITestOutputHelper testOutputHelper)
 	{
@@ -27,142 +15,199 @@ public class SerializerTests
 	}
 
 	[Fact]
-	public void JsonSerializeDoesntThrow()
+	public void ManualYamlTest()
 	{
-		var stream = File.Create("File.json");
-		new JsonSerializer().Serialize(sampleMap, stream);
+		string p = "/Users/Chris/Projects/CatLands/test.yaml";
+		using var file = File.Open(p, FileMode.OpenOrCreate);
+		var result = new YamlSerializer().ReadFrom<SampleObject>(file);
+		//testOutputHelper.WriteLine(result.Components.Count.ToString());
 	}
 
 	public static IEnumerable<object[]> Serializers()
 	{
-		yield return new object[] { new JsonSerializer() };
-		// yield return new object[] { new BinarySerializer() };
+		//yield return new object[] { new JsonSerializer() };
+		//yield return new object[] { new BinarySerializer() };
+		yield return new object[] { new YamlSerializer() };
 	}
 
 	[Theory]
 	[MemberData(nameof(Serializers))]
-	public void MapRoundTripWorks(ISerializer serializer)
+	public void RoundtripWorks(IStreamSerializer serializer)
 	{
-		// using var stream = new MemoryStream();
-		// serializer.Serialize(sampleMap, stream);
-		// stream.Seek(0, SeekOrigin.Begin);
-		// Map? deserializedMap = serializer.Deserialize(stream);
-		//
-		// Assert.NotNull(deserializedMap);
-		//
-		// deserializedMap.Should().BeEquivalentTo(sampleMap, options => options
-		// 	.ComparingByMembers<Map>()
-		// 	.WithStrictOrdering());
-	}
+		var sourceObject = new SampleObject();
 
-	[SerializeDerivedTypes]
-	private abstract class Component
-	{
-		public List<float> someFloats { get; set; } = new() { 1.5f, 2, 3 };
-	}
+		using var stream = new MemoryStream();
+		serializer.WriteTo(sourceObject, stream);
+		stream.Seek(0, SeekOrigin.Begin);
 
-	private class ChildComponentA : Component
-	{
-		public string PropertyA { get; set; } = "42";
-
-		public Vector2 MyVector { get; set; } = new(1, 2);
-		//public Coord MyCoord { get; set; } = new(3, 4);
-	}
-
-	private class ChildComponentB : Component
-	{
-		public float PropertyB { get; set; } = 1.2f;
-		public string myName { get; set; } = "B";
-		public MyCoord MyCoord { get; set; } = new() { X = 3, Y = 4 };
-		public System.Drawing.Color color { get; set; } = Color.Green;
-		public List<Color> colors { get; set; } = new() { Color.Red, Color.Blue };
-	}
-
-	public class Bla
-	{
-		public int X { get; set; }
-		public int Y { get; set; }
-	}
-
-	public class MyCoord
-	{
-		public int X;
-		public int Y;
-	}
-
-
-	[YamlTypeConverter("Instance")]
-	public class ColorConverter : IYamlTypeConverter
-	{
-		public static readonly ColorConverter Instance = new();
-
-		public bool Accepts(Type type)
+		SampleObject? deserializedObject = serializer.ReadFrom<SampleObject>(stream);
+		try
 		{
-			return type == typeof(System.Drawing.Color);
+			Assert.NotNull(deserializedObject);
+
+			// This compares only public members.
+			deserializedObject.Should().BeEquivalentTo(sourceObject, options => options
+				.ComparingByMembers<Map>()
+				.WithStrictOrdering());
 		}
-
-		public object ReadYaml(IParser parser, Type type)
+		finally
 		{
-			parser.Consume<MappingStart>();
-
-			parser.Consume<Scalar>();
-			byte r = byte.Parse(parser.Consume<Scalar>().Value);
-
-			parser.Consume<Scalar>();
-			byte g = byte.Parse(parser.Consume<Scalar>().Value);
-
-			parser.Consume<Scalar>();
-			byte b = byte.Parse(parser.Consume<Scalar>().Value);
-
-			parser.Consume<MappingEnd>();
-			return Color.FromArgb(r, g, b);
-		}
-
-		public void WriteYaml(IEmitter emitter, object? value, Type type)
-		{
-			emitter.Emit(new MappingStart());
-
-			Color color = (Color)value!;
-
-			emitter.Emit(new Scalar(nameof(color.R)));
-			emitter.Emit(new Scalar(color.R.ToString()));
-
-			emitter.Emit(new Scalar(nameof(color.G)));
-			emitter.Emit(new Scalar(color.G.ToString()));
-
-			emitter.Emit(new Scalar(nameof(color.B)));
-			emitter.Emit(new Scalar(color.B.ToString()));
-
-			emitter.Emit(new MappingEnd());
+			string text = Encoding.UTF8.GetString(stream.ToArray());
+			testOutputHelper.WriteLine("Serialized text:");
+			testOutputHelper.WriteLine(text);
 		}
 	}
 
-	[Fact]
-	public void YamlCanHandlePolymorphism()
+	[Theory]
+	[MemberData(nameof(Serializers))]
+	public void AccessModifiersWork(IStreamSerializer serializer)
 	{
-		var a = new ChildComponentA();
-		List<Component> components = new()
-		{
-			a,
-			a,
-			new ChildComponentB(),
-		};
+		var sourceObject = new AccessModifiersObject(4f);
 
-		var serializer = new SerializerBuilder()
-			.WithAnnotatedTagMappings()
-			.WithAnnotatedTypeConverters()
-			.EnsureRoundtrip()
-			.Build();
-		string yaml = serializer.Serialize(components);
-		testOutputHelper.WriteLine(yaml);
-		
-		var deserializer = new DeserializerBuilder()
-			.WithAnnotatedTagMappings()
-			.WithAnnotatedTypeConverters()
-			.Build();
-		var deserializedComponents = deserializer.Deserialize<List<Component>>(yaml);
-		testOutputHelper.WriteLine("Deserialized:\n" +
-		                           string.Join("\n", deserializedComponents.Select(c => c.GetType().Name)));
-		Assert.Same(deserializedComponents[0], deserializedComponents[1]);
+		using var stream = new MemoryStream();
+		serializer.WriteTo(sourceObject, stream);
+		stream.Seek(0, SeekOrigin.Begin);
+
+		var deserializedObject = serializer.ReadFrom<AccessModifiersObject>(stream);
+		try
+		{
+			Assert.NotNull(deserializedObject);
+			deserializedObject.AssertDeserializedCorrectly(sourceObject);
+		}
+		finally
+		{
+			string text = Encoding.UTF8.GetString(stream.ToArray());
+			testOutputHelper.WriteLine("Serialized text:");
+			testOutputHelper.WriteLine(text);
+		}
+	}
+
+	// ReSharper disable all
+#pragma warning disable CS0169 // Field is never used
+#pragma warning disable CS0649 // Field is never assigned to, and will always have its default value
+
+	/// <summary>
+	/// Demonstrates which access modifiers are supported by the serializers.
+	/// </summary>
+	/// <remarks>
+	/// By default, only public/private properties and public fields are serializes.
+	/// Private fields and readonly properties can be serialized by using the <see cref="SerializeFieldAttribute"/>.
+	/// </remarks>
+	private class AccessModifiersObject
+	{
+		#region Serialized
+
+		public float PublicProperty { get; set; }
+		private float PrivateProperty { get; set; }
+
+		[field: SerializeField]
+		public float PublicReadonlyPropertyWithSerialize { get; }
+
+		[field: SerializeField]
+		private float PrivateReadonlyPropertyWithSerialize { get; }
+
+		[SerializeField]
+		public float PublicFieldWithAttribute;
+
+		[SerializeField]
+		private float PrivateFieldWithAttribute;
+
+		#endregion
+
+
+		#region NotSerialized
+
+		public float PublicField;
+
+		private float PrivateField;
+
+		public float PublicReadonlyProperty { get; }
+
+		private float PrivateReadonlyProperty { get; }
+
+		public readonly float PublicReadonlyField;
+		private readonly float privateReadonlyField;
+
+		[DontSerialize]
+		public float PublicPropertyWithDontSerialize { get; set; }
+
+		[DontSerialize]
+		private float PrivatePropertyWithDontSerialize { get; set; }
+
+		#endregion
+
+		public void AssertDeserializedCorrectly(AccessModifiersObject source)
+		{
+			PublicProperty.Should().Be(source.PublicProperty);
+			PrivateProperty.Should().Be(source.PrivateProperty);
+			PublicReadonlyPropertyWithSerialize.Should().Be(source.PublicReadonlyPropertyWithSerialize);
+			PrivateReadonlyPropertyWithSerialize.Should().Be(source.PrivateReadonlyPropertyWithSerialize);
+			PublicFieldWithAttribute.Should().Be(source.PublicFieldWithAttribute);
+			PrivateFieldWithAttribute.Should().Be(source.PrivateFieldWithAttribute);
+
+			PublicField.Should().Be(0);
+			privateReadonlyField.Should().Be(0);
+			PublicReadonlyProperty.Should().Be(0);
+			PrivateReadonlyProperty.Should().Be(0);
+			PublicReadonlyField.Should().Be(0);
+			PublicPropertyWithDontSerialize.Should().Be(0);
+			PrivatePropertyWithDontSerialize.Should().Be(0);
+		}
+
+		public AccessModifiersObject()
+		{
+		}
+
+		public AccessModifiersObject(float value)
+		{
+			foreach (FieldInfo field in GetType()
+				         .GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+			{
+				field.SetValue(this, value);
+			}
+
+			foreach (PropertyInfo property in GetType()
+				         .GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+			{
+				if (property.CanWrite)
+					property.SetValue(this, value);
+			}
+		}
+	}
+
+	/// <summary>
+	/// Demonstrates type scenarios that the serializers support.
+	/// </summary>
+	private class SampleObject
+	{
+		public string StringProp { get; set; } = "MyString";
+		public float FloatProp { get; set; } = 1.2f;
+		public int IntProp { get; set; } = 42;
+		public bool BoolProp { get; set; } = true;
+		public Vector2 Vector2Prop { get; set; } = new(1, 2);
+		public List<Vector2> ListOfVector2s { get; set; } = new() { new(1, 2), new(3, 4) };
+		public Dictionary<string, int> Dict { get; set; } = new() { { "a", 1 }, { "b", 2 } };
+		public Dictionary<Coord, int> Tiles { get; set; } = new() { { new(1, 2), 3 }, { new(4, 5), 6 } };
+		public List<Component> Components { get; set; } = new() { new ChildComponentANew(), new ChildComponentB_New() };
+		public Rect RectProp { get; set; } = new(1, 2, 3, 4);
+
+		[SerializeDerivedTypes]
+		public abstract class Component
+		{
+			public string NameInBaseComponent { get; set; } = "BaseName";
+		}
+
+		[RenamedFrom("CatLands.Tests.SerializerTests+ChildComponentA")]
+		public class ChildComponentANew : Component
+		{
+			public float UniquePropInChildA { get; set; } = 1.2f;
+		}
+
+		[RenamedFrom("CatLands.Tests.SerializerTests+ChildComponentB")]
+		[RenamedFrom("CatLands.Tests.SerializerTests+ChildComponentOld")]
+		public class ChildComponentB_New : Component
+		{
+			public int UniquePropInChildB { get; set; } = 42;
+		}
 	}
 }

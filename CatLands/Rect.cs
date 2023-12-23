@@ -1,6 +1,7 @@
 namespace CatLands;
 
 using System.Numerics;
+using YamlDotNet.Serialization;
 
 [Serializable]
 public struct Rect : IEquatable<Rect>
@@ -75,6 +76,7 @@ public struct Rect : IEquatable<Rect>
 	public readonly Vector2 Min => new(Left, Top);
 	public readonly Vector2 Max => new(Right, Bottom);
 
+	[YamlIgnore]
 	public Vector2 Position
 	{
 		readonly get => new(x, y);

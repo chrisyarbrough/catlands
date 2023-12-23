@@ -69,13 +69,13 @@ public static class SceneManager
 		}
 
 		map.FilePath = loadedMapFilePath;
-		AssetFile.Save(loadedMapFilePath, map);
+		SerializedAsset.Save(loadedMapFilePath, map);
 		Prefs.Set("LastMapFilePath", loadedMapFilePath);
 	}
 
 	private static void LoadMap(string filePath)
 	{
-		Map.Current = AssetFile.Load<Map>(filePath)!;
+		Map.Current = SerializedAsset.Load<Map>(filePath)!;
 		Map.Current.FilePath = filePath;
 		Prefs.Set("LastMapFilePath", filePath);
 		CommandManager.Clear();

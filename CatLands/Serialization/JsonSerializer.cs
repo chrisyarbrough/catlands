@@ -3,7 +3,7 @@ namespace CatLands;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-public class JsonSerializer : ISerializer
+public class JsonSerializer : IStreamSerializer
 {
 	public string FileExtension => ".json";
 	
@@ -21,10 +21,10 @@ public class JsonSerializer : ISerializer
 		};
 	}
 
-	public void Serialize(object value, Stream stream)
+	public void WriteTo(object value, Stream stream)
 	{
-		string json = Serialize(value);
-		ISerializer.Write(json, stream);
+		using var writer = new StreamWriter(stream, leaveOpen: true);
+		new Newtonsoft.Json.JsonSerializer().Serialize(writer, value);
 	}
 
 	public string Serialize(object value)
@@ -37,7 +37,7 @@ public class JsonSerializer : ISerializer
 		return JsonConvert.DeserializeObject<T>(json, settings);
 	}
 
-	public T? Deserialize<T>(Stream stream)
+	public T? ReadFrom<T>(Stream stream)
 	{
 		using var reader = new StreamReader(stream, leaveOpen: true);
 		string json = reader.ReadToEnd();
