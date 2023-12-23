@@ -1,0 +1,90 @@
+{
+  "changetracker": {},
+  "layercount": 1,
+  "filepath": "/Users/Chris/Projects/CatLands/CatLands/Assets/Maps/Untitled.json",
+  "layers": [
+    {
+      "isvisible": true,
+      "name": "chicken default",
+      "texturepath": "Assets/Animals/Chicken/chicken default.png",
+      "tiles": [
+        {
+          "item1": "1|1",
+          "item2": 1
+        },
+        {
+          "item1": "1|2",
+          "item2": 1
+        },
+        {
+          "item1": "0|2",
+          "item2": 1
+        },
+        {
+          "item1": "0|3",
+          "item2": 1
+        },
+        {
+          "item1": "1|4",
+          "item2": 1
+        },
+        {
+          "item1": "2|4",
+          "item2": 1
+        },
+        {
+          "item1": "3|4",
+          "item2": 1
+        },
+        {
+          "item1": "4|4",
+          "item2": 1
+        },
+        {
+          "item1": "4|3",
+          "item2": 1
+        },
+        {
+          "item1": "4|2",
+          "item2": 1
+        },
+        {
+          "item1": "4|1",
+          "item2": 1
+        },
+        {
+          "item1": "2|2",
+          "item2": 1
+        },
+        {
+          "item1": "3|2",
+          "item2": 1
+        },
+        {
+          "item1": "3|3",
+          "item2": 1
+        },
+        {
+          "item1": "4|5",
+          "item2": 1
+        },
+        {
+          "item1": "3|5",
+          "item2": 1
+        },
+        {
+          "item1": "3|6",
+          "item2": 1
+        },
+        {
+          "item1": "1|6",
+          "item2": 1
+        },
+        {
+          "item1": "2|6",
+          "item2": 1
+        }
+      ]
+    }
+  ]
+}

@@ -19,6 +19,8 @@ public class YamlSerializer : ISerializer
 	{
 		var deserializer = new DeserializerBuilder()
 			.WithNamingConvention(namingConvention)
+			.WithAnnotatedTagMappings()
+			.WithAnnotatedTypeConverters()
 			.IgnoreUnmatchedProperties()
 			.Build();
 
@@ -30,6 +32,9 @@ public class YamlSerializer : ISerializer
 	{
 		var serializer = new SerializerBuilder()
 			.WithNamingConvention(namingConvention)
+			.WithAnnotatedTagMappings()
+			.WithAnnotatedTypeConverters()
+			.EnsureRoundtrip()
 			.Build();
 
 		return serializer.Serialize(value);

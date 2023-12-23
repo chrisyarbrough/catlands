@@ -1,5 +1,7 @@
 namespace CatLands;
 
+using Newtonsoft.Json;
+
 public class Layer
 {
 	public bool IsVisible
@@ -27,6 +29,11 @@ public class Layer
 	private ChangeTracker? changeTracker;
 	private bool isVisible = true;
 
+	[JsonConstructor]
+	public Layer()
+	{
+	}
+	
 	public Layer(string texturePath) : this(texturePath, Enumerable.Empty<(Coord, int)>())
 	{
 	}

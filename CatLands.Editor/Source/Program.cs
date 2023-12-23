@@ -39,8 +39,7 @@ internal class Program
 		ImGui.GetIO().ConfigWindowsMoveFromTitleBarOnly = true;
 
 		var mapDisplay = new MapDisplay();
-
-		// scene.AddChild(mapDisplay);
+		scene.AddChild(mapDisplay);
 		scene.Setup();
 
 		MainWindow.AddToolbar(MainWindowToolbar.Draw);
@@ -53,6 +52,8 @@ internal class Program
 			() => new TileBrushWindow(),
 			() => new LayersWindow(),
 		});
+
+		MainWindow.AddWindowType("Prefs", typeof(PrefsWindow));
 
 		while (!Raylib.WindowShouldClose())
 		{

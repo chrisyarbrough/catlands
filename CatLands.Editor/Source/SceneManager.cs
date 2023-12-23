@@ -18,8 +18,14 @@ public static class SceneManager
 		{
 			if (Prefs.TryGet("LastMapFilePath", out string? loadedMapFilePath))
 			{
-				Console.WriteLine("Map file path loaded from prefs: " + loadedMapFilePath);
-				LoadMap(loadedMapFilePath);
+				Console.WriteLine("Found map file path in prefs: " + loadedMapFilePath);
+				if (File.Exists(loadedMapFilePath))
+					LoadMap(loadedMapFilePath);
+				else
+				{
+					Prefs.Remove("LastMapFilePath");
+					CreateMap();
+				}
 			}
 		}
 	}
@@ -46,7 +52,6 @@ public static class SceneManager
 
 	public static void Save(Map map)
 	{
-
 		if (!Prefs.TryGet("LastMapFilePath", out string? loadedMapFilePath))
 		{
 			DialogResult result = Dialog.FileSave(
@@ -76,7 +81,7 @@ public static class SceneManager
 		CommandManager.Clear();
 	}
 
-	public static void NewMap()
+	public static void CreateMap()
 	{
 		Prefs.Remove("LastMapFilePath");
 		Map.Current = new Map();

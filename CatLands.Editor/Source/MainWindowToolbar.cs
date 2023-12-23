@@ -18,7 +18,7 @@ internal class MainWindowToolbar
 		if (ImGui.BeginMenu("File"))
 		{
 			if (ImGui.MenuItem("New"))
-				SceneManager.NewMap();
+				SceneManager.CreateMap();
 
 			if (ImGui.MenuItem("Open..."))
 				SceneManager.Open();

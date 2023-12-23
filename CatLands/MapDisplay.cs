@@ -3,14 +3,14 @@ namespace CatLands;
 using Raylib_cs;
 using System.Numerics;
 
-public class MapDisplay : ISystem
+public class MapDisplay : GameObject
 {
 	private static Map? Map => Map.Current;
 
-	private static List<TileRenderInfo> previews = new();
+	private static readonly List<TileRenderInfo> previews = new();
 	private static bool drawPreview;
 
-	public void Draw(Camera2D camera)
+	public void Update(float deltaTime)
 	{
 		if (Map == null)
 			return;
@@ -21,7 +21,7 @@ public class MapDisplay : ISystem
 		{
 			Layer layer = Map.GetLayer(i);
 			if (layer.IsVisible)
-				DrawLayer(layer, i, camera);
+				DrawLayer(layer, i, new Camera2D()); // TODO
 		}
 	}
 
@@ -94,20 +94,12 @@ public readonly record struct TileRenderInfo(int LayerId, Coord Coord, int TileI
 		if (tileId < 0 || tileId >= atlas.SpriteRects.Count)
 			return;
 
-		try
-		{
-			Raylib.DrawTexturePro(
-				atlas.Texture,
-				source: atlas.SpriteRects[tileId],
-				destinationRect,
-				Vector2.Zero,
-				0f,
-				Color.WHITE);
-		}
-		catch (Exception e)
-		{
-			Console.WriteLine(e);
-			throw;
-		}
+		Raylib.DrawTexturePro(
+			atlas.Texture,
+			source: atlas.SpriteRects[tileId],
+			destinationRect,
+			Vector2.Zero,
+			0f,
+			Color.WHITE);
 	}
 }

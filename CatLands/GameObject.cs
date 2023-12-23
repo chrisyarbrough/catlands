@@ -50,7 +50,6 @@ public class GameObject
 	/// <summary>
 	/// An editor callback invoked by each SceneView when it renders.
 	/// </summary>
-	/// <param name="camera"></param>
 	public virtual void OnSceneGui(Camera2D camera)
 	{
 		foreach (GameObject child in children)

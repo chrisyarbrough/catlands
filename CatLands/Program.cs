@@ -11,21 +11,16 @@ internal class Program
 		Raylib.InitWindow(width: 1280, height: 800, title: "CatLands");
 		Raylib.SetTargetFPS(60);
 
-		var systems = new List<ISystem>
-		{
-			new MapDisplay()
-		};
-
 		Camera2D camera = new Camera2D(Vector2.Zero, Vector2.Zero, 0f, 1f);
 
 		while (!Raylib.WindowShouldClose())
 		{
 			float deltaTime = Raylib.GetFrameTime();
-			systems.ForEach(system => system.Update(deltaTime));
+			// systems.ForEach(system => system.Update(deltaTime));
 
 			Raylib.BeginDrawing();
 			Raylib.BeginMode2D(camera);
-			systems.ForEach(system => system.Draw(camera));
+			//systems.ForEach(system => system.Draw(camera));
 			Raylib.EndMode2D();
 			Raylib.EndDrawing();
 		}

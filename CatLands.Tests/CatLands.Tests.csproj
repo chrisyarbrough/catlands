@@ -13,6 +13,7 @@
     <ItemGroup>
         <PackageReference Include="FluentAssertions" Version="6.12.0" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.7.1"/>
+        <PackageReference Include="NSubstitute" Version="5.1.0" />
         <PackageReference Include="xunit" Version="2.4.2"/>
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -22,9 +23,11 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
+        <PackageReference Include="YamlDotNet" Version="13.7.1" />
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\CatLands.Editor\CatLands.Editor.csproj" />
       <ProjectReference Include="..\CatLands\CatLands.csproj" />
     </ItemGroup>
 

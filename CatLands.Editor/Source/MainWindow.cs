@@ -25,6 +25,8 @@ public static class MainWindow
 		}
 	}
 
+	public static void AddWindowType(string name, Type windowType) => windowTypes.Add(name, windowType);
+
 	public static void Shutdown()
 	{
 		foreach (Window window in windows)

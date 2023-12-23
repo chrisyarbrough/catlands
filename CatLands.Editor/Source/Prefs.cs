@@ -1,26 +1,29 @@
 namespace CatLands.Editor;
 
 using Newtonsoft.Json;
-using File = System.IO.File;
 
 public static class Prefs
 {
-	private static readonly FileInfo file = new(Path.Combine(AppContext.BaseDirectory, "Prefs.json"));
-	private static readonly Dictionary<string, object> prefs = new();
+	public static ITextStorage Storage { get; set; } =
+		new FileStorage(Path.Combine(AppContext.BaseDirectory, "Prefs.json"));
+
+	public static IEnumerable<(string key, string value)> All => prefs.Select(pair => (pair.Key, pair.Value));
+
+	private static readonly Dictionary<string, string> prefs = new();
 
 	public static void Set(string key, object value)
 	{
-		prefs[key] = value;
+		prefs[key] = Serialize(value);
 		Save();
 	}
 
 	public static bool TryGet<T>(string key, out T? value)
 	{
-		if (prefs.TryGetValue(key, out object? obj))
+		if (prefs.TryGetValue(key, out string? json))
 		{
 			try
 			{
-				value = (T)obj;
+				value = Deserialize<T>(json);
 				return true;
 			}
 			catch (Exception e)
@@ -50,19 +53,28 @@ public static class Prefs
 
 	private static void Save()
 	{
-		string json = JsonConvert.SerializeObject(prefs, Formatting.Indented);
-		File.WriteAllText(file.FullName, json);
+		string json = Serialize(prefs);
+		Storage.WriteAllText(json);
 	}
 
 	public static void Load()
 	{
-		if (!file.Exists)
+		prefs.Clear();
+
+		if (!Storage.Exists)
 			return;
 
-		string json = File.ReadAllText(file.FullName);
-		prefs.Clear();
-		var data = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
-		foreach (KeyValuePair<string, string> pair in data!)
+		string json = Storage.ReadAllText();
+		var data = Deserialize<Dictionary<string, string>>(json);
+
+		if (data == null)
+			return;
+
+		foreach (KeyValuePair<string, string> pair in data)
 			prefs[pair.Key] = pair.Value;
 	}
+
+	private static string Serialize<T>(T value) => JsonConvert.SerializeObject(value, Formatting.Indented);
+
+	private static T? Deserialize<T>(string json) => JsonConvert.DeserializeObject<T>(json);
 }
