@@ -10,7 +10,3 @@ public class SerializeFieldAttribute : Attribute
 		this.OverrideName = name;
 	}
 }
-
-public class DontSerialize : Attribute
-{
-}

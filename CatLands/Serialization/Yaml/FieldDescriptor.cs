@@ -8,7 +8,7 @@ public sealed class FieldDescriptor : Descriptor<FieldInfo>
 	{
 	}
 
-	public override string Name
+	protected override string UnconventionalName
 	{
 		get
 		{

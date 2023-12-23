@@ -1,7 +1,5 @@
 namespace CatLands;
 
-using CatLands;
-
 [YamlTypeConverter(nameof(Instance))]
 public class YamlCoordConverter : SingleLineComponentsConverter<Coord>
 {

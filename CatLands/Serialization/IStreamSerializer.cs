@@ -1,7 +1,7 @@
 namespace CatLands;
 
 /// <summary>
-/// Converts an object to a stream and vice verse.
+/// Converts an object to a stream and vice versa.
 /// </summary>
 public interface IStreamSerializer
 {

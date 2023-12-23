@@ -3,20 +3,23 @@ namespace CatLands;
 using System.Reflection;
 using YamlDotNet.Core;
 using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 using YamlDotNet.Serialization.TypeResolvers;
 
-public abstract class Descriptor<T> : IPropertyDescriptor where T : MemberInfo
+public abstract class Descriptor<TMemberInfo> : IPropertyDescriptor where TMemberInfo : MemberInfo
 {
-	protected readonly T Info;
+	protected readonly TMemberInfo Info;
 
 	private readonly ITypeResolver typeResolver = new DynamicTypeResolver();
 
-	protected Descriptor(T info)
+	protected Descriptor(TMemberInfo info)
 	{
-		this.Info = info;
+		Info = info;
 	}
 
-	public abstract string Name { get; }
+	public string Name => CamelCaseNamingConvention.Instance.Apply(UnconventionalName);
+	
+	protected abstract string UnconventionalName { get; }
 
 	public abstract bool CanWrite { get; }
 
@@ -28,7 +31,7 @@ public abstract class Descriptor<T> : IPropertyDescriptor where T : MemberInfo
 
 	public ScalarStyle ScalarStyle { get; set; } = ScalarStyle.Any;
 
-	public T? GetCustomAttribute<T>() where T : Attribute => Info.GetCustomAttribute<T>();
+	public TAttribute? GetCustomAttribute<TAttribute>() where TAttribute : Attribute => Info.GetCustomAttribute<TAttribute>();
 
 	public IObjectDescriptor Read(object target)
 	{

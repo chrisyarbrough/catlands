@@ -3,7 +3,6 @@ namespace CatLands;
 using System.Numerics;
 using AutoMapper;
 using Raylib_cs;
-using SpriteEditor;
 
 public class SpriteAtlasDto
 {

@@ -17,7 +17,7 @@ public static class YamlDotNetExtensions
 
 	private static IEnumerable<(string tagName, Type type)> FindMappings()
 	{
-		foreach (Type type in FindTypesWithAttribute<SerializeDerivedTypesAttribute>())
+		foreach (Type type in FindTypesWithAttribute<SerializeTypeHierarchyAttribute>())
 		{
 			// Intentional simplification: A serialized type hierarchy must be in the same assembly.
 			foreach (Type derivedType in type.Assembly.GetTypes().Where(t => t.IsSubclassOf(type)))
@@ -34,7 +34,7 @@ public static class YamlDotNetExtensions
 		foreach ((string tagName, Type type) in FindMappings())
 		{
 			builder.WithTagMapping(tagName, type);
-			
+
 			// Multiple tags can resolve to the same type during deserialization.
 			foreach (var attribute in type.GetCustomAttributes<RenamedFromAttribute>())
 			{
@@ -89,5 +89,24 @@ public static class YamlDotNetExtensions
 		return AppDomain.CurrentDomain.GetAssemblies()
 			.SelectMany(assembly => assembly.GetTypes())
 			.Where(type => type.IsDefined(typeof(T)));
+	}
+
+	public static SerializerBuilder WithCustomTypeInspector(this SerializerBuilder builder)
+	{
+		return builder.WithTypeInspector<ITypeInspector>(_ => WrapWithDebug(new CustomTypeInspector()));
+	}
+
+	public static DeserializerBuilder WithCustomTypeInspector(this DeserializerBuilder builder)
+	{
+		return builder.WithTypeInspector<ITypeInspector>(_ => new CustomTypeInspector { IsDeserializing = true });
+	}
+
+	public static ITypeInspector WrapWithDebug(ITypeInspector inner)
+	{
+#if DEBUG
+		return new DebugTypeInspector(inner);
+#else
+		return inner;
+#endif
 	}
 }

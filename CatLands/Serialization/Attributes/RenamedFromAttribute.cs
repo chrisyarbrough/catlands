@@ -1,10 +1,10 @@
 namespace CatLands;
 
 /// <summary>
-/// Use this on types that derive from a type with the <see cref="SerializeDerivedTypesAttribute"/> to indicate
+/// Use this on types that derive from a type with the <see cref="SerializeTypeHierarchyAttribute"/> to indicate
 /// the old name of the type after its namespace-qualified name was changed.
 /// </summary>
-[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = true)]
 public sealed class RenamedFromAttribute : Attribute
 {
 	public readonly string OldName;

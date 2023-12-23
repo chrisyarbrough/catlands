@@ -1,4 +1,4 @@
-namespace CatLands.SpriteEditor;
+namespace CatLands;
 
 public interface IMementoOwner
 {

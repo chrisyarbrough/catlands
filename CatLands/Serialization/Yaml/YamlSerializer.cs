@@ -1,15 +1,11 @@
 namespace CatLands;
 
-using System.Numerics;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
-using YamlDotNet.Serialization.TypeInspectors;
 
 public class YamlSerializer : IStreamSerializer
 {
 	public string FileExtension => ".yaml";
-
-	private static readonly INamingConvention namingConvention = PascalCaseNamingConvention.Instance;
 
 	public void WriteTo(object value, Stream stream)
 	{
@@ -37,28 +33,20 @@ public class YamlSerializer : IStreamSerializer
 		return deserializer.Deserialize<T>(yaml);
 	}
 
-	private static ISerializer CreateSerializer()
-	{
-		var serializer = new SerializerBuilder()
-			.WithNamingConvention(namingConvention)
+	private static ISerializer CreateSerializer() =>
+		new SerializerBuilder()
 			.WithAnnotatedTagMappings()
 			.WithAnnotatedTypeConverters()
 			.EnsureRoundtrip()
 			.DisableAliases()
-			.WithTypeInspector<ITypeInspector>(_ => new CustomTypeInspector())
+			.WithCustomTypeInspector()
 			.Build();
-		return serializer;
-	}
 
-	private static IDeserializer CreateDeserializer()
-	{
-		var deserializer = new DeserializerBuilder()
-			.WithNamingConvention(namingConvention)
+	private static IDeserializer CreateDeserializer() =>
+		new DeserializerBuilder()
 			.WithAnnotatedTagMappings()
 			.WithAnnotatedTypeConverters()
 			.IgnoreUnmatchedProperties()
-			.WithTypeInspector<ITypeInspector>(_ => new CustomTypeInspector())
+			.WithCustomTypeInspector()
 			.Build();
-		return deserializer;
-	}
 }

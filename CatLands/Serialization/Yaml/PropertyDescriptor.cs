@@ -5,11 +5,27 @@ using System.Text.RegularExpressions;
 
 public sealed class PropertyDescriptor : Descriptor<PropertyInfo>
 {
+	private readonly string? overrideName;
+
 	public PropertyDescriptor(PropertyInfo info) : base(info)
 	{
 	}
 
-	public override string Name => Regex.Replace(Info.Name, "^<(.+?)>k__BackingField$", "$1");
+	public PropertyDescriptor(PropertyInfo info, string overrideName) : base(info)
+	{
+		this.overrideName = overrideName;
+	}
+
+	protected override string UnconventionalName
+	{
+		get
+		{
+			if (overrideName != null)
+				return overrideName;
+
+			return Regex.Replace(Info.Name, "^<(.+?)>k__BackingField$", "$1");
+		}
+	}
 
 	public override bool CanWrite => Info.CanWrite;
 
