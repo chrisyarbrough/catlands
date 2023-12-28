@@ -43,3 +43,5 @@ internal class SampleObject
 		public int UniquePropInChildB { get; set; } = 42;
 	}
 }
+
+#pragma warning restore

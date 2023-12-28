@@ -5,8 +5,6 @@ using Newtonsoft.Json.Serialization;
 
 public class JsonSerializer : IStreamSerializer
 {
-	public string FileExtension => ".json";
-	
 	private static readonly JsonSerializerSettings settings;
 
 	static JsonSerializer()
@@ -24,17 +22,8 @@ public class JsonSerializer : IStreamSerializer
 	public void WriteTo(object value, Stream stream)
 	{
 		using var writer = new StreamWriter(stream, leaveOpen: true);
-		new Newtonsoft.Json.JsonSerializer().Serialize(writer, value);
-	}
-
-	public string Serialize(object value)
-	{
-		return JsonConvert.SerializeObject(value, settings);
-	}
-
-	public T? Deserialize<T>(string json)
-	{
-		return JsonConvert.DeserializeObject<T>(json, settings);
+		string json = Serialize(value);
+		writer.Write(json);
 	}
 
 	public T? ReadFrom<T>(Stream stream)
@@ -42,6 +31,16 @@ public class JsonSerializer : IStreamSerializer
 		using var reader = new StreamReader(stream, leaveOpen: true);
 		string json = reader.ReadToEnd();
 		return Deserialize<T>(json);
+	}
+
+	public static string Serialize(object value)
+	{
+		return JsonConvert.SerializeObject(value, settings);
+	}
+
+	public static T? Deserialize<T>(string json)
+	{
+		return JsonConvert.DeserializeObject<T>(json, settings);
 	}
 
 	private class LowercaseNamingStrategy : NamingStrategy

@@ -1,0 +1,61 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:CatLands.Hub.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:icons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="CatLands.Hub.Views.CreateProjectView"
+             x:DataType="vm:CreateProjectViewModel">
+
+    <Design.DataContext>
+        <vm:DesignerCreateProjectViewModel />
+    </Design.DataContext>
+
+    <Grid ColumnDefinitions="120,*" RowDefinitions="60,*">
+        <StackPanel Grid.Row="0">
+            <Label FontWeight="Thin" FontSize="15" Margin="10, 10, 10, 5">Template</Label>
+            <Separator Margin="0" />
+        </StackPanel>
+
+        <StackPanel Grid.Row="0" Grid.Column="1">
+            <Label FontWeight="Thin" FontSize="15" Margin="10, 10, 10, 5">New Project Details</Label>
+            <Separator Margin="0" />
+        </StackPanel>
+
+        <ListBox Grid.Column="0" Grid.Row="1"
+                 ItemsSource="{Binding Templates}"
+                 SelectedItem="{Binding SelectedTemplate}"
+                 SelectionMode="AlwaysSelected"
+                 Margin="0, 0, 10, 0">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding Name}" />
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <StackPanel Grid.Row="1" Grid.Column="1"
+                    Margin="10, 0, 0, 0"
+                    VerticalAlignment="Top"
+                    Spacing="10">
+            <Image Source="{Binding SelectedTemplate.PreviewImage, FallbackValue=''}"
+                   Width="250"
+                   HorizontalAlignment="Left" />
+            <StackPanel Orientation="Horizontal">
+                <Label Width="50" VerticalAlignment="Center">Name</Label>
+                <TextBox Width="200" Text="{Binding NewProject.Name}" Watermark="New Project"></TextBox>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label Width="50" VerticalAlignment="Center">Path</Label>
+                <TextBox Width="200" Text="{Binding NewProject.Path}" Watermark="Path/To/ProjectRoot"></TextBox>
+                <Button Margin="10, 0, 0 ,0">
+                    <icons:MaterialIcon Kind="Folder"></icons:MaterialIcon>
+                </Button>
+            </StackPanel>
+            <Button Content="Create" Command="{Binding CreateProjectCommand}"></Button>
+        </StackPanel>
+    </Grid>
+</UserControl>

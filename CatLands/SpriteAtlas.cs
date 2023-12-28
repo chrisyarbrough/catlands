@@ -6,7 +6,7 @@ using Raylib_cs;
 
 public class SpriteAtlasDto
 {
-	public List<Rectangle>? SpriteRects { get; set; }
+	public List<Rect>? SpriteRects { get; set; }
 	public List<AnimationDto>? Animations { get; set; }
 
 	public void Create(SpriteAtlas instance)

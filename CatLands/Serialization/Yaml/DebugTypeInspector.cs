@@ -15,6 +15,8 @@ public sealed class DebugTypeInspector : ITypeInspector
 
 	public IEnumerable<IPropertyDescriptor> GetProperties(Type type, object? container)
 	{
+		propertyNames.Clear();
+
 		foreach (IPropertyDescriptor descriptor in inner.GetProperties(type, container))
 		{
 			if (!propertyNames.Add(descriptor.Name))

@@ -99,3 +99,5 @@ internal class AccessModifiersObject
 		PrivatePropertyWithDontSerialize.Should().Be(0);
 	}
 }
+
+#pragma warning restore

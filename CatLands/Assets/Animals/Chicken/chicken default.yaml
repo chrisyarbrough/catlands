@@ -1,384 +1,213 @@
 spriteRects:
-- x: 0
-  y: 0
-  width: 16
-  height: 16
-- x: 16
-  y: 0
-  width: 16
-  height: 16
-- x: 32
-  y: 0
-  width: 16
-  height: 16
-- x: 48
-  y: 0
-  width: 16
-  height: 16
-- x: 0
-  y: 16
-  width: 16
-  height: 16
-- x: 16
-  y: 16
-  width: 16
-  height: 16
-- x: 32
-  y: 16
-  width: 16
-  height: 16
-- x: 48
-  y: 16
-  width: 16
-  height: 16
-- x: 64
-  y: 16
-  width: 16
-  height: 16
-- x: 80
-  y: 16
-  width: 16
-  height: 16
-- x: 96
-  y: 16
-  width: 16
-  height: 16
-- x: 0
-  y: 32
-  width: 16
-  height: 16
-- x: 16
-  y: 32
-  width: 16
-  height: 16
-- x: 32
-  y: 32
-  width: 16
-  height: 16
-- x: 48
-  y: 32
-  width: 16
-  height: 16
-- x: 64
-  y: 32
-  width: 16
-  height: 16
-- x: 80
-  y: 32
-  width: 16
-  height: 16
-- x: 96
-  y: 32
-  width: 16
-  height: 16
-- x: 112
-  y: 32
-  width: 16
-  height: 16
-- x: 0
-  y: 48
-  width: 16
-  height: 16
-- x: 16
-  y: 48
-  width: 16
-  height: 16
-- x: 32
-  y: 48
-  width: 16
-  height: 16
-- x: 48
-  y: 48
-  width: 16
-  height: 16
-- x: 64
-  y: 48
-  width: 16
-  height: 16
-- x: 80
-  y: 48
-  width: 16
-  height: 16
-- x: 96
-  y: 48
-  width: 16
-  height: 16
-- x: 0
-  y: 64
-  width: 16
-  height: 16
-- x: 16
-  y: 64
-  width: 16
-  height: 16
-- x: 32
-  y: 64
-  width: 16
-  height: 16
-- x: 48
-  y: 64
-  width: 16
-  height: 16
-- x: 64
-  y: 64
-  width: 16
-  height: 16
-- x: 80
-  y: 64
-  width: 16
-  height: 16
-- x: 96
-  y: 64
-  width: 16
-  height: 16
-- x: 0
-  y: 80
-  width: 16
-  height: 16
-- x: 16
-  y: 80
-  width: 16
-  height: 16
-- x: 32
-  y: 80
-  width: 16
-  height: 16
-- x: 48
-  y: 80
-  width: 16
-  height: 16
-- x: 64
-  y: 80
-  width: 16
-  height: 16
-- x: 80
-  y: 80
-  width: 16
-  height: 16
-- x: 96
-  y: 80
-  width: 16
-  height: 16
-- x: 0
-  y: 96
-  width: 16
-  height: 16
-- x: 16
-  y: 96
-  width: 16
-  height: 16
-- x: 32
-  y: 96
-  width: 16
-  height: 16
-- x: 48
-  y: 96
-  width: 16
-  height: 16
-- x: 64
-  y: 96
-  width: 16
-  height: 16
-- x: 80
-  y: 96
-  width: 16
-  height: 16
-- x: 96
-  y: 96
-  width: 16
-  height: 16
-- x: 0
-  y: 112
-  width: 16
-  height: 16
-- x: 16
-  y: 112
-  width: 16
-  height: 16
-- x: 32
-  y: 112
-  width: 16
-  height: 16
-- x: 48
-  y: 112
-  width: 16
-  height: 16
-- x: 64
-  y: 112
-  width: 16
-  height: 16
-- x: 0
-  y: 128
-  width: 16
-  height: 16
-- x: 16
-  y: 128
-  width: 16
-  height: 16
-- x: 32
-  y: 128
-  width: 16
-  height: 16
-- x: 48
-  y: 128
-  width: 16
-  height: 16
-- x: 0
-  y: 144
-  width: 16
-  height: 16
-- x: 16
-  y: 144
-  width: 16
-  height: 16
-- x: 32
-  y: 144
-  width: 16
-  height: 16
-- x: 48
-  y: 144
-  width: 16
-  height: 16
-- x: 64
-  y: 144
-  width: 16
-  height: 16
-- x: 0
-  y: 160
-  width: 16
-  height: 16
-- x: 16
-  y: 160
-  width: 16
-  height: 16
-- x: 32
-  y: 160
-  width: 16
-  height: 16
-- x: 48
-  y: 160
-  width: 16
-  height: 16
-- x: 0
-  y: 176
-  width: 16
-  height: 16
-- x: 16
-  y: 176
-  width: 16
-  height: 16
-- x: 32
-  y: 176
-  width: 16
-  height: 16
-- x: 48
-  y: 176
-  width: 16
-  height: 16
-- x: 64
-  y: 176
-  width: 16
-  height: 16
-- x: 80
-  y: 176
-  width: 16
-  height: 16
-- x: 0
-  y: 192
-  width: 16
-  height: 16
-- x: 16
-  y: 192
-  width: 16
-  height: 16
-- x: 0
-  y: 208
-  width: 32
-  height: 32
-- x: 32
-  y: 208
-  width: 32
-  height: 32
-- x: 64
-  y: 208
-  width: 32
-  height: 32
-- x: 96
-  y: 208
-  width: 32
-  height: 32
-- x: 0
-  y: 240
-  width: 32
-  height: 32
-- x: 32
-  y: 240
-  width: 32
-  height: 32
-- x: 0
-  y: 272
-  width: 32
-  height: 32
-- x: 32
-  y: 272
-  width: 32
-  height: 32
-- x: 64
-  y: 272
-  width: 32
-  height: 32
-- x: 96
-  y: 272
-  width: 32
-  height: 32
-- x: 0
-  y: 304
-  width: 32
-  height: 32
-- x: 0
-  y: 336
-  width: 32
-  height: 32
-- x: 32
-  y: 336
-  width: 32
-  height: 32
-- x: 64
-  y: 336
-  width: 32
-  height: 32
-- x: 96
-  y: 336
-  width: 32
-  height: 32
-- x: 0
-  y: 400
-  width: 16
-  height: 32
-- x: 16
-  y: 400
-  width: 16
-  height: 32
-- x: 32
-  y: 400
-  width: 16
-  height: 32
-- x: 48
-  y: 400
-  width: 16
-  height: 32
-- x: 64
-  y: 400
-  width: 16
-  height: 32
-- x: 80
-  y: 400
-  width: 16
-  height: 32
-- x: 96
-  y: 400
-  width: 16
-  height: 32
+- 0 0 16 16
+- 16 0 16 16
+- 32 0 16 16
+- 48 0 16 16
+- 0 16 16 16
+- 16 16 16 16
+- 32 16 16 16
+- 48 16 16 16
+- 64 16 16 16
+- 80 16 16 16
+- 96 16 16 16
+- 112 16 16 16
+- 0 32 16 16
+- 16 32 16 16
+- 32 32 16 16
+- 48 32 16 16
+- 64 32 16 16
+- 80 32 16 16
+- 96 32 16 16
+- 112 32 16 16
+- 0 48 16 16
+- 16 48 16 16
+- 32 48 16 16
+- 48 48 16 16
+- 64 48 16 16
+- 80 48 16 16
+- 96 48 16 16
+- 112 48 16 16
+- 0 64 16 16
+- 16 64 16 16
+- 32 64 16 16
+- 48 64 16 16
+- 64 64 16 16
+- 80 64 16 16
+- 96 64 16 16
+- 112 64 16 16
+- 0 80 16 16
+- 16 80 16 16
+- 32 80 16 16
+- 48 80 16 16
+- 64 80 16 16
+- 80 80 16 16
+- 96 80 16 16
+- 112 80 16 16
+- 0 96 16 16
+- 16 96 16 16
+- 32 96 16 16
+- 48 96 16 16
+- 64 96 16 16
+- 80 96 16 16
+- 96 96 16 16
+- 112 96 16 16
+- 0 112 16 16
+- 16 112 16 16
+- 32 112 16 16
+- 48 112 16 16
+- 64 112 16 16
+- 80 112 16 16
+- 96 112 16 16
+- 112 112 16 16
+- 0 128 16 16
+- 16 128 16 16
+- 32 128 16 16
+- 48 128 16 16
+- 64 128 16 16
+- 80 128 16 16
+- 96 128 16 16
+- 112 128 16 16
+- 0 144 16 16
+- 16 144 16 16
+- 32 144 16 16
+- 48 144 16 16
+- 64 144 16 16
+- 80 144 16 16
+- 96 144 16 16
+- 112 144 16 16
+- 0 160 16 16
+- 16 160 16 16
+- 32 160 16 16
+- 48 160 16 16
+- 64 160 16 16
+- 80 160 16 16
+- 96 160 16 16
+- 112 160 16 16
+- 0 176 16 16
+- 16 176 16 16
+- 32 176 16 16
+- 48 176 16 16
+- 64 176 16 16
+- 80 176 16 16
+- 96 176 16 16
+- 112 176 16 16
+- 0 192 16 16
+- 16 192 16 16
+- 32 192 16 16
+- 48 192 16 16
+- 64 192 16 16
+- 80 192 16 16
+- 96 192 16 16
+- 112 192 16 16
+- 0 208 16 16
+- 16 208 16 16
+- 32 208 16 16
+- 48 208 16 16
+- 64 208 16 16
+- 80 208 16 16
+- 96 208 16 16
+- 112 208 16 16
+- 0 224 16 16
+- 16 224 16 16
+- 32 224 16 16
+- 48 224 16 16
+- 64 224 16 16
+- 80 224 16 16
+- 96 224 16 16
+- 112 224 16 16
+- 0 240 16 16
+- 16 240 16 16
+- 32 240 16 16
+- 48 240 16 16
+- 64 240 16 16
+- 80 240 16 16
+- 96 240 16 16
+- 112 240 16 16
+- 0 256 16 16
+- 16 256 16 16
+- 32 256 16 16
+- 48 256 16 16
+- 64 256 16 16
+- 80 256 16 16
+- 96 256 16 16
+- 112 256 16 16
+- 0 272 16 16
+- 16 272 16 16
+- 32 272 16 16
+- 48 272 16 16
+- 64 272 16 16
+- 80 272 16 16
+- 96 272 16 16
+- 112 272 16 16
+- 0 288 16 16
+- 16 288 16 16
+- 32 288 16 16
+- 48 288 16 16
+- 64 288 16 16
+- 80 288 16 16
+- 96 288 16 16
+- 112 288 16 16
+- 0 304 16 16
+- 16 304 16 16
+- 32 304 16 16
+- 48 304 16 16
+- 64 304 16 16
+- 80 304 16 16
+- 96 304 16 16
+- 112 304 16 16
+- 0 320 16 16
+- 16 320 16 16
+- 32 320 16 16
+- 48 320 16 16
+- 64 320 16 16
+- 80 320 16 16
+- 96 320 16 16
+- 112 320 16 16
+- 32 336 16 16
+- 48 336 16 16
+- 64 336 16 16
+- 80 336 16 16
+- 96 336 16 16
+- 112 336 16 16
+- 32 352 16 16
+- 48 352 16 16
+- 64 352 16 16
+- 80 352 16 16
+- 96 352 16 16
+- 112 352 16 16
+- 0 368 16 16
+- 16 368 16 16
+- 32 368 16 16
+- 48 368 16 16
+- 64 368 16 16
+- 80 368 16 16
+- 96 368 16 16
+- 112 368 16 16
+- 0 384 16 16
+- 16 384 16 16
+- 32 384 16 16
+- 48 384 16 16
+- 64 384 16 16
+- 80 384 16 16
+- 96 384 16 16
+- 112 384 16 16
+- 0 400 16 16
+- 16 400 16 16
+- 32 400 16 16
+- 48 400 16 16
+- 64 400 16 16
+- 80 400 16 16
+- 96 400 16 16
+- 112 400 16 16
+- 0 416 16 16
+- 16 416 16 16
+- 32 416 16 16
+- 48 416 16 16
+- 64 416 16 16
+- 80 416 16 16
+- 96 416 16 16
+- 112 416 16 16
+- 0 336 32 32
 animations:
 - name: New Anim 0
   frames:
@@ -408,8 +237,6 @@ animations:
     duration: 0.25
 - name: New Anim 2
   frames:
-  - tileId: 11
-    duration: 0.25
   - tileId: 12
     duration: 0.25
   - tileId: 13
@@ -424,183 +251,5 @@ animations:
     duration: 0.25
   - tileId: 18
     duration: 0.25
-- name: New Anim 3
-  frames:
   - tileId: 19
-    duration: 0.25
-  - tileId: 20
-    duration: 0.25
-  - tileId: 21
-    duration: 0.25
-  - tileId: 22
-    duration: 0.25
-  - tileId: 23
-    duration: 0.25
-  - tileId: 24
-    duration: 0.25
-  - tileId: 25
-    duration: 0.25
-- name: New Anim 4
-  frames:
-  - tileId: 26
-    duration: 0.25
-  - tileId: 27
-    duration: 0.25
-  - tileId: 28
-    duration: 0.25
-  - tileId: 29
-    duration: 0.25
-  - tileId: 30
-    duration: 0.25
-  - tileId: 31
-    duration: 0.25
-  - tileId: 32
-    duration: 0.25
-- name: New Anim 5
-  frames:
-  - tileId: 33
-    duration: 0.25
-  - tileId: 34
-    duration: 0.25
-  - tileId: 35
-    duration: 0.25
-  - tileId: 36
-    duration: 0.25
-  - tileId: 37
-    duration: 0.25
-  - tileId: 38
-    duration: 0.25
-  - tileId: 39
-    duration: 0.25
-- name: New Anim 6
-  frames:
-  - tileId: 40
-    duration: 0.25
-  - tileId: 41
-    duration: 0.25
-  - tileId: 42
-    duration: 0.25
-  - tileId: 43
-    duration: 0.25
-  - tileId: 44
-    duration: 0.25
-  - tileId: 45
-    duration: 0.25
-  - tileId: 46
-    duration: 0.25
-- name: New Anim 7
-  frames:
-  - tileId: 47
-    duration: 0.25
-  - tileId: 48
-    duration: 0.25
-  - tileId: 49
-    duration: 0.25
-  - tileId: 50
-    duration: 0.25
-  - tileId: 51
-    duration: 0.25
-- name: New Anim 8
-  frames:
-  - tileId: 52
-    duration: 0.25
-  - tileId: 53
-    duration: 0.25
-  - tileId: 54
-    duration: 0.25
-  - tileId: 55
-    duration: 0.25
-- name: New Anim 9
-  frames:
-  - tileId: 56
-    duration: 0.25
-  - tileId: 57
-    duration: 0.25
-  - tileId: 58
-    duration: 0.25
-  - tileId: 59
-    duration: 0.25
-  - tileId: 60
-    duration: 0.25
-- name: New Anim 10
-  frames:
-  - tileId: 61
-    duration: 0.25
-  - tileId: 62
-    duration: 0.25
-  - tileId: 63
-    duration: 0.25
-  - tileId: 64
-    duration: 0.25
-- name: New Anim 11
-  frames:
-  - tileId: 65
-    duration: 0.25
-  - tileId: 66
-    duration: 0.25
-  - tileId: 67
-    duration: 0.25
-  - tileId: 68
-    duration: 0.25
-  - tileId: 69
-    duration: 0.25
-  - tileId: 70
-    duration: 0.25
-- name: New Anim 12
-  frames:
-  - tileId: 71
-    duration: 0.25
-  - tileId: 72
-    duration: 0.25
-- name: New Anim 13
-  frames:
-  - tileId: 73
-    duration: 0.25
-  - tileId: 74
-    duration: 0.25
-  - tileId: 75
-    duration: 0.25
-  - tileId: 76
-    duration: 0.25
-  - tileId: 77
-    duration: 0.25
-  - tileId: 78
-    duration: 0.25
-- name: New Anim 14
-  frames:
-  - tileId: 79
-    duration: 0.25
-  - tileId: 80
-    duration: 0.25
-  - tileId: 81
-    duration: 0.25
-  - tileId: 82
-    duration: 0.25
-  - tileId: 83
-    duration: 0.25
-- name: New Anim 15
-  frames:
-  - tileId: 84
-    duration: 0.25
-  - tileId: 85
-    duration: 0.25
-  - tileId: 86
-    duration: 0.25
-  - tileId: 87
-    duration: 0.25
-- name: New Anim 16
-  frames:
-  - tileId: 88
-    duration: 0.25
-  - tileId: 89
-    duration: 0.25
-  - tileId: 90
-    duration: 0.25
-  - tileId: 91
-    duration: 0.25
-  - tileId: 92
-    duration: 0.25
-  - tileId: 93
-    duration: 0.25
-  - tileId: 94
     duration: 0.25
