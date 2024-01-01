@@ -26,11 +26,11 @@ internal class AnimationTimelineWindow : Window
 	private const float dragAreaSize = 8f;
 
 	private static bool isResizingMultipleFrames;
-	private readonly AnimationEditor data;
+	private readonly SpriteAtlasViewModel data;
 
 	private static readonly IInputAction dragMouseButton = MouseButtonAction.Pan;
 
-	public AnimationTimelineWindow(AnimationEditor data) : base("Timeline")
+	public AnimationTimelineWindow(SpriteAtlasViewModel data) : base("Timeline")
 	{
 		this.data = data;
 	}
@@ -42,7 +42,7 @@ internal class AnimationTimelineWindow : Window
 
 	protected override void DrawContent()
 	{
-		if (data.SpriteAtlas.Animations.Count == 0)
+		if (!data.Animations.Any())
 			return;
 
 		ImGuiUtil.DragFloat("Zoom", ref xZoom, speed: 0.01f, "%.2f");
@@ -50,7 +50,7 @@ internal class AnimationTimelineWindow : Window
 		ImGui.BeginChild("TimelineChild", new Vector2(ImGui.GetContentRegionAvail().X, viewportHeight), true,
 			ImGuiWindowFlags.HorizontalScrollbar);
 
-		Animation animation = data.SpriteAtlas.Animations[data.SelectedAnimationIndex];
+		Animation animation = data.SelectedAnimation;
 
 		if (ImGui.IsWindowHovered() && Raylib.GetMouseWheelMove() != 0 && !ImGui.GetIO().KeyShift)
 		{
@@ -67,7 +67,7 @@ internal class AnimationTimelineWindow : Window
 
 		ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 31);
 
-		DrawTimeline(data.SpriteAtlas, animation);
+		DrawTimeline(data, animation);
 		ImGui.EndChild();
 	}
 
@@ -110,7 +110,7 @@ internal class AnimationTimelineWindow : Window
 		ImGui.SetCursorScreenPos(new Vector2(cursor.X + xPos, cursor.Y - 4));
 	}
 
-	private static void DrawTimeline(SpriteAtlas spriteAtlas, Animation animation)
+	private static void DrawTimeline(SpriteAtlasViewModel spriteAtlas, Animation animation)
 	{
 		DrawFrames(spriteAtlas, animation);
 		HandleFrameResizing(animation);
@@ -203,9 +203,9 @@ internal class AnimationTimelineWindow : Window
 		}
 	}
 
-	private static void DrawFrames(SpriteAtlas spriteAtlas, Animation animation)
+	private static void DrawFrames(SpriteAtlasViewModel spriteAtlas, Animation animation)
 	{
-		var texturePtr = new IntPtr(spriteAtlas.Texture.Id);
+		var texturePtr = spriteAtlas.TexturePointer;
 
 		foreach ((int frameIndex, Animation.Frame frame, Rectangle rect) in GetFrameRects(animation))
 		{

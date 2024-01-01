@@ -8,14 +8,14 @@ using Raylib_cs;
 
 internal class AnimationPreviewWindow : Window
 {
-	private readonly AnimationEditor data;
+	private readonly SpriteAtlasViewModel data;
 
 	private static IAnimationPlayer? player;
 	private static Animation? lastSelectedAnimation;
 	private static Texture2D playIcon, pauseIcon;
 	private static readonly Pref<bool> autoPlayPref = new("AutoPlay");
 
-	public AnimationPreviewWindow(AnimationEditor data) : base("Animation Preview")
+	public AnimationPreviewWindow(SpriteAtlasViewModel data) : base("Animation Preview")
 	{
 		this.data = data;
 	}
@@ -81,7 +81,7 @@ internal class AnimationPreviewWindow : Window
 		player!.Update(Raylib.GetFrameTime());
 
 		int tileId = animation.FrameAt(player.FrameIndex).TileId;
-		if (data.SpriteAtlas.GetRenderInfo(tileId, out Vector2 size, out Vector2 uv0, out Vector2 uv1))
+		if (data.GetRenderInfo(tileId, out Vector2 size, out Vector2 uv0, out Vector2 uv1))
 		{
 			size = MathUtility.FitTo(size, ImGui.GetContentRegionAvail());
 			ImGui.Image(data.TexturePointer, size, uv0, uv1);

@@ -5,14 +5,14 @@ using ImGuiNET;
 
 internal class AnimationFramesWindow : Window
 {
-	private readonly AnimationEditor data;
+	private readonly SpriteAtlasViewModel data;
 
 	private static CatLands.Selection selection = new();
 
 	private const ImGuiTableFlags tableFlags =
 		ImGuiTableFlags.Resizable | ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders;
 
-	public AnimationFramesWindow(AnimationEditor data) : base("Frames")
+	public AnimationFramesWindow(SpriteAtlasViewModel data) : base("Frames")
 	{
 		this.data = data;
 	}

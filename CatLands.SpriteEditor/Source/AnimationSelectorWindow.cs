@@ -6,14 +6,14 @@ using Raylib_cs;
 
 internal class AnimationSelectorWindow : Window
 {
-	private readonly AnimationEditor data;
+	private readonly SpriteAtlasViewModel target;
 
 	private const ImGuiTableFlags tableFlags =
 		ImGuiTableFlags.Resizable | ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders;
 
-	public AnimationSelectorWindow(AnimationEditor data) : base("Animations")
+	public AnimationSelectorWindow(SpriteAtlasViewModel target) : base("Animations")
 	{
-		this.data = data;
+		this.target = target;
 	}
 
 	protected override void DrawContent()
@@ -28,10 +28,10 @@ internal class AnimationSelectorWindow : Window
 		ImGuiUtil.HelpMarker(
 			"Select a range of tiles on the loaded sheet before creating a new animation to automatically add them as frames.");
 
-		ImGui.BeginDisabled(data.SelectedAnimationIndex == -1);
+		ImGui.BeginDisabled(target.SelectedAnimation == null);
 		if (ImGui.Button("Delete"))
 		{
-			data.RemoveSelectedAnimation();
+			target.RemoveSelectedAnimation();
 		}
 
 		ImGui.EndDisabled();
@@ -44,26 +44,23 @@ internal class AnimationSelectorWindow : Window
 			ImGui.TableSetupColumn("Duration");
 			ImGui.TableHeadersRow();
 
-			for (int i = 0; i < data.Animations.Count; i++)
+			foreach (Animation animation in target.Animations)
 			{
-				Animation animation = data.Animations[i];
 				ImGui.TableNextRow();
 
 				ImGui.TableSetColumnIndex(0);
+
 				if (ImGui.Selectable(
-					    i.ToString(),
-					    data.SelectedAnimationIndex == i,
+					    animation.Name,
+					    target.SelectedAnimation == animation,
 					    ImGuiSelectableFlags.SpanAllColumns,
 					    new Vector2(0, 17)))
 				{
-					data.SelectedAnimationIndex = i;
-					if (data.TryGetSelectedAnimation(out Animation a))
+					target.SelectedAnimation = animation;
+					TileSelection.ClearSelection();
+					for (int j = 0; j < animation.FrameCount; j++)
 					{
-						TileSelection.ClearSelection();
-						for (int j = 0; j < a.FrameCount; j++)
-						{
-							TileSelection.AddToSelection(a.FrameAt(j).TileId);
-						}
+						TileSelection.AddToSelection(animation.FrameAt(j).TileId);
 					}
 				}
 
@@ -83,9 +80,9 @@ internal class AnimationSelectorWindow : Window
 
 	private void AddNewAnimation()
 	{
-		data.AddAnimation(new Animation()
+		target.AddAnimation(new Animation()
 		{
-			Name = "New Anim " + data.Animations.Count,
+			Name = "New Anim " + target.Animations.Count(),
 			Frames = TileSelection.GetSelection()
 				.Select(tileId => new Animation.Frame(tileId, 0.25f)).ToList(),
 		});

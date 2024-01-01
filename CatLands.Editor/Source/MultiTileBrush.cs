@@ -37,7 +37,7 @@ public class MultiTileBrush : Brush
 				{
 					drawnGridCoord = gridCoord;
 					CommandManager.Execute(new MapEditCommand(Map.Current!, layerIndex,
-						BrushTiles(atlas.SpriteRects, gridCoord)));
+						BrushTiles(atlas, gridCoord)));
 
 					SceneView.RepaintAll();
 				}
@@ -48,7 +48,7 @@ public class MultiTileBrush : Brush
 				lastHoveredGridCoord = gridCoord;
 				MapDisplay.ClearPreviews();
 
-				foreach ((Coord coord, int tileId) in BrushTiles(atlas.SpriteRects, gridCoord))
+				foreach ((Coord coord, int tileId) in BrushTiles(atlas, gridCoord))
 					MapDisplay.AddPreview(new TileRenderInfo(layerIndex, coord, tileId));
 
 				SceneView.RepaintAll();
@@ -56,7 +56,7 @@ public class MultiTileBrush : Brush
 		}
 	}
 
-	private IEnumerable<(Coord, int)> BrushTiles(IList<Rect> spriteRects, Coord gridCoord)
+	private IEnumerable<(Coord, int)> BrushTiles(SpriteAtlas atlas, Coord gridCoord)
 	{
 		Coord c = gridCoord;
 		Vector2? start = null;
@@ -65,12 +65,11 @@ public class MultiTileBrush : Brush
 		{
 			if (start == null)
 			{
-				start = spriteRects[tileId].Center;
+				start = atlas[tileId].Center;
 			}
 			else
 			{
-				// TODO: Handle freeform vs grid-based tilesets.
-				Vector2 current = spriteRects[tileId].Center;
+				Vector2 current = atlas[tileId].Center;
 				Vector2 offset = (current - start.Value) / 16f;
 				Coord gridOffset = new((int)offset.X, (int)offset.Y);
 				c = gridCoord + gridOffset;
@@ -117,7 +116,7 @@ public class MultiTileBrush : Brush
 
 		foreach (int selectedTile in selectedTiles)
 		{
-			Rectangle rect = atlas.SpriteRects[selectedTile];
+			Rectangle rect = atlas[selectedTile];
 			ImGui.GetWindowDrawList().AddRect(
 				rect.Min() * upscale + offset,
 				rect.Max() * upscale + offset,
@@ -133,10 +132,8 @@ public class MultiTileBrush : Brush
 			Math.Abs(selectionEnd.X - selectionStart.X),
 			Math.Abs(selectionEnd.Y - selectionStart.Y));
 
-		for (int i = 0; i < atlas.SpriteRects.Count; i++)
+		foreach((int i, Rect spriteRect) in atlas.Sprites)
 		{
-			Rectangle spriteRect = atlas.SpriteRects[i];
-
 			if (selectionRect.Encloses(spriteRect))
 			{
 				selectedTiles.Add(i);

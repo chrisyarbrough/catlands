@@ -12,7 +12,7 @@ public class SingleTileBrush : Brush
 	private readonly DirectionalInputAction directionalInputAction = new();
 
 	private bool keepOriginalLayout = true;
-	private Rectangle[]? screenRects;
+	private Dictionary<int, Rect>? screenRects;
 	private int tileId = -1;
 	private Coord? hoveredGridCoord;
 	private Coord? drawnGridCoord;
@@ -79,16 +79,16 @@ public class SingleTileBrush : Brush
 	{
 		if (directionalInputAction.Begin(out Coord direction) && screenRects != null)
 		{
-			Vector2 startCenter = screenRects[tileId].Center();
+			Vector2 startCenter = screenRects[tileId].Center;
 			int closestTileId = tileId;
 			float closestDistance = float.MaxValue;
 
-			for (int i = 0; i < screenRects.Length; i++)
+			foreach((int i, Rect rect) in screenRects)
 			{
 				if (i == tileId)
 					continue;
 
-				Vector2 targetCenter = screenRects[i].Center();
+				Vector2 targetCenter = screenRects[i].Center;
 				Vector2 diff = targetCenter - startCenter;
 
 				bool isInDirection = (direction.X < 0 && diff.X < 0) ||
@@ -120,7 +120,7 @@ public class SingleTileBrush : Brush
 	{
 		var sb = new StringBuilder();
 
-		for (int i = 0; i < atlas.SpriteRects.Count; i++)
+		foreach((int i, Rect rect) in atlas.Sprites)
 		{
 			sb.Append(i).Append('\0');
 		}
@@ -151,13 +151,11 @@ public class SingleTileBrush : Brush
 		Vector2 offset = ImGui.GetCursorPos();
 		const int upscale = 2;
 
-		if (screenRects == null || screenRects.Length != atlas.SpriteRects.Count)
-			screenRects = new Rectangle[atlas.SpriteRects.Count];
+		if (screenRects == null || screenRects.Count != atlas.SpriteCount)
+			screenRects = new();
 
-		for (int i = 0; i < atlas.SpriteRects.Count; i++)
+		foreach((int i, Rect rect) in atlas.Sprites)
 		{
-			Rectangle rect = atlas.SpriteRects[i];
-
 			if (keepOriginalLayout)
 				ImGui.SetCursorPos(offset + new Vector2(rect.X, rect.Y) * upscale);
 

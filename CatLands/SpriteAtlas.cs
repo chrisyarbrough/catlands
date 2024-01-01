@@ -1,52 +1,7 @@
 namespace CatLands;
 
 using System.Numerics;
-using AutoMapper;
 using Raylib_cs;
-
-public class SpriteAtlasDto
-{
-	public List<Rect>? SpriteRects { get; set; }
-	public List<AnimationDto>? Animations { get; set; }
-
-	public void Create(SpriteAtlas instance)
-	{
-		var config = new MapperConfiguration(cfg =>
-		{
-			cfg.CreateMap<SpriteAtlasDto, SpriteAtlas>();
-			cfg.CreateMap<AnimationDto, Animation>();
-			cfg.CreateMap<AnimationDto.FrameDto, Animation.Frame>();
-		});
-
-		IMapper mapper = config.CreateMapper();
-		mapper.Map(this, instance);
-	}
-	
-	public static SpriteAtlasDto CreateFrom(SpriteAtlas spriteAtlas)
-	{
-		var config = new MapperConfiguration(cfg =>
-		{
-			cfg.CreateMap<SpriteAtlas, SpriteAtlasDto>();
-			cfg.CreateMap<Animation, AnimationDto>();
-			cfg.CreateMap<Animation.Frame, AnimationDto.FrameDto>();
-		});
-
-		IMapper mapper = config.CreateMapper();
-		return mapper.Map<SpriteAtlasDto>(spriteAtlas);
-	}
-}
-
-public class AnimationDto
-{
-	public string Name { get; set; } = string.Empty;
-	public List<FrameDto>? Frames { get; set; }
-
-	public class FrameDto
-	{
-		public int TileId { get; set; }
-		public float Duration { get; set; }
-	}
-}
 
 public class SpriteAtlas : IMementoOwner
 {
@@ -55,33 +10,47 @@ public class SpriteAtlas : IMementoOwner
 	public int Height => texture.Height;
 	public Texture2D Texture => texture;
 
-	public List<Rect> SpriteRects
+	public int SpriteCount => sprites.Count;
+	
+	[DontSerialize]
+	public Rect this[int id]
 	{
-		get => spriteRects;
-		set => spriteRects = value;
+		get => sprites[id];
+		set => sprites[id] = value;
 	}
+	
+	public IEnumerable<(int, Rect)> Sprites => sprites.Select(kvp => (kvp.Key, kvp.Value));
+
+	public Rect GetSprite(int id) => sprites[id];
+	
+	public bool HasSprite(int id) => sprites.ContainsKey(id);
+	public void SetSprite(int id, Rect rect) => sprites[id] = rect;
 
 	public Vector2 TextureSize => new(texture.Width, texture.Height);
 	public IList<Animation> Animations => animations;
 
 	private Texture2D texture;
 
-	private List<Rect> spriteRects = new();
+	[SerializeField]
+	private Dictionary<int, Rect> sprites = new();
 
+	[SerializeField]
 	private List<Animation> animations = new();
+
+	public SpriteAtlas()
+	{
+	}
 
 	public string CreateMemento()
 	{
-		return YamlSerializer.Serialize(SpriteAtlasDto.CreateFrom(this));
+		return YamlSerializer.Serialize(this);
 	}
 
 	public void RestoreState(string json)
 	{
-		this.spriteRects = new List<Rect>();
-		this.animations = new List<Animation>();
-
-		var v = YamlSerializer.Deserialize<SpriteAtlasDto>(json);
-		v.Create(this);
+		var v = YamlSerializer.Deserialize<SpriteAtlas>(json);
+		this.sprites = v.sprites ?? new();
+		this.animations = v.animations ?? new();
 	}
 
 	public void Save()
@@ -113,17 +82,22 @@ public class SpriteAtlas : IMementoOwner
 			string spritesSavePath = Path.ChangeExtension(textureFilePath, extension);
 			if (File.Exists(spritesSavePath))
 			{
-				var memento = SerializedAsset.Load<SpriteAtlasDto>(spritesSavePath);
-				memento.Create(this);
+				string yaml = File.ReadAllText(spritesSavePath);
+				RestoreState(yaml);
 				return;
 			}
 		}
 	}
 
-	public void GenerateSpriteRects(Action<Texture2D, List<Rect>> slicer)
+	public void GenerateSpriteRects(Func<Texture2D, IEnumerable<Rect>> slicer)
 	{
-		spriteRects.Clear();
-		slicer.Invoke(texture, spriteRects);
+		sprites.Clear();
+		int nextSpriteId = 1;
+		foreach (Rect rect in slicer.Invoke(texture))
+		{
+			sprites.Add(nextSpriteId, rect);
+			nextSpriteId++;
+		}
 	}
 
 	public int Add(Animation animation)
@@ -135,14 +109,14 @@ public class SpriteAtlas : IMementoOwner
 
 	public int Add(Rectangle spriteRect)
 	{
-		int id = spriteRects.Count;
-		spriteRects.Add(spriteRect);
+		int id = sprites.Count > 0 ? sprites.Keys.Max() + 1 : 1;
+		sprites.Add(id, spriteRect);
 		return id;
 	}
 
 	public void RemoveTile(int tileId)
 	{
-		spriteRects.RemoveAt(tileId);
+		sprites.Remove(tileId);
 
 		foreach (Animation animation in animations)
 			animation.Frames.RemoveAll(frame => frame.TileId == tileId);
@@ -150,7 +124,7 @@ public class SpriteAtlas : IMementoOwner
 
 	public bool GetRenderInfo(int tileId, out Vector2 size, out Vector2 uv0, out Vector2 uv1)
 	{
-		if (tileId < 0 || tileId >= spriteRects.Count)
+		if (tileId < 0 || tileId >= sprites.Count)
 		{
 			size = Vector2.Zero;
 			uv0 = Vector2.Zero;
@@ -158,7 +132,7 @@ public class SpriteAtlas : IMementoOwner
 			return false;
 		}
 
-		Rectangle rect = spriteRects[tileId];
+		Rectangle rect = sprites[tileId];
 		size = new Vector2(rect.Width, rect.Height);
 		uv0 = new Vector2(rect.X / texture.Width, rect.Y / texture.Height);
 		uv1 = new Vector2(rect.xMax() / texture.Width, rect.yMax() / texture.Height);

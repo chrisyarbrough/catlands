@@ -29,6 +29,6 @@ public static class MapTextures
 
 	public static Rectangle GetSpriteRect(string textureId, int spriteId)
 	{
-		return atlases[textureId].SpriteRects[spriteId];
+		return atlases[textureId][spriteId];
 	}
 }

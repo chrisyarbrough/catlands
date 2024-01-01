@@ -5,11 +5,6 @@ using ImGuiNET;
 using Raylib_cs;
 using rlImGui_cs;
 
-public class AssetDatabase
-{
-	
-}
-
 public class AppWindow
 {
 	private readonly App app;
@@ -41,10 +36,16 @@ public class AppWindow
 
 		Shutdown();
 	}
+	
+	public void UpdateSubTitle(string subTitle)
+	{
+		app.SubTitle = subTitle;
+		Raylib.SetWindowTitle(app.CombinedTitle);
+	}
 
 	public void SetUnsavedChangesIndicator(bool hasUnsavedChanges)
 	{
-		string title = app.Title;
+		string title = app.CombinedTitle;
 
 		if (hasUnsavedChanges)
 			title += "*";
@@ -57,7 +58,7 @@ public class AppWindow
 		Raylib.SetTraceLogLevel(TraceLogLevel.LOG_WARNING);
 
 		Raylib.SetConfigFlags(ConfigFlags.FLAG_WINDOW_RESIZABLE | ConfigFlags.FLAG_VSYNC_HINT);
-		Raylib.InitWindow(width: 1280, height: 800, app.Title);
+		Raylib.InitWindow(width: 1280, height: 800, app.BaseTitle);
 		Raylib.SetTargetFPS(120);
 
 		rlImGui.Setup(darkTheme: true, enableDocking: true);

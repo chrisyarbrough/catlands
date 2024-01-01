@@ -5,33 +5,6 @@ using System.Numerics;
 using ImGuiNET;
 using Raylib_cs;
 
-public class ChangeCheck : IDisposable
-{
-	private readonly UndoManager undoManager;
-	private readonly Action action;
-
-	public ChangeCheck(UndoManager undoManager, Action action)
-	{
-		this.undoManager = undoManager;
-		this.action = action;
-		Gui.BeginChangeCheck();
-	}
-
-	public void Dispose()
-	{
-		if (Gui.EndChangeCheck())
-		{
-			undoManager.RecordSnapshot();
-			action.Invoke();
-			undoManager.EvaluateDirty();
-		}
-	}
-
-	public void Record(Rectangle rect)
-	{
-	}
-}
-
 public enum UpdatePhase
 {
 	Input,

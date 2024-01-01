@@ -2,11 +2,11 @@ namespace CatLands;
 
 using Raylib_cs;
 
-public class InputComposite : IInputAction
+public class AnyOfComposite : IInputAction
 {
 	private readonly IInputAction[] inputActions;
 
-	public InputComposite(params IInputAction[] inputActions)
+	public AnyOfComposite(params IInputAction[] inputActions)
 	{
 		this.inputActions = inputActions;
 	}
@@ -17,7 +17,7 @@ public class InputComposite : IInputAction
 		for (int i = 0; i < args.Length; i++)
 			inputActions[i] = factory(args[i]);
 
-		return new InputComposite(inputActions);
+		return new AnyOfComposite(inputActions);
 	}
 
 	public bool IsStarted() => inputActions.Any(x => x.IsStarted());
@@ -102,7 +102,7 @@ public class MouseButtonAction : InputAction<MouseButton>
 	{
 	}
 
-	public static IInputAction Pan => new InputComposite(
+	public static readonly IInputAction Pan = new AnyOfComposite(
 		new MouseButtonAction(MouseButton.MOUSE_BUTTON_MIDDLE),
 		new MouseButtonAction(MouseButton.MOUSE_BUTTON_RIGHT));
 }
@@ -117,4 +117,18 @@ public class KeyboardKeyAction : InputAction<KeyboardKey>
 			key)
 	{
 	}
+
+	public static IInputAction Modifier = new AnyOfComposite(
+		new KeyboardKeyAction(KeyboardKey.KEY_LEFT_SUPER),
+		new KeyboardKeyAction(KeyboardKey.KEY_LEFT_CONTROL));
+
+	public static readonly IInputAction Undo = new ModifierAction(
+		new KeyboardKeyAction(KeyboardKey.KEY_Z), Modifier);
+
+	public static readonly IInputAction Redo = new ModifierAction(
+		new KeyboardKeyAction(KeyboardKey.KEY_Y), Modifier);
+
+	public static readonly IInputAction Delete = new AnyOfComposite(
+		new KeyboardKeyAction(KeyboardKey.KEY_DELETE),
+		new KeyboardKeyAction(KeyboardKey.KEY_BACKSPACE));
 }

@@ -8,14 +8,12 @@ public class UndoManager
 	private readonly Stack<string> redoStack = new();
 
 	private readonly IMementoOwner owner;
-	private readonly AppWindow window;
 
 	private string? lastCleanState;
 
-	public UndoManager(IMementoOwner owner, AppWindow window)
+	public UndoManager(IMementoOwner owner)
 	{
 		this.owner = owner;
-		this.window = window;
 		MarkClean();
 	}
 
@@ -48,10 +46,9 @@ public class UndoManager
 
 	public void MarkClean() => lastCleanState = owner.CreateMemento();
 
-	public bool IsDirty() => lastCleanState != owner.CreateMemento();
-
-	public void EvaluateDirty()
+	public bool IsDirty()
 	{
-		window.SetUnsavedChangesIndicator(IsDirty());
+		string newState = owner.CreateMemento();
+		return lastCleanState != newState;
 	}
 }

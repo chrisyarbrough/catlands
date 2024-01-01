@@ -4,12 +4,18 @@ using System.Numerics;
 using ImGuiNET;
 using Raylib_cs;
 
-public class Slicer
+internal class Slicer
 {
+	private readonly SpriteAtlasViewModel viewModel;
 	private int tileSizeX = 16;
 	private int tileSizeY = 16;
 
-	public void DrawGui(SpriteAtlas spriteAtlas)
+	public Slicer(SpriteAtlasViewModel viewModel)
+	{
+		this.viewModel = viewModel;
+	}
+
+	public void DrawGui()
 	{
 		ImGui.TextUnformatted("Tile Size");
 		ImGui.InputInt("X", ref tileSizeX);
@@ -20,11 +26,11 @@ public class Slicer
 
 		if (ImGui.Button("Slice", new Vector2(ImGui.GetContentRegionAvail().X, 0f)))
 		{
-			spriteAtlas.GenerateSpriteRects(PerformSlicing);
+			viewModel.GenerateSpriteRects(Slice);
 		}
 	}
 
-	private void PerformSlicing(Texture2D texture, List<Rect> spriteRects)
+	private IEnumerable<Rect> Slice(Texture2D texture)
 	{
 		int cols = texture.Width / tileSizeX;
 		int rows = texture.Height / tileSizeY;
@@ -33,8 +39,7 @@ public class Slicer
 		{
 			for (int x = 0; x < cols; x++)
 			{
-				var tile = new Rect(x * tileSizeX, y * tileSizeY, tileSizeX, tileSizeY);
-				spriteRects.Add(tile);
+				yield return new Rect(x * tileSizeX, y * tileSizeY, tileSizeX, tileSizeY);
 			}
 		}
 	}

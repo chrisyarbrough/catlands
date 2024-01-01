@@ -1,6 +1,7 @@
 namespace CatLands.Tests;
 
 using System.Text;
+using Raylib_cs;
 using Xunit.Abstractions;
 
 public class SerializerTests
@@ -69,5 +70,13 @@ public class SerializerTests
 			testOutputHelper.WriteLine("Serialized text:");
 			testOutputHelper.WriteLine(text);
 		}
+	}
+
+	[Fact]
+	public void SpriteAtlasYaml()
+	{
+		var spriteAtlas = new SpriteAtlas();
+		spriteAtlas.Add(new Rectangle(0, 0, 42, 42));
+		string yaml = YamlSerializer.Serialize(spriteAtlas);
 	}
 }
