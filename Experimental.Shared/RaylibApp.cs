@@ -29,7 +29,7 @@ public abstract class RaylibApp<T> where T : EditModelBase
 
 		model = Model.Load();
 		editModel = (T)Activator.CreateInstance(typeof(T), model);
-		editModel.Changed += OnModelChanged;
+		editModel!.Changed += OnModelChanged;
 	}
 
 	public void Run()
@@ -52,7 +52,14 @@ public abstract class RaylibApp<T> where T : EditModelBase
 	{
 		if (Raylib.IsKeyPressed(KeyboardKey.KEY_A))
 		{
-			editModel.AddItem(Raylib.GetMousePosition(), 50f);
+			Rect rect = new Rect()
+			{
+				X = Raylib.GetMouseX(),
+				Y = Raylib.GetMouseY(),
+				Width = 50,
+				Height = 50
+			};
+			editModel.AddItem(rect);
 		}
 
 		if (Raylib.IsKeyDown(KeyboardKey.KEY_LEFT_SUPER) && Raylib.IsKeyPressed(KeyboardKey.KEY_Z))

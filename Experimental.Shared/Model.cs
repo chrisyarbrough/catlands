@@ -1,18 +1,57 @@
 using System.Numerics;
-using Raylib_cs;
 using YamlDotNet.Serialization;
+
+public struct Offset
+{
+	public float X;
+	public float Y;
+
+	public static explicit operator Offset(Vector2 v) => new() { X = v.X, Y = v.Y };
+}
+
+// A pixel rectangle.
+public struct Rect
+{
+	public float X { get; set; }
+
+	public float Y { get; set; }
+
+	public float Width { get; set; }
+
+	public float Height { get; set; }
+
+	public Rect(float x, float y, float width, float height)
+	{
+		X = (int)x;
+		Y = (int)y;
+		Width = (int)width;
+		Height = (int)height;
+	}
+
+	public static explicit operator Raylib_cs.Rectangle(Rect r) => new(r.X, r.Y, r.Width, r.Height);
+}
 
 public class Model
 {
-	public Dictionary<int, Rectangle> Items { get; set; } = new();
+	public Dictionary<int, Rect> Items { get; set; } = new();
 
-	public int Add(Vector2 position, float size)
+	private int FindNextFreeId()
 	{
-		int id = Items.Count == 0 ? 0 : Items.Keys.Max() + 1;
-		Items.Add(id, new Rectangle(position.X, position.Y, size, size));
+		int id = 0;
+
+		foreach (int i in Items.Keys)
+			id = Math.Max(i, id);
+
+		return id + 1;
+	}
+
+	public int Add(Rect item)
+	{
+		int id = FindNextFreeId();
+		Items.Add(id, item);
 		return id;
 	}
-	
+
 	private const string savePath = "model.yaml";
 
 	public static Model Load()

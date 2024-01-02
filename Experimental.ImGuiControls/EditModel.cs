@@ -1,5 +1,4 @@
 using System.Numerics;
-using Raylib_cs;
 
 internal class EditModel : EditModelBase
 {
@@ -25,7 +24,7 @@ internal class EditModel : EditModelBase
 				EvaluateChanged();
 		}
 
-		foreach ((int id, Rectangle rect) in model.Items)
+		foreach ((int id, Rect rect) in model.Items)
 		{
 			int controlId = Handles.GetControlId();
 
@@ -37,7 +36,7 @@ internal class EditModel : EditModelBase
 			Vector2 center = new(rect.X + rect.Width / 2f, rect.Y + rect.Height / 2f);
 			var delta = Handles.FreeMove(
 				controlId, center, new Vector2(rect.Width, rect.Height), selectedIDs.Contains(id));
-			Rectangle r = model.Items[id];
+			Rect r = model.Items[id];
 			r.X += delta.X;
 			r.Y += delta.Y;
 			model.Items[id] = r;

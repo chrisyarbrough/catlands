@@ -4,6 +4,7 @@ using Raylib_cs;
 public class EditModel : EditModelBase
 {
 	private readonly List<Gizmo> gizmos = new();
+	private readonly GizmoFactory gizmoFactory = new();
 
 	public EditModel(Model model) : base(model)
 	{
@@ -15,54 +16,20 @@ public class EditModel : EditModelBase
 		gizmos.Clear();
 		foreach (int id in model.Items.Keys)
 		{
-			AddGizmo(id);
+			AddGizmosForItem(id);
 		}
 	}
 
-	private void AddGizmo(int id)
+	private void AddGizmosForItem(int id)
 	{
-		var gizmo = new Gizmo(id,
-			() => model.Items[id],
-			delta =>
-			{
-				Rectangle r = model.Items[id];
-				r.X += delta.X;
-				r.Y += delta.Y;
-				model.Items[id] = r;
-			});
-		gizmos.Add(gizmo);
-
-		var topRight = new Gizmo(null,
-			() => new Rectangle(gizmo.Rect.X + gizmo.Rect.Width - 5, gizmo.Rect.Y - 5, 10f, 10f),
-			delta =>
-			{
-				var newRect = gizmo.Rect;
-				newRect.Width += delta.X;
-				newRect.Y += delta.Y;
-				newRect.Height -= delta.Y;
-				model.Items[(int)gizmo.UserData] = newRect;
-			});
-		gizmos.Add(topRight);
-		gizmo.Friend = topRight;
-
-		var bottomLeft = new Gizmo(null,
-			() => new Rectangle(gizmo.Rect.X - 5, gizmo.Rect.Y + gizmo.Rect.Height - 5, 10f, 10f),
-			delta =>
-			{
-				var newRect = gizmo.Rect;
-				newRect.X += delta.X;
-				newRect.Width -= delta.X;
-				newRect.Height += delta.Y;
-				model.Items[(int)gizmo.UserData] = newRect;
-			});
-		gizmos.Add(bottomLeft);
-		topRight.Friend = bottomLeft;
+		foreach (Gizmo gizmo in gizmoFactory.Create(id, model.Items))
+			gizmos.Add(gizmo);
 	}
 
-	public override int AddItem(Vector2 position, float size)
+	public override int AddItem(Rect rect)
 	{
-		int id = base.AddItem(position, size);
-		AddGizmo(id);
+		int id = base.AddItem(rect);
+		AddGizmosForItem(id);
 		return id;
 	}
 
@@ -76,9 +43,9 @@ public class EditModel : EditModelBase
 		{
 			foreach (Gizmo gizmo in gizmos)
 			{
-				if (Raylib.CheckCollisionPointRec(Raylib.GetMousePosition(), gizmo.Rect))
+				if (Raylib.CheckCollisionPointRec(Raylib.GetMousePosition(), (Rectangle)gizmo.Rect))
 				{
-					Rectangle rect = gizmo.Rect;
+					Rect rect = gizmo.Rect;
 					Vector2 center = new(rect.X + rect.Width / 2f, rect.Y + rect.Height / 2f);
 
 					float distance = Vector2.Distance(Raylib.GetMousePosition(), center);
@@ -109,6 +76,8 @@ public class EditModel : EditModelBase
 				}
 			}
 		}
+		
+		Cursor.SetFromGizmo(Gizmo.HoveredControl, Gizmo.HotControl);
 
 		foreach (Gizmo gizmo in gizmos)
 		{
@@ -117,7 +86,7 @@ public class EditModel : EditModelBase
 
 		if (Gizmo.HotControl != null)
 		{
-			Gizmo.HotControl.Move(Raylib.GetMouseDelta());
+			Gizmo.HotControl.Apply((Offset)Raylib.GetMouseDelta());
 		}
 
 		if (Gizmo.HotControl != null && Raylib.IsMouseButtonReleased(MouseButton.MOUSE_BUTTON_LEFT))
@@ -133,7 +102,7 @@ public class EditModel : EditModelBase
 		{
 			model.Items.Remove((int)selected.UserData);
 
-			foreach (Gizmo g in selected.Group())
+			foreach (Gizmo g in selected.AllInGroup())
 				gizmos.Remove(g);
 		}
 

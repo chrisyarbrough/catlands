@@ -21,10 +21,10 @@ public abstract class EditModelBase
 		Changed?.Invoke(false);
 	}
 	
-	public virtual int AddItem(Vector2 position, float size)
+	public virtual int AddItem(Rect rect)
 	{
 		RecordUndo();
-		int id = model.Add(position, size);
+		int id = model.Add(rect);
 		EvaluateChanged();
 		return id;
 	}

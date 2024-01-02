@@ -7,42 +7,47 @@ public class Gizmo
 	public static Gizmo HoveredControl;
 	public static readonly HashSet<Gizmo> Selection = new();
 
-	public Gizmo Friend;
+	public Gizmo NextInGroup;
 
-	public IEnumerable<Gizmo> Group()
+	public IEnumerable<Gizmo> AllInGroup()
 	{
 		Gizmo g = this;
 		while (g != null)
 		{
 			yield return g;
-			g = g.Friend;
+			g = g.NextInGroup;
 		}
 	}
-	
-	public Rectangle Rect => get.Invoke();
+
+	public Rect Rect => get.Invoke();
 
 	public readonly object UserData;
-	private readonly Action<Vector2> set;
-	private readonly Func<Rectangle> get;
+	public readonly MouseCursor? HoverCursor;
+	public readonly MouseCursor? HotCursor;
 
-	public Gizmo(object userData, Func<Rectangle> get, Action<Vector2> set)
+	private readonly Action<Offset> set;
+	private readonly Func<Rect> get;
+
+	public Gizmo(object userData, Func<Rect> get, Action<Offset> set, MouseCursor? hoverCursor, MouseCursor? hotCursor = null)
 	{
 		UserData = userData;
 		this.get = get;
 		this.set = set;
+		HoverCursor = hoverCursor;
+		HotCursor = hotCursor ?? hoverCursor;
 	}
-	
-	public void Move(Vector2 delta)
+
+	public void Apply(Offset offset)
 	{
-		set.Invoke(delta);
+		set.Invoke(offset);
 	}
 
 	public void Draw()
 	{
 		Color color = GetColor();
-		Raylib.DrawRectangleLinesEx(get.Invoke(), 1f, color);
+		Raylib.DrawRectangleLinesEx((Rectangle)Rect, lineThick: 1f, color);
 	}
-	
+
 	private Color GetColor()
 	{
 		if (HotControl == this)
