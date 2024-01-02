@@ -3,22 +3,22 @@ using YamlDotNet.Serialization;
 
 public struct Offset
 {
-	public float X;
-	public float Y;
+	public int X;
+	public int Y;
 
-	public static explicit operator Offset(Vector2 v) => new() { X = v.X, Y = v.Y };
+	public static explicit operator Offset(Vector2 v) => new() { X = (int)v.X, Y = (int)v.Y };
 }
 
 // A pixel rectangle.
 public struct Rect
 {
-	public float X { get; set; }
+	public int X { get; set; }
 
-	public float Y { get; set; }
+	public int Y { get; set; }
 
-	public float Width { get; set; }
+	public int Width { get; set; }
 
-	public float Height { get; set; }
+	public int Height { get; set; }
 
 	public Rect(float x, float y, float width, float height)
 	{

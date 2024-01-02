@@ -12,6 +12,8 @@ public static class Handles
 	private static float smallestArea = float.MaxValue;
 	private static float smallestDistance = float.MaxValue;
 	private static Event current;
+	
+	public static Vector2 fractionalOffset;
 
 	public static void BeginLayoutPhase(Event current)
 	{
@@ -60,7 +62,9 @@ public static class Handles
 				if (current.IsMouseReleased)
 					HotControl = null;
 
-				return Raylib.GetMouseDelta();
+				Vector2 delta = Raylib.GetMouseDelta() + fractionalOffset;
+				fractionalOffset = new Vector2(delta.X - (int)delta.X, delta.Y - (int)delta.Y);
+				return delta;
 			}
 		}
 		else if (Raylib.CheckCollisionPointRec(current.MousePos, rect))
