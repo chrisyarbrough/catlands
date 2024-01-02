@@ -1,4 +1,3 @@
-using System.Numerics;
 using Raylib_cs;
 
 public class Gizmo
@@ -28,7 +27,12 @@ public class Gizmo
 	private readonly Action<Offset> set;
 	private readonly Func<Rect> get;
 
-	public Gizmo(object userData, Func<Rect> get, Action<Offset> set, MouseCursor? hoverCursor, MouseCursor? hotCursor = null)
+	public Gizmo(
+		object userData,
+		Func<Rect> get,
+		Action<Offset> set,
+		MouseCursor? hoverCursor,
+		MouseCursor? hotCursor = null)
 	{
 		UserData = userData;
 		this.get = get;

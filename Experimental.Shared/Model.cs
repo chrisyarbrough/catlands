@@ -1,13 +1,4 @@
-using System.Numerics;
 using YamlDotNet.Serialization;
-
-public struct Offset
-{
-	public int X;
-	public int Y;
-
-	public static explicit operator Offset(Vector2 v) => new() { X = (int)v.X, Y = (int)v.Y };
-}
 
 // A pixel rectangle.
 public struct Rect

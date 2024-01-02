@@ -6,6 +6,11 @@ public class EditModel : EditModelBase
 	private readonly List<Gizmo> gizmos = new();
 	private readonly GizmoFactory gizmoFactory = new();
 
+	/// <summary>
+	/// Carries over the fractional part of the drag movement because only the integer part is applied to the model.
+	/// </summary>
+	private Vector2 fractionalOffset;
+
 	public EditModel(Model model) : base(model)
 	{
 		RebuildGizmos();
@@ -64,6 +69,7 @@ public class EditModel : EditModelBase
 		if (Raylib.IsMouseButtonPressed(MouseButton.MOUSE_BUTTON_LEFT))
 		{
 			Gizmo.Selection.Clear();
+			fractionalOffset = Vector2.Zero;
 
 			if (Gizmo.HoveredControl != null && Gizmo.HotControl == null)
 			{
@@ -76,7 +82,7 @@ public class EditModel : EditModelBase
 				}
 			}
 		}
-		
+
 		Cursor.SetFromGizmo(Gizmo.HoveredControl, Gizmo.HotControl);
 
 		foreach (Gizmo gizmo in gizmos)
@@ -86,7 +92,9 @@ public class EditModel : EditModelBase
 
 		if (Gizmo.HotControl != null)
 		{
-			Gizmo.HotControl.Apply((Offset)Raylib.GetMouseDelta());
+			Vector2 delta = Raylib.GetMouseDelta() + fractionalOffset;
+			fractionalOffset = new Vector2(delta.X - (int)delta.X, delta.Y - (int)delta.Y);
+			Gizmo.HotControl.Apply(new Offset(delta));
 		}
 
 		if (Gizmo.HotControl != null && Raylib.IsMouseButtonReleased(MouseButton.MOUSE_BUTTON_LEFT))
