@@ -51,9 +51,8 @@ public class EditModel : EditModelBase
 				if (Raylib.CheckCollisionPointRec(Raylib.GetMousePosition(), (Rectangle)gizmo.Rect))
 				{
 					Rect rect = gizmo.Rect;
-					Vector2 center = new(rect.X + rect.Width / 2f, rect.Y + rect.Height / 2f);
 
-					float distance = Vector2.Distance(Raylib.GetMousePosition(), center);
+					float distance = Vector2.Distance(Raylib.GetMousePosition(), rect.Center);
 
 					float area = rect.Width * rect.Height;
 					if (distance < smallestDistance || area < smallestArea)
@@ -83,24 +82,24 @@ public class EditModel : EditModelBase
 			}
 		}
 
-		Cursor.SetFromGizmo(Gizmo.HoveredControl, Gizmo.HotControl);
-
-		foreach (Gizmo gizmo in gizmos)
-		{
-			gizmo.Draw();
-		}
+		Cursor.Update(Gizmo.HotControl, Gizmo.HoveredControl);
 
 		if (Gizmo.HotControl != null)
 		{
 			Vector2 delta = Raylib.GetMouseDelta() + fractionalOffset;
 			fractionalOffset = new Vector2(delta.X - (int)delta.X, delta.Y - (int)delta.Y);
-			Gizmo.HotControl.Apply(new Offset(delta));
+			Gizmo.HotControl.Apply(new Coord(delta));
 		}
 
 		if (Gizmo.HotControl != null && Raylib.IsMouseButtonReleased(MouseButton.MOUSE_BUTTON_LEFT))
 		{
 			Gizmo.HotControl = null;
 			EvaluateChanged();
+		}
+		
+		foreach (Gizmo gizmo in gizmos)
+		{
+			gizmo.Draw();
 		}
 	}
 

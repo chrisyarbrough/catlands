@@ -4,21 +4,16 @@ public static class Cursor
 {
 	private static MouseCursor current = MouseCursor.MOUSE_CURSOR_DEFAULT;
 
-	public static void SetFromGizmo(Gizmo hovered, Gizmo hot)
+	public static void Update(Gizmo hotControl, Gizmo hoveredControl)
 	{
-		MouseCursor cursor = GetCursor(hovered, hot);
-		Set(cursor);
-	}
+		MouseCursor cursorType = MouseCursor.MOUSE_CURSOR_DEFAULT;
 
-	private static MouseCursor GetCursor(Gizmo hovered, Gizmo hot)
-	{
-		if (hot is { HotCursor: not null })
-			return hot.HotCursor.Value;
+		if (hotControl != null)
+			cursorType = hotControl.GetMouseCursor();
+		else if (hoveredControl != null)
+			cursorType = hoveredControl.GetMouseCursor();
 
-		if (hovered is { HoverCursor: not null })
-			return hovered.HoverCursor.Value;
-
-		return MouseCursor.MOUSE_CURSOR_DEFAULT;
+		Set(cursorType);
 	}
 
 	public static void Set(MouseCursor cursor)

@@ -1,27 +1,5 @@
 using YamlDotNet.Serialization;
 
-// A pixel rectangle.
-public struct Rect
-{
-	public int X { get; set; }
-
-	public int Y { get; set; }
-
-	public int Width { get; set; }
-
-	public int Height { get; set; }
-
-	public Rect(float x, float y, float width, float height)
-	{
-		X = (int)x;
-		Y = (int)y;
-		Width = (int)width;
-		Height = (int)height;
-	}
-
-	public static explicit operator Raylib_cs.Rectangle(Rect r) => new(r.X, r.Y, r.Width, r.Height);
-}
-
 public class Model
 {
 	public Dictionary<int, Rect> Items { get; set; } = new();

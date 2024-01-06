@@ -23,9 +23,9 @@ public abstract class RaylibApp<T> where T : EditModelBase
 	{
 		Title = GetType().Assembly.GetName().Name;
 		Raylib.SetTraceLogLevel(TraceLogLevel.LOG_WARNING);
-		Raylib.SetConfigFlags(ConfigFlags.FLAG_WINDOW_RESIZABLE | ConfigFlags.FLAG_VSYNC_HINT);
+		Raylib.SetConfigFlags(ConfigFlags.FLAG_WINDOW_RESIZABLE);
 		Raylib.InitWindow(width: 1280, height: 800, Title + SubTitle);
-		Raylib.SetTargetFPS(120);
+		Raylib.SetTargetFPS(240);
 
 		model = Model.Load();
 		editModel = (T)Activator.CreateInstance(typeof(T), model);
@@ -52,13 +52,7 @@ public abstract class RaylibApp<T> where T : EditModelBase
 	{
 		if (Raylib.IsKeyPressed(KeyboardKey.KEY_A))
 		{
-			Rect rect = new Rect()
-			{
-				X = Raylib.GetMouseX(),
-				Y = Raylib.GetMouseY(),
-				Width = 50,
-				Height = 50
-			};
+			Rect rect = Rect.Handle(Raylib.GetMousePosition(), size: 50);
 			editModel.AddItem(rect);
 		}
 
