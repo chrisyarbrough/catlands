@@ -17,6 +17,8 @@ public struct Rect
 	public int Width => Math.Abs(X0 - X1);
 	public int Height => Math.Abs(Y0 - Y1);
 
+	public int Area => Width * Height;
+
 	public Coord Center => new((X0 + X1) / 2, (Y0 + Y1) / 2);
 
 	public void Translate(Coord offset)

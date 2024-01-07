@@ -4,19 +4,21 @@ public class GizmoFactory
 
 	public IEnumerable<Gizmo> Create(int id, Dictionary<int, Rect> items)
 	{
-		var gizmo = new Gizmo(id,
-			() => items[id],
-			delta =>
+		var gizmo = new Gizmo(userData: id,
+			get: () => items[id],
+			set: delta =>
 			{
 				Rect r = items[id];
 				r.Translate(delta);
 				items[id] = r;
 			},
 			parent: null);
+
 		yield return gizmo;
 
 		Gizmo previousGizmo = gizmo;
-		foreach ((Func<Coord> center, Func<Coord, Rect, Rect> applyDelta, Func<(int, int)> size) in GetPoints(gizmo))
+
+		foreach (var (center, applyDelta, size) in GetHandles(gizmo))
 		{
 			var handle = new Gizmo(userData: null,
 				get: () => Rect.Handle(center(), size()),
@@ -35,7 +37,11 @@ public class GizmoFactory
 		}
 	}
 
-	private IEnumerable<(Func<Coord>, Func<Coord, Rect, Rect>, Func<(int, int)>)> GetPoints(Gizmo gizmo)
+	private IEnumerable<(
+			Func<Coord> center,
+			Func<Coord, Rect, Rect> applyDelta,
+			Func<(int, int)> size)>
+		GetHandles(Gizmo gizmo)
 	{
 		/*
 		 * x0,y0 xM,y0 x1,y0

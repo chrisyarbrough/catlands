@@ -6,6 +6,7 @@ public class Gizmo
 	public static Gizmo HoveredControl;
 	public static readonly HashSet<Gizmo> Selection = new();
 
+	public Gizmo Parent => parent;
 	public Gizmo NextInGroup;
 
 	public IEnumerable<Gizmo> AllInGroup()
@@ -43,12 +44,6 @@ public class Gizmo
 		set.Invoke(delta);
 	}
 
-	public void Draw()
-	{
-		Color color = GetColor();
-		Raylib.DrawRectangleLinesEx((Rectangle)Rect, lineThick: 1f, color);
-	}
-
 	public MouseCursor GetMouseCursor()
 	{
 		if (parent != null)
@@ -78,6 +73,12 @@ public class Gizmo
 		}
 
 		return MouseCursor.MOUSE_CURSOR_DEFAULT;
+	}
+
+	public void Draw()
+	{
+		Color color = GetColor();
+		Raylib.DrawRectangleLinesEx((Rectangle)Rect, lineThick: 1f, color);
 	}
 
 	private Color GetColor()
