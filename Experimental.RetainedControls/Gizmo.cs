@@ -6,6 +6,8 @@ public class Gizmo
 	public static Gizmo HoveredControl;
 	public static readonly HashSet<Gizmo> Selection = new();
 
+	private static int nextDebugId;
+
 	public Gizmo Parent => parent;
 	public Gizmo NextInGroup;
 
@@ -22,6 +24,9 @@ public class Gizmo
 	public Rect Rect => get.Invoke();
 
 	public readonly object UserData;
+	public readonly string DebugName;
+
+	public override string ToString() => DebugName;
 
 	private readonly Action<Coord> set;
 	private readonly Func<Rect> get;
@@ -37,6 +42,8 @@ public class Gizmo
 		this.get = get;
 		this.set = set;
 		this.parent = parent;
+		this.DebugName = nextDebugId.ToString();
+		nextDebugId++;
 	}
 
 	public void Apply(Coord delta)

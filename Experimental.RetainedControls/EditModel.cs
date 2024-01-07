@@ -40,29 +40,10 @@ public class EditModel : EditModelBase
 
 	public void Update()
 	{
-		Gizmo.HoveredControl = null;
-		float smallestDistance = float.MaxValue;
-		float smallestArea = float.MaxValue;
-
 		if (Gizmo.HotControl == null)
 		{
-			foreach (Gizmo gizmo in gizmos)
-			{
-				if (Raylib.CheckCollisionPointRec(Raylib.GetMousePosition(), (Rectangle)gizmo.Rect))
-				{
-					Rect rect = gizmo.Rect;
-
-					float distance = Vector2.Distance(Raylib.GetMousePosition(), rect.Center);
-
-					float area = rect.Width * rect.Height;
-					if (distance < smallestDistance || area < smallestArea)
-					{
-						smallestArea = area;
-						smallestDistance = distance;
-						Gizmo.HoveredControl = gizmo;
-					}
-				}
-			}
+			Gizmo.HoveredControl = SelectionStrategy.FindHoveredControl(
+				Raylib.GetMousePosition(), gizmos);
 		}
 
 		if (Raylib.IsMouseButtonPressed(MouseButton.MOUSE_BUTTON_LEFT))
@@ -96,11 +77,17 @@ public class EditModel : EditModelBase
 			Gizmo.HotControl = null;
 			EvaluateChanged();
 		}
-		
+
 		foreach (Gizmo gizmo in gizmos)
 		{
 			gizmo.Draw();
 		}
+
+		if (Gizmo.HoveredControl != null)
+			Gizmo.HoveredControl.Draw();
+
+		if (Gizmo.HotControl != null)
+			Gizmo.HotControl.Draw();
 	}
 
 	protected override void DeleteImpl()
