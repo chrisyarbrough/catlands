@@ -19,7 +19,7 @@ public struct Rect
 
 	public int Area => Width * Height;
 
-	public Coord Center => new((X0 + X1) / 2, (Y0 + Y1) / 2);
+	public Vector2 Center => new((X0 + X1) / 2f, (Y0 + Y1) / 2f);
 
 	public void Translate(Coord offset)
 	{
@@ -49,7 +49,7 @@ public struct Rect
 
 	public static Rect Handle((int x, int y) center, (int x, int y) size)
 	{
-		return new(center.x - size.x / 2, center.y - size.y / 2, size.x, size.y);
+		return new(center.x - size.x / 2f, center.y - size.y / 2f, size.x, size.y);
 	}
 
 	public static explicit operator Raylib_cs.Rectangle(Rect r)

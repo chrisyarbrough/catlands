@@ -1,6 +1,6 @@
 public class GizmoFactory
 {
-	private const int handleSize = 50;
+	private const int handleSize = 25;
 
 	public IEnumerable<Gizmo> Create(int id, Dictionary<int, Rect> items)
 	{
@@ -84,6 +84,6 @@ public class GizmoFactory
 
 public static class RectExtensions
 {
-	public static int XMid(this Rect rect) => (rect.X0 + rect.X1) / 2;
-	public static int YMid(this Rect rect) => (rect.Y0 + rect.Y1) / 2;
+	public static int XMid(this Rect rect) => (int)((rect.X0 + rect.X1) / 2f);
+	public static int YMid(this Rect rect) => (int)((rect.Y0 + rect.Y1) / 2f);
 }

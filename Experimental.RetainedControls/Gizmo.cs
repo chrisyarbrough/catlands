@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Numerics;
 using Raylib_cs;
 
 public class Gizmo
@@ -7,12 +9,14 @@ public class Gizmo
 	public static readonly HashSet<Gizmo> Selection = new();
 
 	private static int nextDebugId;
+	private static readonly MouseCursors mouseCursor = new(new SectorGraph(8));
 
 	public Gizmo Parent => parent;
 	public Gizmo NextInGroup;
 
 	public IEnumerable<Gizmo> AllInGroup()
 	{
+		Debug.Assert(Parent == null, "Groups can only be queried from a root gizmo.");
 		Gizmo g = this;
 		while (g != null)
 		{
@@ -22,6 +26,8 @@ public class Gizmo
 	}
 
 	public Rect Rect => get.Invoke();
+
+	public bool IsSelected => Selection.Contains(this);
 
 	public readonly object UserData;
 	public readonly string DebugName;
@@ -55,28 +61,8 @@ public class Gizmo
 	{
 		if (parent != null)
 		{
-			Coord corner = Rect.Center;
-			Coord center = parent.Rect.Center;
-
-			// Two-axis (corners)
-			if (corner.X < center.X && corner.Y < center.Y)
-				return MouseCursor.MOUSE_CURSOR_RESIZE_NWSE;
-			else if (corner.X > center.X && corner.Y < center.Y)
-				return MouseCursor.MOUSE_CURSOR_RESIZE_NESW;
-			else if (corner.X > center.X && corner.Y > center.Y)
-				return MouseCursor.MOUSE_CURSOR_RESIZE_NWSE;
-			else if (corner.X < center.X && corner.Y > center.Y)
-				return MouseCursor.MOUSE_CURSOR_RESIZE_NESW;
-
-			// Single-axis
-			if (corner.X < center.X)
-				return MouseCursor.MOUSE_CURSOR_RESIZE_EW;
-			else if (corner.X > center.X)
-				return MouseCursor.MOUSE_CURSOR_RESIZE_EW;
-			else if (corner.Y < center.Y)
-				return MouseCursor.MOUSE_CURSOR_RESIZE_NS;
-			else if (corner.Y > center.Y)
-				return MouseCursor.MOUSE_CURSOR_RESIZE_NS;
+			Vector2 direction = Rect.Center - parent.Rect.Center;
+			return mouseCursor.GetCursor(direction);
 		}
 
 		return MouseCursor.MOUSE_CURSOR_DEFAULT;

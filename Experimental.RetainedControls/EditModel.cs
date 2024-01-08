@@ -6,6 +6,8 @@ public class EditModel : EditModelBase
 	private readonly List<Gizmo> gizmos = new();
 	private readonly GizmoFactory gizmoFactory = new();
 
+	private static readonly bool debugDrawHandles = true;
+
 	/// <summary>
 	/// Carries over the fractional part of the drag movement because only the integer part is applied to the model.
 	/// </summary>
@@ -78,16 +80,25 @@ public class EditModel : EditModelBase
 			EvaluateChanged();
 		}
 
-		foreach (Gizmo gizmo in gizmos)
+		foreach (Gizmo gizmo in gizmos.Where(x => x.Parent == null))
 		{
 			gizmo.Draw();
+
+			if (debugDrawHandles)
+			{
+				foreach (Gizmo handle in gizmo.AllInGroup())
+				{
+					handle.Draw();
+					Raylib.DrawPixel((int)handle.Rect.Center.X, (int)handle.Rect.Center.Y, Color.RED);
+				}
+			}
 		}
 
-		if (Gizmo.HoveredControl != null)
-			Gizmo.HoveredControl.Draw();
-
-		if (Gizmo.HotControl != null)
-			Gizmo.HotControl.Draw();
+		if (debugDrawHandles)
+		{
+			Gizmo.HoveredControl?.Draw();
+			Gizmo.HotControl?.Draw();
+		}
 	}
 
 	protected override void DeleteImpl()

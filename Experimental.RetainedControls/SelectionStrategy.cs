@@ -37,7 +37,7 @@ internal sealed class SelectionStrategy
 	/// </summary>
 	private static float DistanceToCenter(Gizmo gizmo)
 	{
-		Coord center = gizmo.Rect.Center;
+		Vector2 center = gizmo.Rect.Center;
 		return Vector2.DistanceSquared(mousePosition, new Vector2(center.X, center.Y));
 	}
 
