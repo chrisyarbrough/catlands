@@ -6,8 +6,8 @@ using System.Numerics;
 public class SectorGraph
 {
 	public int SectorCount => directions.Length;
+
 	protected IList<Vector2> Directions => directions;
-	protected Vector2 DirectionAt(int index) => directions[index];
 	protected Vector2 Center { get; private set; }
 
 	private readonly Vector2[] directions;
@@ -44,8 +44,9 @@ public class SectorGraph
 		}
 	}
 
-	public virtual (int index, float dot) FindSectorIndex(Vector2 direction)
+	public virtual (int index, float dot) FindSectorIndex(Vector2 point)
 	{
+		Vector2 direction = Vector2.Normalize(point - Center);
 		return Enumerable.Range(0, directions.Length)
 			.Select(i => (
 				index: i,

@@ -25,9 +25,9 @@ public class MouseCursors
 		sectorGraph.UpdateDirectionsFromPoints(center, points);
 	}
 
-	public MouseCursor GetCursor(Vector2 mouseDirection)
+	public MouseCursor GetCursor(Vector2 mousePosition)
 	{
-		(int index, float _) = sectorGraph.FindSectorIndex(mouseDirection);
+		(int index, float _) = sectorGraph.FindSectorIndex(mousePosition);
 		return cursors[index % cursors.Length];
 	}
 }

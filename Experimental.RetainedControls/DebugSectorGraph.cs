@@ -39,10 +39,10 @@ internal class DebugSectorGraph : SectorGraph
 
 		Raylib.DrawLineV(Center, point, Color.GREEN);
 
-		int sector = base.FindSectorIndex(direction).index;
+		(int sector, float _) r = base.FindSectorIndex(point);
 		if (fontSize * 2 >= minFontSize)
-			Raylib.DrawText(sector.ToString(), (int)Center.X, (int)Center.Y, fontSize * 2, Color.WHITE);
+			Raylib.DrawText(r.sector.ToString(), (int)Center.X, (int)Center.Y, fontSize * 2, Color.WHITE);
 
-		return base.FindSectorIndex(direction);
+		return r;
 	}
 }
