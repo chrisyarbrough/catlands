@@ -19,7 +19,18 @@ public struct Rect
 
 	public int Area => Width * Height;
 
-	public Vector2 Center => new(X0 + (X1 - X0) / 2f, Y0 + (Y1 - Y0) / 2f); 
+	public Vector2 Center => new(X0 + (X1 - X0) / 2f, Y0 + (Y1 - Y0) / 2f);
+
+	public IEnumerable<Coord> Corners
+	{
+		get
+		{
+			yield return new Coord(X0, Y0);
+			yield return new Coord(X1, Y0);
+			yield return new Coord(X1, Y1);
+			yield return new Coord(X0, Y1);
+		}
+	}
 
 	public void Translate(Coord offset)
 	{

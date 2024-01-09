@@ -11,6 +11,7 @@ internal sealed class SelectionStrategy
 
 		return FindHoveredGizmos(gizmos)
 			.OrderBy(IsWithinParentRect)
+			.ThenBy(x => x.IsSelected)
 			.ThenBy(DistanceToCenter)
 			.ThenBy(Area)
 			.FirstOrDefault();

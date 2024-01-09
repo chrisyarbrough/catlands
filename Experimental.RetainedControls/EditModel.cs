@@ -6,12 +6,14 @@ public class EditModel : EditModelBase
 	private readonly List<Gizmo> gizmos = new();
 	private readonly GizmoFactory gizmoFactory = new();
 
-	private static readonly bool debugDrawHandles = true;
+	private static readonly bool debugDrawHandles = false;
 
 	/// <summary>
 	/// Carries over the fractional part of the drag movement because only the integer part is applied to the model.
 	/// </summary>
-	private Vector2 fractionalOffset;
+	private Vector2 fractionalDragOffset;
+
+	private Vector2 mouseDownOffset;
 
 	public EditModel(Model model) : base(model)
 	{
@@ -42,16 +44,17 @@ public class EditModel : EditModelBase
 
 	public void Update()
 	{
+		Vector2 mousePosition = Raylib.GetMousePosition();
+
 		if (Gizmo.HotControl == null)
 		{
-			Gizmo.HoveredControl = SelectionStrategy.FindHoveredControl(
-				Raylib.GetMousePosition(), gizmos);
+			Gizmo.HoveredControl = SelectionStrategy.FindHoveredControl(mousePosition, gizmos);
 		}
 
 		if (Raylib.IsMouseButtonPressed(MouseButton.MOUSE_BUTTON_LEFT))
 		{
 			Gizmo.Selection.Clear();
-			fractionalOffset = Vector2.Zero;
+			fractionalDragOffset = Vector2.Zero;
 
 			if (Gizmo.HoveredControl != null && Gizmo.HotControl == null)
 			{
@@ -62,6 +65,8 @@ public class EditModel : EditModelBase
 				{
 					Gizmo.Selection.Add(Gizmo.HotControl);
 				}
+
+				mouseDownOffset = mousePosition - Gizmo.HotControl.Rect.Center;
 			}
 		}
 
@@ -69,9 +74,30 @@ public class EditModel : EditModelBase
 
 		if (Gizmo.HotControl != null)
 		{
-			Vector2 delta = Raylib.GetMouseDelta() + fractionalOffset;
-			fractionalOffset = new Vector2(delta.X - (int)delta.X, delta.Y - (int)delta.Y);
-			Gizmo.HotControl.Apply(new Coord(delta));
+			if (Raylib.IsKeyDown(KeyboardKey.KEY_V))
+			{
+				// Snap to closest other gizmo handle.
+				Vector2 closest = gizmos
+					.Where(g => !Gizmo.HotControl.Group.Contains(g))
+					.Select(x => x.Rect.Center).MinBy(x => Vector2.DistanceSquared(x, mousePosition));
+
+				Raylib.DrawCircleV(closest, 10, Color.RED);
+				Coord delta = new Coord(closest - Gizmo.HotControl.Rect.Center);
+				Gizmo.HotControl.Apply(delta);
+			}
+			else
+			{
+				Vector2 delta = Raylib.GetMouseDelta() + fractionalDragOffset;
+				fractionalDragOffset = new Vector2(delta.X - (int)delta.X, delta.Y - (int)delta.Y);
+				Gizmo.HotControl.Apply(new Coord(delta));
+			}
+
+			if (Raylib.IsKeyReleased(KeyboardKey.KEY_V))
+			{
+				// Move hot control back to the mouse position.
+				Gizmo.HotControl.Apply(
+					delta: new Coord(mousePosition - Gizmo.HotControl.Rect.Center - mouseDownOffset));
+			}
 		}
 
 		if (Gizmo.HotControl != null && Raylib.IsMouseButtonReleased(MouseButton.MOUSE_BUTTON_LEFT))

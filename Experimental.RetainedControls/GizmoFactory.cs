@@ -1,9 +1,11 @@
 public class GizmoFactory
 {
-	private const int handleSize = 25;
+	private const int handleSize = 15;
 
 	public IEnumerable<Gizmo> Create(int id, Dictionary<int, Rect> items)
 	{
+		var group = new Gizmo[9];
+
 		var gizmo = new Gizmo(userData: id,
 			get: () => items[id],
 			set: delta =>
@@ -15,8 +17,10 @@ public class GizmoFactory
 			parent: null);
 
 		yield return gizmo;
+		group[0] = gizmo;
+		gizmo.Group = group;
 
-		Gizmo previousGizmo = gizmo;
+		int index = 1;
 
 		foreach (var (center, applyDelta, size) in GetHandles(gizmo))
 		{
@@ -32,8 +36,8 @@ public class GizmoFactory
 
 			yield return handle;
 
-			previousGizmo.NextInGroup = handle;
-			previousGizmo = handle;
+			handle.Group = group;
+			group[index++] = handle;
 		}
 	}
 

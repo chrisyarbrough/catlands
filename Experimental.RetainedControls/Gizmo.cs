@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Numerics;
 using Raylib_cs;
 
@@ -12,17 +11,12 @@ public class Gizmo
 	private static readonly MouseCursors mouseCursor = new(new SectorGraph(8));
 
 	public Gizmo Parent => parent;
-	public Gizmo NextInGroup;
+	public IEnumerable<Gizmo> Group;
+	public bool IsSelected => Selection.Contains(this);
 
 	public IEnumerable<Gizmo> AllInGroup()
 	{
-		Debug.Assert(Parent == null, "Groups can only be queried from a root gizmo.");
-		Gizmo g = this;
-		while (g != null)
-		{
-			yield return g;
-			g = g.NextInGroup;
-		}
+		return Group;
 	}
 
 	public Rect Rect => get.Invoke();
@@ -94,6 +88,9 @@ public class Gizmo
 
 		if (HoveredControl == this)
 			return Color.YELLOW;
+
+		if (Parent == null && AllInGroup().Any(x => HoveredControl == x))
+			return Color.WHITE;
 
 		if (Selection.Contains(this))
 			return Color.ORANGE;
