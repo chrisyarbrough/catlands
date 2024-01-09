@@ -3,25 +3,45 @@ using Raylib_cs;
 
 internal class DebugSectorGraph : SectorGraph
 {
-	public Vector2 Center;
+	private Vector2[] points;
+	private int fontSize = 12;
+	private const int minFontSize = 4;
 
 	public DebugSectorGraph(int sectorCount) : base(sectorCount)
 	{
 	}
 
-	public override (int index, float dot) FindSectorIndex(Vector2 direction)
+	public override void UpdateDirectionsFromPoints(Vector2 center, params Vector2[] points)
 	{
-		foreach (Vector2 sectorDirection in Directions)
+		this.points = points;
+		float minDistance = points.Select(p => Vector2.Distance(center, p)).Min();
+		fontSize = (int)(minDistance / 10f);
+		base.UpdateDirectionsFromPoints(center, points);
+	}
+
+	public override (int index, float dot) FindSectorIndex(Vector2 point)
+	{
+		Vector2 direction = Vector2.Normalize(point - Center);
+
+		for (int i = 0; i < Directions.Count; i++)
 		{
-			(int _, float dot) = base.FindSectorIndex(sectorDirection);
-			Vector2 end = Center + sectorDirection * 50;
-			Raylib.DrawLineV(Center, end, Color.GRAY);
-			Raylib.DrawText(dot.ToString("0.0"), (int)end.X, (int)end.Y, 12, Color.WHITE);
+			Vector2 sectorDirection = Directions[i];
+			Vector2 sectorPoint = points[i];
+			float dot = Vector2.Dot(direction, sectorDirection);
+			Raylib.DrawLineV(Center, sectorPoint, Color.GRAY);
+
+			if (fontSize >= minFontSize)
+			{
+				Vector2 textPosition = (Center + sectorPoint) / 2;
+				Raylib.DrawText(dot.ToString("0.00"), (int)textPosition.X, (int)textPosition.Y, fontSize, Color.WHITE);
+			}
 		}
 
+		Raylib.DrawLineV(Center, point, Color.GREEN);
+
 		int sector = base.FindSectorIndex(direction).index;
-		Raylib.DrawText(sector.ToString(), (int)Center.X, (int)Center.Y, 24, Color.WHITE);
-		Raylib.DrawLineV(Center, Center + DirectionAt(sector) * 50, Color.ORANGE);
+		if (fontSize * 2 >= minFontSize)
+			Raylib.DrawText(sector.ToString(), (int)Center.X, (int)Center.Y, fontSize * 2, Color.WHITE);
 
 		return base.FindSectorIndex(direction);
 	}

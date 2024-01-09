@@ -19,7 +19,7 @@ public struct Rect
 
 	public int Area => Width * Height;
 
-	public Vector2 Center => new((X0 + X1) / 2f, (Y0 + Y1) / 2f);
+	public Vector2 Center => new(X0 + (X1 - X0) / 2f, Y0 + (Y1 - Y0) / 2f); 
 
 	public void Translate(Coord offset)
 	{

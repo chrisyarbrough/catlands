@@ -6,14 +6,21 @@ using System.Numerics;
 public class SectorGraph
 {
 	public int SectorCount => directions.Length;
-	protected IEnumerable<Vector2> Directions => directions;
+	protected IList<Vector2> Directions => directions;
 	protected Vector2 DirectionAt(int index) => directions[index];
+	protected Vector2 Center { get; private set; }
 
 	private readonly Vector2[] directions;
 
 	public SectorGraph(int sectorCount)
 	{
 		directions = new Vector2[sectorCount];
+	}
+
+	public static SectorGraph FromCircle(int sectorCount)
+	{
+		var sectorGraph = new SectorGraph(sectorCount);
+
 		float sectorAngle = (float)(2 * Math.PI) / sectorCount;
 
 		for (int i = 0; i < sectorCount; i++)
@@ -22,7 +29,18 @@ public class SectorGraph
 			float cos = (float)Math.Cos(radians);
 			float sin = (float)Math.Sin(radians);
 
-			directions[i] = new Vector2(cos, sin);
+			sectorGraph.directions[i] = new Vector2(cos, sin);
+		}
+
+		return sectorGraph;
+	}
+
+	public virtual void UpdateDirectionsFromPoints(Vector2 center, params Vector2[] points)
+	{
+		Center = center;
+		for (int i = 0; i < points.Length; i++)
+		{
+			directions[i] = Vector2.Normalize(points[i] - center);
 		}
 	}
 

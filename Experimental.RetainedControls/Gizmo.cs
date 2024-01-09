@@ -9,7 +9,7 @@ public class Gizmo
 	public static readonly HashSet<Gizmo> Selection = new();
 
 	private static int nextDebugId;
-	private static readonly MouseCursors mouseCursor = new(new SectorGraph(8));
+	private static readonly MouseCursors mouseCursor = new(new DebugSectorGraph(8));
 
 	public Gizmo Parent => parent;
 	public Gizmo NextInGroup;
@@ -61,8 +61,21 @@ public class Gizmo
 	{
 		if (parent != null)
 		{
-			Vector2 direction = Rect.Center - parent.Rect.Center;
-			return mouseCursor.GetCursor(direction);
+			Rectangle r = (Rectangle)parent.Rect;
+			
+			Vector2 rightMid = new Vector2(r.X + r.Width, r.Y + r.Height / 2f);
+			Vector2 bottomRight = new Vector2(r.X + r.Width, r.Y + r.Height);
+			Vector2 bottomMid = new Vector2(r.X + r.Width / 2f, r.Y + r.Height);
+			Vector2 bottomLeft = new Vector2(r.X, r.Y + r.Height);
+			Vector2 leftMid = new Vector2(r.X, r.Y + r.Height / 2f);
+			Vector2 topLeft = new Vector2(r.X, r.Y);
+			Vector2 topMid = new Vector2(r.X + r.Width / 2f, r.Y);
+			Vector2 topRight = new Vector2(r.X + r.Width, r.Y);
+			
+			mouseCursor.UpdateDirectionsFromPoints(
+				parent.Rect.Center, rightMid, bottomRight, bottomMid, bottomLeft, leftMid, topLeft, topMid, topRight);
+			
+			return mouseCursor.GetCursor(Rect.Center);
 		}
 
 		return MouseCursor.MOUSE_CURSOR_DEFAULT;

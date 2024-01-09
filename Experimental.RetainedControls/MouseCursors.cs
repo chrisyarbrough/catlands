@@ -20,6 +20,11 @@ public class MouseCursors
 		Debug.Assert(sectorGraph.SectorCount == 8);
 	}
 
+	public void UpdateDirectionsFromPoints(Vector2 center, params Vector2[] points)
+	{
+		sectorGraph.UpdateDirectionsFromPoints(center, points);
+	}
+
 	public MouseCursor GetCursor(Vector2 mouseDirection)
 	{
 		(int index, float _) = sectorGraph.FindSectorIndex(mouseDirection);
