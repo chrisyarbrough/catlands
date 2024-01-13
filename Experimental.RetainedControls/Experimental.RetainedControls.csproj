@@ -14,4 +14,10 @@
       <ProjectReference Include="..\Experimental.Shared\Experimental.Shared.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="DottedLine.glsl">
+        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>

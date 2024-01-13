@@ -1,4 +1,5 @@
 using System.Numerics;
+using Experimental.RetainedControls;
 using Raylib_cs;
 
 public class EditModel : EditModelBase
@@ -14,6 +15,8 @@ public class EditModel : EditModelBase
 	private Vector2 fractionalDragOffset;
 
 	private Vector2 mouseDownOffset;
+	private Vector2 originalHotControl;
+	private DottedLine dottedLine;
 
 	public EditModel(Model model) : base(model)
 	{
@@ -67,7 +70,16 @@ public class EditModel : EditModelBase
 				}
 
 				mouseDownOffset = mousePosition - Gizmo.HotControl.Rect.Center;
+				originalHotControl = Gizmo.HotControl.Rect.Center;
+
+				if (Gizmo.HotControl.Parent != null)
+					dottedLine = new DottedLine(Gizmo.HotControl.Rect.Center, Gizmo.HotControl.OppositeCorner);
 			}
+		}
+
+		if (Gizmo.HotControl != null && Gizmo.HotControl.IsCorner && Raylib.IsKeyDown(KeyboardKey.KEY_LEFT_SHIFT))
+		{
+			dottedLine.Draw(Gizmo.HotControl.Rect.Center, Gizmo.HotControl.OppositeCorner);
 		}
 
 		Cursor.Update(Gizmo.HotControl, Gizmo.HoveredControl);
@@ -81,22 +93,33 @@ public class EditModel : EditModelBase
 					.Where(g => !Gizmo.HotControl.Group.Contains(g))
 					.Select(x => x.Rect.Center).MinBy(x => Vector2.DistanceSquared(x, mousePosition));
 
-				Raylib.DrawCircleV(closest, 10, Color.RED);
-				Coord delta = new Coord(closest - Gizmo.HotControl.Rect.Center);
-				Gizmo.HotControl.Apply(delta);
+				Raylib.DrawCircleV(closest, 7, Color.WHITE);
+				Gizmo.HotControl.SetPosition(closest);
 			}
 			else
 			{
-				Vector2 delta = Raylib.GetMouseDelta() + fractionalDragOffset;
-				fractionalDragOffset = new Vector2(delta.X - (int)delta.X, delta.Y - (int)delta.Y);
-				Gizmo.HotControl.Apply(new Coord(delta));
+				if (Raylib.IsKeyDown(KeyboardKey.KEY_LEFT_SHIFT) && Gizmo.HotControl.IsCorner)
+				{
+					Vector2 snappedPosition = Geometry.ClosestPointOnLine(
+						Raylib.GetMousePosition() - mouseDownOffset, originalHotControl,
+						Gizmo.HotControl.OppositeCorner);
+
+					Raylib.DrawCircleV(snappedPosition, 5, Color.YELLOW);
+					Gizmo.HotControl.SetPosition(snappedPosition);
+				}
+				else
+				{
+					Vector2 delta = Raylib.GetMouseDelta() + fractionalDragOffset;
+					fractionalDragOffset = new Vector2(delta.X - (int)delta.X, delta.Y - (int)delta.Y);
+					Gizmo.HotControl.Apply(new Coord(delta));
+				}
 			}
 
-			if (Raylib.IsKeyReleased(KeyboardKey.KEY_V))
+			if (Raylib.IsKeyReleased(KeyboardKey.KEY_V) || Raylib.IsKeyReleased(KeyboardKey.KEY_LEFT_SHIFT))
 			{
 				// Move hot control back to the mouse position.
 				Gizmo.HotControl.Apply(
-					delta: new Coord(mousePosition - Gizmo.HotControl.Rect.Center - mouseDownOffset));
+					delta: new Coord(mousePosition - mouseDownOffset - Gizmo.HotControl.Rect.Center));
 			}
 		}
 
@@ -112,7 +135,7 @@ public class EditModel : EditModelBase
 
 			if (debugDrawHandles)
 			{
-				foreach (Gizmo handle in gizmo.AllInGroup())
+				foreach (Gizmo handle in gizmo.Group)
 				{
 					handle.Draw();
 					Raylib.DrawPixel((int)handle.Rect.Center.X, (int)handle.Rect.Center.Y, Color.RED);
@@ -133,7 +156,7 @@ public class EditModel : EditModelBase
 		{
 			model.Items.Remove((int)selected.UserData);
 
-			foreach (Gizmo g in selected.AllInGroup())
+			foreach (Gizmo g in selected.Group)
 				gizmos.Remove(g);
 		}
 

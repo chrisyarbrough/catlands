@@ -22,7 +22,7 @@ public abstract class RaylibApp<T> where T : EditModelBase
 	protected virtual void Initialize()
 	{
 		Title = GetType().Assembly.GetName().Name;
-		Raylib.SetTraceLogLevel(TraceLogLevel.LOG_WARNING);
+		Raylib.SetTraceLogLevel(TraceLogLevel.LOG_ERROR);
 		Raylib.SetConfigFlags(ConfigFlags.FLAG_WINDOW_RESIZABLE);
 		Raylib.InitWindow(width: 1280, height: 800, Title + SubTitle);
 		Raylib.SetTargetFPS(240);

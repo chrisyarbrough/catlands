@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Numerics;
 using Raylib_cs;
 
@@ -13,32 +14,43 @@ public class Gizmo
 	public Gizmo Parent => parent;
 	public IEnumerable<Gizmo> Group;
 	public bool IsSelected => Selection.Contains(this);
+	
+	public bool IsCorner { get; set; }
 
-	public IEnumerable<Gizmo> AllInGroup()
+	public Rect Rect => getRect.Invoke();
+
+	public int X0 => Rect.X0;
+	public int Y0 => Rect.Y0;
+	public int X1 => Rect.X1;
+	public int Y1 => Rect.Y1;
+
+	public Vector2 OppositeCorner
 	{
-		return Group;
+		get
+		{
+			Debug.Assert(parent != null);
+			return 2 * parent.Rect.Center - Rect.Center;
+		}
 	}
-
-	public Rect Rect => get.Invoke();
 
 	public readonly object UserData;
 	public readonly string DebugName;
 
 	public override string ToString() => DebugName;
 
-	private readonly Action<Coord> set;
-	private readonly Func<Rect> get;
+	private readonly Action<Coord> setRect;
+	private readonly Func<Rect> getRect;
 	private readonly Gizmo parent;
 
 	public Gizmo(
 		object userData,
-		Func<Rect> get,
-		Action<Coord> set,
+		Func<Rect> getRect,
+		Action<Coord> setRect,
 		Gizmo parent)
 	{
 		UserData = userData;
-		this.get = get;
-		this.set = set;
+		this.getRect = getRect;
+		this.setRect = setRect;
 		this.parent = parent;
 		this.DebugName = nextDebugId.ToString();
 		nextDebugId++;
@@ -46,7 +58,12 @@ public class Gizmo
 
 	public void Apply(Coord delta)
 	{
-		set.Invoke(delta);
+		setRect.Invoke(delta);
+	}
+
+	public void SetPosition(Vector2 position)
+	{
+		Apply(new Coord(position - Rect.Center));
 	}
 
 	public MouseCursor GetMouseCursor()
@@ -84,12 +101,12 @@ public class Gizmo
 	private Color GetColor()
 	{
 		if (HotControl == this)
-			return Color.RED;
+			return Color.LIGHTGRAY;
 
 		if (HoveredControl == this)
 			return Color.YELLOW;
 
-		if (Parent == null && AllInGroup().Any(x => HoveredControl == x))
+		if (Parent == null && Group.Any(x => HoveredControl == x))
 			return Color.WHITE;
 
 		if (Selection.Contains(this))
