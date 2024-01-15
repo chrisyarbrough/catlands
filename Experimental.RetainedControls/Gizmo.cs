@@ -33,6 +33,15 @@ public class Gizmo
 		}
 	}
 
+	public Gizmo OppositeGizmo
+	{
+		get
+		{
+			Debug.Assert(parent != null);
+			return parent.Group.MinBy(x => Vector2.Distance(x.Rect.Center, OppositeCorner));
+		}
+	}
+
 	public readonly object UserData;
 	public readonly string DebugName;
 

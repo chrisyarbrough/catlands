@@ -16,6 +16,8 @@ public readonly struct DottedLine
 		line = new Line(a, b);
 	}
 
+	public Vector2 Center => line.Center;
+
 	public void Draw(Vector2 a, Vector2 b)
 	{
 		if (shader == null)
@@ -50,4 +52,6 @@ public readonly struct DottedLine
 		vector2Buffer[1] = y;
 		Raylib.SetShaderValue(shader, id, vector2Buffer, ShaderUniformDataType.SHADER_UNIFORM_VEC2);
 	}
+
+	public Vector2 ClosestPointTo(Vector2 point) => line.ClosestPointTo(point);
 }

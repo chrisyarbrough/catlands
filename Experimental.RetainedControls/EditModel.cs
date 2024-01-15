@@ -15,7 +15,7 @@ public class EditModel : EditModelBase
 	private Vector2 fractionalDragOffset;
 
 	private Vector2 mouseDownOffset;
-	private Vector2 originalHotControl;
+	private Vector2 originalOppositeControl;
 	private DottedLine dottedLine;
 
 	public EditModel(Model model) : base(model)
@@ -70,10 +70,12 @@ public class EditModel : EditModelBase
 				}
 
 				mouseDownOffset = mousePosition - Gizmo.HotControl.Rect.Center;
-				originalHotControl = Gizmo.HotControl.Rect.Center;
 
 				if (Gizmo.HotControl.Parent != null)
+				{
+					originalOppositeControl = Gizmo.HotControl.OppositeGizmo.Rect.Center;
 					dottedLine = new DottedLine(Gizmo.HotControl.Rect.Center, Gizmo.HotControl.OppositeCorner);
+				}
 			}
 		}
 
@@ -100,12 +102,28 @@ public class EditModel : EditModelBase
 			{
 				if (Raylib.IsKeyDown(KeyboardKey.KEY_LEFT_SHIFT) && Gizmo.HotControl.IsCorner)
 				{
-					Vector2 snappedPosition = Geometry.ClosestPointOnLine(
-						Raylib.GetMousePosition() - mouseDownOffset, originalHotControl,
-						Gizmo.HotControl.OppositeCorner);
+					Vector2 snappedPosition = dottedLine.ClosestPointTo(Raylib.GetMousePosition() - mouseDownOffset);
 
 					Raylib.DrawCircleV(snappedPosition, 5, Color.YELLOW);
 					Gizmo.HotControl.SetPosition(snappedPosition);
+
+					if (Raylib.IsKeyDown(KeyboardKey.KEY_LEFT_ALT))
+					{
+						Vector2 oppositePosition = 2 * dottedLine.Center - snappedPosition;
+						oppositePosition = dottedLine.ClosestPointTo(oppositePosition);
+						Gizmo.HotControl.OppositeGizmo.SetPosition(oppositePosition);
+						Raylib.DrawCircleV(oppositePosition, 5, Color.SKYBLUE);
+					}
+				}
+				else if (Raylib.IsKeyDown(KeyboardKey.KEY_LEFT_ALT))
+				{
+					Vector2 delta = Raylib.GetMouseDelta() + fractionalDragOffset;
+					fractionalDragOffset = new Vector2(delta.X - (int)delta.X, delta.Y - (int)delta.Y);
+					Gizmo.HotControl.Apply(new Coord(delta));
+					
+					Vector2 oppositePosition = 2 * dottedLine.Center - Gizmo.HotControl.Rect.Center;
+					
+					Gizmo.HotControl.OppositeGizmo.SetPosition(oppositePosition);
 				}
 				else
 				{
@@ -120,6 +138,11 @@ public class EditModel : EditModelBase
 				// Move hot control back to the mouse position.
 				Gizmo.HotControl.Apply(
 					delta: new Coord(mousePosition - mouseDownOffset - Gizmo.HotControl.Rect.Center));
+			}
+
+			if (Raylib.IsKeyReleased(KeyboardKey.KEY_LEFT_ALT))
+			{
+				Gizmo.HotControl.OppositeGizmo.SetPosition(originalOppositeControl);
 			}
 		}
 
