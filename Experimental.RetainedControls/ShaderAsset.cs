@@ -1,5 +1,3 @@
-namespace Experimental.RetainedControls;
-
 using Raylib_cs;
 
 public class ShaderAsset

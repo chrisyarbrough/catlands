@@ -17,19 +17,45 @@ public struct Coord
 		Y = (int)v.Y;
 	}
 
+	public Coord Normalize()
+	{
+		int x = X;
+		int y = Y;
+		if (x < 0)
+			x = -x;
+		if (y < 0)
+			y = -y;
+		if (x > y)
+		{
+			X /= x;
+			Y /= x;
+		}
+		else if(y != 0)
+		{
+			X /= y;
+			Y /= y;
+		}
+
+		return this;
+	}
+
 	public static implicit operator Vector2(Coord c)
 	{
 		return new Vector2(c.X, c.Y);
 	}
 
-
 	public static Coord operator +(Coord a, Coord b)
 	{
 		return new Coord(a.X + b.X, a.Y + b.Y);
 	}
-	
+
 	public static Coord operator -(Coord a, Coord b)
 	{
 		return new Coord(a.X - b.X, a.Y - b.Y);
+	}
+
+	public static Coord operator *(Coord a, int b)
+	{
+		return new Coord(a.X * b, a.Y * b);
 	}
 }

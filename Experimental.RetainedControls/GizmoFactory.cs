@@ -1,11 +1,11 @@
 public class GizmoFactory
 {
-	public IEnumerable<Gizmo> Create(int id, Dictionary<int, Rect> items)
+	public IEnumerable<Gizmo> Create(int id, Dictionary<int, Rect> rects)
 	{
 		var group = new Gizmo[9];
 
 		int index = 0;
-		foreach (Gizmo gizmo in CreateGroup(id, items))
+		foreach (Gizmo gizmo in CreateGroup(id, rects))
 		{
 			group[index++] = gizmo;
 			gizmo.Group = group;
@@ -13,33 +13,38 @@ public class GizmoFactory
 		}
 	}
 
-	private IEnumerable<Gizmo> CreateGroup(int id, Dictionary<int, Rect> items)
+	private IEnumerable<Gizmo> CreateGroup(int id, Dictionary<int, Rect> rects)
 	{
 		// Main gizmo
-		var gizmo = new Gizmo(userData: id,
-			getRect: () => items[id],
-			setRect: delta => items[id] = items[id].Translate(delta),
-			parent: null);
+		var gizmo = new Gizmo(
+			userData: id,
+			getRect: () => rects[id],
+			setRect: delta => rects[id] = rects[id].Translate(delta));
 
 		yield return gizmo;
 
 		// Child handles
-		foreach (var (getRect, applyDelta, isCorner) in CreateHandles(gizmo))
+		foreach (var (points, getRect, handleSize, applyDelta, cornerIndex) in CreateHandles(gizmo))
 		{
-			var handle = new Gizmo(userData: null,
-				getRect,
-				setRect: delta => items[id] = applyDelta.Invoke(delta, gizmo.Rect),
+			var handle = new ResizeGizmo(
+				points,
+				handleSize,
+				getRect: () => getRect.Invoke(points().Item1, points().Item2, handleSize()),
+				setRect: delta => rects[id] = applyDelta.Invoke(delta, gizmo.Rect),
 				parent: gizmo);
 
-			handle.IsCorner = isCorner;
+			handle.IsCorner = cornerIndex != -1;
+			handle.CornerIndex = cornerIndex;
 			yield return handle;
 		}
 	}
 
 	private IEnumerable<(
-			Func<Rect> getRect,
+			Func<(Coord, Coord)> points,
+			Func<Coord, Coord, int, Rect> getRect,
+			Func<int>,
 			Func<Coord, Rect, Rect> applyDelta,
-			bool isCorner)>
+			int cornerIndex)>
 		CreateHandles(Gizmo gizmo)
 	{
 		/*
@@ -62,18 +67,32 @@ public class GizmoFactory
 		Rect AdjustX0Y1(Coord delta, Rect rect) => AdjustX0(delta, AdjustY1(delta, rect));
 		Rect AdjustX1Y1(Coord delta, Rect rect) => AdjustX1(delta, AdjustY1(delta, rect));
 
-		int HandleSize() => Math.Min(20, Math.Min(gizmo.Rect.Width / 2, gizmo.Rect.Height / 2));
+		int HandleSize() => Math.Min(20 * Gizmo.LineThickness, Math.Min(gizmo.Rect.Width / 2, gizmo.Rect.Height / 2));
 
-		yield return (() => Rect.FromPointsV(new (gizmo.X0, gizmo.Y0), new (gizmo.X0, gizmo.Y1), HandleSize()), AdjustX0, false);
-		yield return (() => Rect.FromPointsH(new (gizmo.X0, gizmo.Y0), new (gizmo.X1, gizmo.Y0), HandleSize()), AdjustY0, false);
-		yield return (() => Rect.FromPointsH(new (gizmo.X0, gizmo.Y1), new (gizmo.X1, gizmo.Y1), HandleSize()), AdjustY1, false);
-		yield return (() => Rect.FromPointsV(new (gizmo.X1, gizmo.Y0), new (gizmo.X1, gizmo.Y1), HandleSize()), AdjustX1, false);
+		// Sides
+		yield return (() => Shorten(new (gizmo.X0, gizmo.Y0), new (gizmo.X0, gizmo.Y1), HandleSize()), Rect.FromPointsV, HandleSize, AdjustX0, -1);
+		yield return (() => Shorten(new (gizmo.X0, gizmo.Y0), new (gizmo.X1, gizmo.Y0), HandleSize()), Rect.FromPointsH, HandleSize, AdjustY0, -1);
+		yield return (() => Shorten(new (gizmo.X0, gizmo.Y1), new (gizmo.X1, gizmo.Y1), HandleSize()), Rect.FromPointsH, HandleSize, AdjustY1, -1);
+		yield return (() => Shorten(new (gizmo.X1, gizmo.Y0), new (gizmo.X1, gizmo.Y1), HandleSize()), Rect.FromPointsV, HandleSize, AdjustX1, -1);
 
-		yield return (() => Rect.FromPoint(new (gizmo.X1, gizmo.Y0), HandleSize()), AdjustX1Y0, true);
-		yield return (() => Rect.FromPoint(new (gizmo.X1, gizmo.Y1), HandleSize()), AdjustX1Y1, true);
-		yield return (() => Rect.FromPoint(new (gizmo.X0, gizmo.Y1), HandleSize()), AdjustX0Y1, true);
-		yield return (() => Rect.FromPoint(new (gizmo.X0, gizmo.Y0), HandleSize()), AdjustX0Y0, true);
+		// Corners
+		yield return (() => (new (gizmo.X1, gizmo.Y0), new (gizmo.X1, gizmo.Y0)), CornerFromPoint, HandleSize, AdjustX1Y0, 0);
+		yield return (() => (new (gizmo.X1, gizmo.Y1), new (gizmo.X1, gizmo.Y1)), CornerFromPoint, HandleSize, AdjustX1Y1, 1);
+		yield return (() => (new (gizmo.X0, gizmo.Y1), new (gizmo.X0, gizmo.Y1)), CornerFromPoint, HandleSize, AdjustX0Y1, 2);
+		yield return (() => (new (gizmo.X0, gizmo.Y0), new (gizmo.X0, gizmo.Y0)), CornerFromPoint, HandleSize, AdjustX0Y0, 3);
 
 		// @formatter:on
+	}
+
+	private (Coord, Coord) Shorten(Coord a, Coord b, int handleSize)
+	{
+		int handleExtents = handleSize / 2;
+		Coord direction = (b - a).Normalize();
+		return (a + direction * handleExtents, b - direction * handleExtents);
+	}
+
+	private static Rect CornerFromPoint(Coord a, Coord b, int handleSize)
+	{
+		return Rect.FromPoint(a, handleSize);
 	}
 }

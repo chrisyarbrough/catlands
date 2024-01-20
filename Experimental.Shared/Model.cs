@@ -2,13 +2,13 @@ using YamlDotNet.Serialization;
 
 public class Model
 {
-	public Dictionary<int, Rect> Items { get; set; } = new();
+	public Dictionary<int, Rect> Rects { get; set; } = new();
 
 	private int FindNextFreeId()
 	{
 		int id = 0;
 
-		foreach (int i in Items.Keys)
+		foreach (int i in Rects.Keys)
 			id = Math.Max(i, id);
 
 		return id + 1;
@@ -17,7 +17,7 @@ public class Model
 	public int Add(Rect item)
 	{
 		int id = FindNextFreeId();
-		Items.Add(id, item);
+		Rects.Add(id, item);
 		return id;
 	}
 
@@ -29,7 +29,7 @@ public class Model
 		{
 			string yaml = File.ReadAllText(savePath);
 			Model model = Deserialize(yaml);
-			model.Items ??= new();
+			model.Rects ??= new();
 
 			return model;
 		}

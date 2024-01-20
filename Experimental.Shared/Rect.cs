@@ -46,6 +46,15 @@ public struct Rect
 		Y1 = (int)(y + height);
 	}
 
+	public static Rect Ordered(Rect other)
+	{
+		return new(
+			Math.Min(other.X0, other.X1),
+			Math.Min(other.Y0, other.Y1),
+			Math.Abs(other.X0 - other.X1),
+			Math.Abs(other.Y0 - other.Y1));
+	}
+
 	public static Rect Handle(Vector2 center, int size)
 	{
 		return Handle(new Coord(center), (size, size));
@@ -59,6 +68,32 @@ public struct Rect
 	public static Rect Handle((int x, int y) center, (int x, int y) size)
 	{
 		return new(center.x - size.x / 2f, center.y - size.y / 2f, size.x, size.y);
+	}
+	
+	public static Rect FromPointsH(Vector2 a, Vector2 b, int handleSize)
+	{
+		if (b.X < a.X)
+			(a, b) = (b, a);
+
+		int handleExtents = handleSize / 2;
+		return new Rect(
+			a.X + handleExtents,
+			a.Y - handleExtents,
+			b.X - handleExtents - (a.X + handleExtents),
+			handleSize);
+	}
+
+	public static Rect FromPointsV(Vector2 a, Vector2 b, int handleSize)
+	{
+		if (b.Y < a.Y)
+			(a, b) = (b, a);
+
+		int handleExtents = handleSize / 2;
+		return new Rect(
+			a.X - handleExtents,
+			a.Y + handleExtents,
+			handleSize,
+			b.Y - handleExtents - (a.Y + handleExtents));
 	}
 
 	public static Rect FromPointsH(Coord a, Coord b, int handleSize)

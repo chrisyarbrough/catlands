@@ -53,7 +53,7 @@ public abstract class RaylibApp<T> where T : EditModelBase
 		if (Raylib.IsKeyPressed(KeyboardKey.KEY_A))
 		{
 			Rect rect = Rect.Handle(Raylib.GetMousePosition(), size: 50);
-			editModel.AddItem(rect);
+			editModel.AddRect(rect);
 		}
 
 		if (Raylib.IsKeyDown(KeyboardKey.KEY_LEFT_SUPER) && Raylib.IsKeyPressed(KeyboardKey.KEY_Z))

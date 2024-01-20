@@ -24,6 +24,8 @@ public class MouseCursors
 	{
 		sectorGraph.UpdateDirectionsFromPoints(center, points);
 	}
+	
+	public int GetSectorIndex(Vector2 position) => sectorGraph.FindSectorIndex(position).index;
 
 	public MouseCursor GetCursor(Vector2 mousePosition)
 	{

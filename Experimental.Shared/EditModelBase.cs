@@ -1,15 +1,15 @@
-using System.Numerics;
-
 public abstract class EditModelBase
 {
 	public event Action<bool> Changed;
 
+	protected Dictionary<int, Rect> Rects => model.Rects;
+
 	private readonly Stack<string> undoStack = new();
 	private string lastSavedState;
 
-	protected Model model;
+	private Model model;
 
-	public EditModelBase(Model model)
+	protected EditModelBase(Model model)
 	{
 		this.model = model;
 		lastSavedState = model.Serialize();
@@ -21,7 +21,7 @@ public abstract class EditModelBase
 		Changed?.Invoke(false);
 	}
 	
-	public virtual int AddItem(Rect rect)
+	public virtual int AddRect(Rect rect)
 	{
 		RecordUndo();
 		int id = model.Add(rect);
@@ -29,7 +29,7 @@ public abstract class EditModelBase
 		return id;
 	}
 
-	public void RecordUndo()
+	protected void RecordUndo()
 	{
 		string yaml = model.Serialize();
 		if (undoStack.Count == 0 || yaml != undoStack.Peek())
@@ -45,8 +45,8 @@ public abstract class EditModelBase
 			EvaluateChanged();
 		}
 	}
-	
-	public void EvaluateChanged()
+
+	protected void EvaluateChanged()
 	{
 		bool isDirty = lastSavedState != model.Serialize();
 		Changed?.Invoke(isDirty);
@@ -55,9 +55,9 @@ public abstract class EditModelBase
 	public void DeleteSelected()
 	{
 		RecordUndo();
-		DeleteImpl();
+		DeleteSelectedRects();
 		EvaluateChanged();
 	}
 
-	protected abstract void DeleteImpl();
+	protected abstract void DeleteSelectedRects();
 }
