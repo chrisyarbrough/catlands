@@ -28,7 +28,10 @@ public class EditModel : EditModelBase
 	{
 		UpdateActiveGizmos(Raylib.GetMousePosition());
 		gizmos.ForEach(gizmo => gizmo.Draw());
-		HandleDebugDraw();
+
+		// Draw hovered and hot controls on top of other controls.
+		Gizmo.HoveredControl?.Draw();
+		Gizmo.HotControl?.Draw();
 	}
 
 	private void UpdateActiveGizmos(Vector2 mousePosition)
@@ -36,7 +39,7 @@ public class EditModel : EditModelBase
 		if (Gizmo.HotControl == null)
 		{
 			Gizmo.HoveredControl = SelectionStrategy.FindHoveredControl(mousePosition, gizmos);
-			
+
 			if (Raylib.IsMouseButtonPressed(MouseButton.MOUSE_BUTTON_LEFT))
 			{
 				OnMousePressed(mousePosition);
@@ -52,7 +55,7 @@ public class EditModel : EditModelBase
 				EvaluateChanged();
 			}
 		}
-		
+
 		Cursor.Update(Gizmo.HotControl, Gizmo.HoveredControl);
 	}
 
@@ -71,16 +74,6 @@ public class EditModel : EditModelBase
 			}
 
 			Gizmo.HotControl.OnMousePressed(mousePosition);
-		}
-	}
-
-	private static void HandleDebugDraw()
-	{
-		if (Gizmo.DebugDraw)
-		{
-			// Draw hovered and hot controls on top of other controls.
-			Gizmo.HoveredControl?.Draw();
-			Gizmo.HotControl?.Draw();
 		}
 	}
 

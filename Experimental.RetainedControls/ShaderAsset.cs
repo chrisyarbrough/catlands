@@ -2,6 +2,21 @@ using Raylib_cs;
 
 public class ShaderAsset
 {
+	private struct DrawingScopeInternal : IDisposable
+	{
+		public DrawingScopeInternal(ShaderAsset shaderAsset)
+		{
+			shaderAsset.Begin();
+		}
+
+		public void Dispose()
+		{
+			Raylib.EndShaderMode();
+		}
+	}
+
+	public IDisposable DrawingBlock() => new DrawingScopeInternal(this);
+
 	public Shader Shader => shader;
 
 	private readonly string vsFileName;
@@ -31,8 +46,10 @@ public class ShaderAsset
 		watcher.Changed += OnChanged;
 	}
 
-	public void Update()
+	public void Begin()
 	{
+		Raylib.BeginShaderMode(Shader);
+
 		if (queueReload)
 		{
 			Raylib.UnloadShader(shader);
@@ -40,6 +57,11 @@ public class ShaderAsset
 			getLocations?.Invoke(shader);
 			queueReload = false;
 		}
+	}
+
+	public void End()
+	{
+		Raylib.EndShaderMode();
 	}
 
 	~ShaderAsset()

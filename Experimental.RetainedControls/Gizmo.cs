@@ -6,14 +6,9 @@ public class Gizmo
 	public static Gizmo HotControl;
 	public static Gizmo HoveredControl;
 	public static readonly HashSet<Gizmo> Selection = new();
-	public static bool DebugDraw = false;
-
-	private static int nextDebugId;
+	public static bool DebugDraw = true;
 
 	public IEnumerable<Gizmo> Group;
-	public bool IsSelected => Selection.Contains(this);
-
-	public bool IsCorner { get; set; }
 
 	public virtual Rect Rect => getRect.Invoke();
 
@@ -23,12 +18,6 @@ public class Gizmo
 	public int Y1 => Rect.Y1;
 
 	public readonly object UserData;
-	public readonly string DebugName;
-
-	public override string ToString() => DebugName;
-
-	private readonly Action<Coord> setRect;
-	private readonly Func<Rect> getRect;
 
 	/// <summary>
 	/// Carries over the fractional part of the drag movement because only the integer part is applied to the model.
@@ -37,7 +26,8 @@ public class Gizmo
 
 	protected Vector2 MouseDownOffset;
 
-	public const int LineThickness = 15;
+	private readonly Action<Coord> setRect;
+	private readonly Func<Rect> getRect;
 
 	public Gizmo(
 		object userData,
@@ -47,9 +37,6 @@ public class Gizmo
 		UserData = userData;
 		this.getRect = getRect;
 		this.setRect = setRect;
-
-		DebugName = nextDebugId.ToString();
-		nextDebugId++;
 	}
 
 	public void Translate(Coord delta)
@@ -67,35 +54,18 @@ public class Gizmo
 		return MouseCursor.MOUSE_CURSOR_DEFAULT;
 	}
 
-	public virtual void Draw()
+	public void Draw()
 	{
-		Color color = GetColor();
-		//Raylib.DrawRectangleLinesEx((Rectangle)Rect, LineThickness, color);
+		DrawImpl();
 
-		// Vector2[] points = Points().ToArray();
-		// for (int i = 0; i < points.Length; i++)
-		// {
-		// 	Raylib.DrawLineV(points[i], points[(i + 1) % points.Length], Color.GREEN);
-		// }
+		if (DebugDraw)
+			Raylib.DrawRectangleLinesEx((Rectangle)Rect, 1f, DebugColor);
 	}
 
-	private const float handleSize = 20;
+	protected virtual Color DebugColor => Color.WHITE;
 
-	protected Color GetColor()
+	protected virtual void DrawImpl()
 	{
-		if (HotControl == this)
-			return Color.LIGHTGRAY;
-
-		if (HoveredControl == this)
-			return Color.YELLOW;
-
-		if (Group.Any(x => HoveredControl == x))
-			return Color.WHITE;
-
-		if (Selection.Contains(this))
-			return Color.ORANGE;
-
-		return Color.LIGHTGRAY;
 	}
 
 	public virtual void OnMousePressed(Vector2 mousePosition)
@@ -109,10 +79,10 @@ public class Gizmo
 		if (HandleSnapping(mousePosition, gizmos))
 			return;
 
-		UpdateImpl(mousePosition, gizmos);
+		UpdateImpl(mousePosition);
 	}
 
-	protected virtual void UpdateImpl(Vector2 mousePosition, List<Gizmo> _)
+	protected virtual void UpdateImpl(Vector2 mousePosition)
 	{
 		Vector2 delta = Raylib.GetMouseDelta() + FractionalDragOffset;
 		FractionalDragOffset = new Vector2(delta.X - (int)delta.X, delta.Y - (int)delta.Y);

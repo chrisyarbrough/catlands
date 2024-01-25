@@ -1,9 +1,9 @@
 #version 330
 
 uniform vec2 resolution;
-uniform vec2 dir;
 uniform vec2 fadeStart;
 uniform vec2 fadeEnd;
+uniform bool fadeEnabled = true;
 
 in vec4 fragColor;
 out vec4 finalColor;
@@ -35,5 +35,8 @@ void main()
     float stripePattern = sin(uv.x * resolution.x * 0.5);
     float alpha = smoothstep(-gradientWidth, gradientWidth, stripePattern);
 
-    finalColor = vec4(fragColor.rgb, alpha * fadeFactor);
+    if (fadeEnabled)
+        finalColor = vec4(fragColor.rgb, alpha * fadeFactor);
+    else
+        finalColor = vec4(fragColor.rgb, alpha);
 }

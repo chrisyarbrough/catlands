@@ -11,7 +11,6 @@ internal sealed class SelectionStrategy
 
 		return FindHoveredGizmos(gizmos)
 			.OrderBy(IsWithinParentRect)
-			.ThenBy(x => !x.IsSelected)
 			.ThenBy(DistanceToCenter)
 			.ThenBy(Area)
 			.FirstOrDefault();
@@ -19,13 +18,7 @@ internal sealed class SelectionStrategy
 
 	private static IEnumerable<Gizmo> FindHoveredGizmos(IEnumerable<Gizmo> gizmos)
 	{
-		foreach (Gizmo gizmo in gizmos)
-		{
-			if (Raylib.CheckCollisionPointRec(mousePosition, (Rectangle)gizmo.Rect))
-			{
-				yield return gizmo;
-			}
-		}
+		return gizmos.Where(gizmo => Raylib.CheckCollisionPointRec(mousePosition, (Rectangle)gizmo.Rect));
 	}
 
 	/// <summary>
@@ -47,7 +40,7 @@ internal sealed class SelectionStrategy
 	/// </summary>
 	private static int IsWithinParentRect(Gizmo gizmo)
 	{
-		if (gizmo is ResizeGizmo childGizmo)
+		if (gizmo is SideGizmo childGizmo)
 		{
 			return Raylib.CheckCollisionPointRec(mousePosition, (Rectangle)childGizmo.Parent.Rect) ? -1 : 0;
 		}
