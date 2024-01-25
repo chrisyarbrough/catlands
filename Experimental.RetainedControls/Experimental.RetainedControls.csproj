@@ -8,9 +8,11 @@
 
     <ItemGroup>
         <PackageReference Include="Raylib-cs" Version="5.0.0"/>
+        <PackageReference Include="ImGui.NET" Version="1.89.9.3" />
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\CatLands.ImGui\CatLands.ImGui.csproj" />
       <ProjectReference Include="..\Experimental.Shared\Experimental.Shared.csproj" />
     </ItemGroup>
 

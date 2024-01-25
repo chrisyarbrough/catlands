@@ -2,7 +2,9 @@ namespace CatLands;
 
 using ImGuiNET;
 using System.Numerics;
+using JetBrains.Annotations;
 
+[PublicAPI]
 public static class ImGuiUtil
 {
 	public static void DragFloat(string label, ref ClampedFloat clampedFloat, float speed = 1f, string format = "%.3f")

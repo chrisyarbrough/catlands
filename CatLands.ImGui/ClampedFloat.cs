@@ -1,3 +1,8 @@
+namespace CatLands;
+
+using JetBrains.Annotations;
+
+[PublicAPI]
 public struct ClampedFloat
 {
 	public float Value

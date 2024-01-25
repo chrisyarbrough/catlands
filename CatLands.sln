@@ -20,6 +20,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Experimental.RetainedContro
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Experimental.Shared", "Experimental.Shared\Experimental.Shared.csproj", "{BB347148-AE36-41D3-826D-7F72B4AF941F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatLands.ImGui", "CatLands.ImGui\CatLands.ImGui.csproj", "{4DCC71B9-A153-4E88-BD08-ED3A5DFB8172}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -66,5 +68,9 @@ Global
 		{BB347148-AE36-41D3-826D-7F72B4AF941F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BB347148-AE36-41D3-826D-7F72B4AF941F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BB347148-AE36-41D3-826D-7F72B4AF941F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4DCC71B9-A153-4E88-BD08-ED3A5DFB8172}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4DCC71B9-A153-4E88-BD08-ED3A5DFB8172}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4DCC71B9-A153-4E88-BD08-ED3A5DFB8172}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4DCC71B9-A153-4E88-BD08-ED3A5DFB8172}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
