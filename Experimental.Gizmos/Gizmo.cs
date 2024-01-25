@@ -1,11 +1,16 @@
+namespace Experimental.Gizmos;
+
 using System.Numerics;
+using JetBrains.Annotations;
 using Raylib_cs;
 
 public class Gizmo
 {
+	[PublicAPI]
+	public static bool DebugDraw;
+
 	public static Gizmo HotControl;
 	public static Gizmo HoveredControl;
-	public static bool DebugDraw;
 	public static readonly HashSet<Gizmo> Selection = new();
 
 	public IEnumerable<Gizmo> Group;
@@ -74,7 +79,7 @@ public class Gizmo
 		MouseDownOffset = mousePosition - Rect.Center;
 	}
 
-	public void Update(Vector2 mousePosition, List<Gizmo> gizmos)
+	public void Update(Vector2 mousePosition, IEnumerable<Gizmo> gizmos)
 	{
 		if (HandleSnapping(mousePosition, gizmos))
 			return;
@@ -89,7 +94,7 @@ public class Gizmo
 		Translate(new Coord(delta));
 	}
 
-	protected bool HandleSnapping(Vector2 mousePosition, List<Gizmo> gizmos)
+	protected bool HandleSnapping(Vector2 mousePosition, IEnumerable<Gizmo> gizmos)
 	{
 		if (Raylib.IsKeyDown(KeyboardKey.KEY_V))
 		{

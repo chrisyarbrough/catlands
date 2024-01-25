@@ -1,3 +1,5 @@
+namespace Experimental.Gizmos;
+
 using System.Diagnostics;
 using System.Numerics;
 using Raylib_cs;
@@ -25,8 +27,6 @@ public class MouseCursors
 		sectorGraph.UpdateDirectionsFromPoints(center, points);
 	}
 	
-	public int GetSectorIndex(Vector2 position) => sectorGraph.FindSectorIndex(position).index;
-
 	public MouseCursor GetCursor(Vector2 mousePosition)
 	{
 		(int index, float _) = sectorGraph.FindSectorIndex(mousePosition);

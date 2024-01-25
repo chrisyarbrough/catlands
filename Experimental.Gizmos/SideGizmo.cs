@@ -1,3 +1,5 @@
+namespace Experimental.Gizmos;
+
 using System.Numerics;
 using Raylib_cs;
 
@@ -36,7 +38,7 @@ public class SideGizmo : CornerGizmo
 		PointB = () => points.Invoke().Item2;
 	}
 	
-	private (Vector2, Vector2) Shorten(Coord a, Coord b, int handleSize)
+	private static (Vector2, Vector2) Shorten(Coord a, Coord b, int handleSize)
 	{
 		int handleExtents = handleSize / 2;
 		Coord direction = (b - a).Normalize();

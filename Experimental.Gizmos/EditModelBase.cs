@@ -1,3 +1,5 @@
+namespace Experimental.Gizmos;
+
 public abstract class EditModelBase
 {
 	public event Action<bool> Changed;

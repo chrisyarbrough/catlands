@@ -1,10 +1,11 @@
+namespace Experimental.Gizmos;
+
 using System.Numerics;
 using Raylib_cs;
 
 public class EditModel : EditModelBase
 {
 	private readonly List<Gizmo> gizmos = new();
-	private readonly GizmoFactory gizmoFactory = new();
 
 	public EditModel(Model model) : base(model)
 	{
@@ -14,13 +15,13 @@ public class EditModel : EditModelBase
 	public void RebuildGizmos()
 	{
 		gizmos.Clear();
-		gizmos.AddRange(Rects.Keys.SelectMany(id => gizmoFactory.Create(id, Rects)));
+		gizmos.AddRange(Rects.Keys.SelectMany(id => GizmoFactory.Create(id, Rects)));
 	}
 
 	public override int AddRect(Rect rect)
 	{
 		int id = base.AddRect(rect);
-		gizmos.AddRange(gizmoFactory.Create(id, Rects));
+		gizmos.AddRange(GizmoFactory.Create(id, Rects));
 		return id;
 	}
 

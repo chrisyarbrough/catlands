@@ -1,3 +1,5 @@
+namespace Experimental.Gizmos;
+
 using System.Numerics;
 
 public struct Coord

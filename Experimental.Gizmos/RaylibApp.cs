@@ -1,11 +1,10 @@
+namespace Experimental.Gizmos;
+
 using Raylib_cs;
 
 public abstract class RaylibApp<T> where T : EditModelBase
 {
-	protected Model model;
-	protected T editModel;
-
-	protected virtual string Title { get; set; } = string.Empty;
+	protected string Title { get; set; } = string.Empty;
 
 	protected string SubTitle
 	{
@@ -17,9 +16,12 @@ public abstract class RaylibApp<T> where T : EditModelBase
 		}
 	}
 
+	protected T EditModel;
+
+	private Model model;
 	private string subTitle = string.Empty;
 
-	protected virtual void Initialize()
+	protected void Initialize()
 	{
 		Title = GetType().Assembly.GetName().Name;
 		Raylib.SetTraceLogLevel(TraceLogLevel.LOG_ERROR);
@@ -28,8 +30,8 @@ public abstract class RaylibApp<T> where T : EditModelBase
 		Raylib.SetTargetFPS(240);
 
 		model = Model.Load();
-		editModel = (T)Activator.CreateInstance(typeof(T), model);
-		editModel!.Changed += OnModelChanged;
+		EditModel = (T)Activator.CreateInstance(typeof(T), model);
+		EditModel!.Changed += OnModelChanged;
 	}
 
 	public void Run()
@@ -53,17 +55,17 @@ public abstract class RaylibApp<T> where T : EditModelBase
 		if (Raylib.IsKeyPressed(KeyboardKey.KEY_A))
 		{
 			Rect rect = Rect.Handle(Raylib.GetMousePosition(), size: 50);
-			editModel.AddRect(rect);
+			EditModel.AddRect(rect);
 		}
 
 		if (Raylib.IsKeyDown(KeyboardKey.KEY_LEFT_SUPER) && Raylib.IsKeyPressed(KeyboardKey.KEY_Z))
 		{
-			editModel.Undo();
+			EditModel.Undo();
 		}
 
 		if (Raylib.IsKeyPressed(KeyboardKey.KEY_BACKSPACE))
 		{
-			editModel.DeleteSelected();
+			EditModel.DeleteSelected();
 		}
 	}
 
@@ -74,9 +76,9 @@ public abstract class RaylibApp<T> where T : EditModelBase
 
 	protected abstract void Update();
 
-	protected virtual void Shutdown()
+	protected void Shutdown()
 	{
-		editModel.Save();
+		EditModel.Save();
 		Raylib.CloseWindow();
 	}
 }

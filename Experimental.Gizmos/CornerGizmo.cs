@@ -1,3 +1,5 @@
+namespace Experimental.Gizmos;
+
 using System.Numerics;
 using Raylib_cs;
 
@@ -33,15 +35,15 @@ public class CornerGizmo : Gizmo
 	{
 		Rectangle r = (Rectangle)Parent.Rect;
 
-		// @formatter:off
-		Vector2 rightMid =    new(r.X + r.Width,      r.Y + r.Height / 2f);
-		Vector2 bottomRight = new(r.X + r.Width,      r.Y + r.Height);
-		Vector2 bottomMid =   new(r.X + r.Width / 2f, r.Y + r.Height);
-		Vector2 bottomLeft =  new(r.X,                r.Y + r.Height);
-		Vector2 leftMid =     new(r.X,                r.Y + r.Height / 2f);
-		Vector2 topLeft =     new(r.X,                r.Y);
-		Vector2 topMid =      new(r.X + r.Width / 2f, r.Y);
-		Vector2 topRight =    new(r.X + r.Width,      r.Y);
+			// @formatter:off
+			Vector2 rightMid =    new(r.X + r.Width,      r.Y + r.Height / 2f);
+			Vector2 bottomRight = new(r.X + r.Width,      r.Y + r.Height);
+			Vector2 bottomMid =   new(r.X + r.Width / 2f, r.Y + r.Height);
+			Vector2 bottomLeft =  new(r.X,                r.Y + r.Height);
+			Vector2 leftMid =     new(r.X,                r.Y + r.Height / 2f);
+			Vector2 topLeft =     new(r.X,                r.Y);
+			Vector2 topMid =      new(r.X + r.Width / 2f, r.Y);
+			Vector2 topRight =    new(r.X + r.Width,      r.Y);
 		// @formatter:on
 
 		mouseCursor.UpdateDirectionsFromPoints(
@@ -116,7 +118,7 @@ public class CornerGizmo : Gizmo
 		}
 	}
 
-	private double SectorAngle(Vector2 center, Vector2 point)
+	private static double SectorAngle(Vector2 center, Vector2 point)
 	{
 		float deltaY = point.Y - center.Y;
 		float deltaX = point.X - center.X;
@@ -125,7 +127,7 @@ public class CornerGizmo : Gizmo
 		return Math.PI / 2 * Math.Ceiling(angleNormalized / (Math.PI / 2));
 	}
 
-	private Vector2 RotatePoint(Vector2 center, Vector2 point, double angle)
+	private static Vector2 RotatePoint(Vector2 center, Vector2 point, double angle)
 	{
 		// [cos(theta), -sin(theta)]
 		// [sin(theta),  cos(theta)]

@@ -1,3 +1,5 @@
+namespace Experimental.Gizmos;
+
 using Raylib_cs;
 
 public static class Cursor

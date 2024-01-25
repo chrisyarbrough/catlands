@@ -1,8 +1,10 @@
+namespace Experimental.Gizmos;
+
 using Raylib_cs;
 
 public class ShaderAsset
 {
-	private struct DrawingScopeInternal : IDisposable
+	private readonly struct DrawingScopeInternal : IDisposable
 	{
 		public DrawingScopeInternal(ShaderAsset shaderAsset)
 		{
@@ -17,14 +19,13 @@ public class ShaderAsset
 
 	public IDisposable DrawingBlock() => new DrawingScopeInternal(this);
 
-	public Shader Shader => shader;
+	public Shader Shader { get; private set; }
 
 	private readonly string vsFileName;
 	private readonly string fsFileName;
 	private readonly Action<Shader> getLocations;
 	private readonly FileSystemWatcher watcher;
 
-	private Shader shader;
 	private bool queueReload;
 
 	public ShaderAsset(string vsFileName, string fsFileName, Action<Shader> getLocations = null)
@@ -33,8 +34,8 @@ public class ShaderAsset
 		this.fsFileName = fsFileName;
 		this.getLocations = getLocations;
 
-		shader = Raylib.LoadShader(vsFileName, fsFileName);
-		getLocations?.Invoke(shader);
+		Shader = Raylib.LoadShader(vsFileName, fsFileName);
+		getLocations?.Invoke(Shader);
 
 		watcher = new FileSystemWatcher
 		{
@@ -46,22 +47,17 @@ public class ShaderAsset
 		watcher.Changed += OnChanged;
 	}
 
-	public void Begin()
+	private void Begin()
 	{
 		Raylib.BeginShaderMode(Shader);
 
 		if (queueReload)
 		{
-			Raylib.UnloadShader(shader);
-			shader = Raylib.LoadShader(vsFileName, fsFileName);
-			getLocations?.Invoke(shader);
+			Raylib.UnloadShader(Shader);
+			Shader = Raylib.LoadShader(vsFileName, fsFileName);
+			getLocations?.Invoke(Shader);
 			queueReload = false;
 		}
-	}
-
-	public void End()
-	{
-		Raylib.EndShaderMode();
 	}
 
 	~ShaderAsset()
@@ -72,7 +68,7 @@ public class ShaderAsset
 			watcher.Dispose();
 		}
 
-		Raylib.UnloadShader(shader);
+		Raylib.UnloadShader(Shader);
 	}
 
 	private void OnChanged(object sender, FileSystemEventArgs e)

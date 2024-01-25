@@ -14,9 +14,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatLands.Benchmarks", "CatL
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatLands.Hub", "CatLands.Hub\CatLands.Hub.csproj", "{854F8A86-B987-46DE-9D54-D17DA847B089}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Experimental.RetainedControls", "Experimental.RetainedControls\Experimental.RetainedControls.csproj", "{11DB6A3A-7508-4BAE-90A4-07F9D4FFB5DF}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Experimental.Shared", "Experimental.Shared\Experimental.Shared.csproj", "{BB347148-AE36-41D3-826D-7F72B4AF941F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Experimental.Gizmos", "Experimental.Gizmos\Experimental.Gizmos.csproj", "{11DB6A3A-7508-4BAE-90A4-07F9D4FFB5DF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatLands.ImGui", "CatLands.ImGui\CatLands.ImGui.csproj", "{4DCC71B9-A153-4E88-BD08-ED3A5DFB8172}"
 EndProject
@@ -58,10 +56,6 @@ Global
 		{11DB6A3A-7508-4BAE-90A4-07F9D4FFB5DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{11DB6A3A-7508-4BAE-90A4-07F9D4FFB5DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{11DB6A3A-7508-4BAE-90A4-07F9D4FFB5DF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BB347148-AE36-41D3-826D-7F72B4AF941F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BB347148-AE36-41D3-826D-7F72B4AF941F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BB347148-AE36-41D3-826D-7F72B4AF941F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BB347148-AE36-41D3-826D-7F72B4AF941F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4DCC71B9-A153-4E88-BD08-ED3A5DFB8172}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4DCC71B9-A153-4E88-BD08-ED3A5DFB8172}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4DCC71B9-A153-4E88-BD08-ED3A5DFB8172}.Release|Any CPU.ActiveCfg = Release|Any CPU

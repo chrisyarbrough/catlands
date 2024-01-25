@@ -1,3 +1,5 @@
+namespace Experimental.Gizmos;
+
 using System.Numerics;
 
 /// <summary>
@@ -15,24 +17,6 @@ public class SectorGraph
 	public SectorGraph(int sectorCount)
 	{
 		directions = new Vector2[sectorCount];
-	}
-
-	public static SectorGraph FromCircle(int sectorCount)
-	{
-		var sectorGraph = new SectorGraph(sectorCount);
-
-		float sectorAngle = (float)(2 * Math.PI) / sectorCount;
-
-		for (int i = 0; i < sectorCount; i++)
-		{
-			float radians = i * sectorAngle;
-			float cos = (float)Math.Cos(radians);
-			float sin = (float)Math.Sin(radians);
-
-			sectorGraph.directions[i] = new Vector2(cos, sin);
-		}
-
-		return sectorGraph;
 	}
 
 	public virtual void UpdateDirectionsFromPoints(Vector2 center, params Vector2[] points)

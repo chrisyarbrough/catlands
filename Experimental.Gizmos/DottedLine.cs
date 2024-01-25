@@ -1,3 +1,5 @@
+namespace Experimental.Gizmos;
+
 using System.Numerics;
 using Raylib_cs;
 
@@ -6,7 +8,7 @@ public readonly struct DottedLine
 	// TODO: Find solution for file paths in the published app, but also keep hot reloading feature for development.
 	public static ShaderAsset Shader => shader ??= new ShaderAsset(
 		vsFileName: null,
-		fsFileName: "/Users/Chris/Projects/CatLands/Experimental.RetainedControls/DottedLine.glsl",
+		fsFileName: "/Users/Chris/Projects/CatLands/Experimental.Gizmos/DottedLine.glsl",
 		shader => resolutionId = Raylib.GetShaderLocation(shader, "resolution"));
 
 	private static ShaderAsset shader;

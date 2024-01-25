@@ -1,3 +1,5 @@
+namespace Experimental.Gizmos;
+
 using YamlDotNet.Serialization;
 
 public class Model
@@ -6,12 +8,7 @@ public class Model
 
 	private int FindNextFreeId()
 	{
-		int id = 0;
-
-		foreach (int i in Rects.Keys)
-			id = Math.Max(i, id);
-
-		return id + 1;
+		return Rects.Keys.Prepend(0).Max() + 1;
 	}
 
 	public int Add(Rect item)
