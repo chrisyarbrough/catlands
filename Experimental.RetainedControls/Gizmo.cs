@@ -5,8 +5,8 @@ public class Gizmo
 {
 	public static Gizmo HotControl;
 	public static Gizmo HoveredControl;
+	public static bool DebugDraw;
 	public static readonly HashSet<Gizmo> Selection = new();
-	public static bool DebugDraw = true;
 
 	public IEnumerable<Gizmo> Group;
 

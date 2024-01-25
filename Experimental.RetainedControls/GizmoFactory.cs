@@ -22,7 +22,9 @@ public class GizmoFactory
 
 		yield return mainGizmo;
 
-		foreach (Gizmo handle in CreateHandles(mainGizmo, rect => rects[id] = rect))
+		void SetRect(Rect rect) => rects[id] = rect;
+
+		foreach (Gizmo handle in CreateHandles(mainGizmo, SetRect))
 		{
 			yield return handle;
 		}
@@ -38,20 +40,18 @@ public class GizmoFactory
 		 * x0,y1 xM,y1 x1,y1
 		 */
 		
-		// Single-axis
+		// Single-axis (sides)
 		Rect MoveX0(Coord delta, Rect rect) { rect.X0 += delta.X; return rect; }
 		Rect MoveY0(Coord delta, Rect rect) { rect.Y0 += delta.Y; return rect; }
 		Rect MoveX1(Coord delta, Rect rect) { rect.X1 += delta.X; return rect; }
 		Rect MoveY1(Coord delta, Rect rect) { rect.Y1 += delta.Y; return rect; }
 
-		// Two-axis (corners)
+		// Double-axis (corners)
 		Rect MoveX0Y0(Coord delta, Rect rect) => MoveX0(delta, MoveY0(delta, rect));
 		Rect MoveX1Y0(Coord delta, Rect rect) => MoveX1(delta, MoveY0(delta, rect));
 		Rect MoveX0Y1(Coord delta, Rect rect) => MoveX0(delta, MoveY1(delta, rect));
 		Rect MoveX1Y1(Coord delta, Rect rect) => MoveX1(delta, MoveY1(delta, rect));
 
-		int HandleSize() => (int)Math.Min(80f, Math.Min(gizmo.Rect.Width / 2f, gizmo.Rect.Height / 2f));
-		
 		// Sides
 		yield return new SideGizmo(() => (new (gizmo.X0, gizmo.Y0), new (gizmo.X0, gizmo.Y1)), delta => setter.Invoke(MoveX0(delta, gizmo.Rect)), gizmo);
 		yield return new SideGizmo(() => (new (gizmo.X0, gizmo.Y0), new (gizmo.X1, gizmo.Y0)), delta => setter.Invoke(MoveY0(delta, gizmo.Rect)), gizmo);
@@ -66,6 +66,4 @@ public class GizmoFactory
 
 		// @formatter:on
 	}
-
-	
 }

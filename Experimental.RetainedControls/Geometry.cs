@@ -20,7 +20,6 @@ public static class Geometry
 
 public readonly record struct Line(Vector2 P0, Vector2 P1)
 {
-	public Vector2 Vector => P1 - P0;
 	public Vector2 Center => (P0 + P1) / 2f;
 	public Vector2 ClosestPointTo(Vector2 point) => Geometry.ClosestPointOnLine(point, P0, P1);
 }

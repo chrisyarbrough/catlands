@@ -3,6 +3,7 @@ using Raylib_cs;
 
 public readonly struct DottedLine
 {
+	// TODO: Find solution for file paths in the published app, but also keep hot reloading feature for development.
 	public static ShaderAsset Shader => shader ??= new ShaderAsset(
 		vsFileName: null,
 		fsFileName: "/Users/Chris/Projects/CatLands/Experimental.RetainedControls/DottedLine.glsl",
@@ -12,14 +13,15 @@ public readonly struct DottedLine
 	private static int resolutionId;
 	private static readonly float[] vector2Buffer = new float[2];
 
+	public Vector2 Center => line.Center;
+	public Vector2 ClosestPointTo(Vector2 point) => line.ClosestPointTo(point);
+
 	private readonly Line line;
 
 	public DottedLine(Vector2 a, Vector2 b)
 	{
 		line = new Line(a, b);
 	}
-
-	public Vector2 Center => line.Center;
 
 	public void Draw(Vector2 a, Vector2 b)
 	{
@@ -44,6 +46,4 @@ public readonly struct DottedLine
 		vector2Buffer[1] = y;
 		Raylib.SetShaderValue(Shader, id, vector2Buffer, ShaderUniformDataType.SHADER_UNIFORM_VEC2);
 	}
-
-	public Vector2 ClosestPointTo(Vector2 point) => line.ClosestPointTo(point);
 }
