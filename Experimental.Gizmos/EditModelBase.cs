@@ -1,8 +1,8 @@
 namespace Experimental.Gizmos;
 
-public abstract class EditModelBase
+public abstract class EditModelBase : IModel
 {
-	public event Action<bool> Changed;
+	public event DirtyHandler Changed;
 
 	protected Dictionary<int, Rect> Rects => model.Rects;
 

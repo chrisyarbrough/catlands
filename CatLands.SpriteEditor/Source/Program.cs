@@ -63,10 +63,10 @@ internal class Program : App
 
 		MainWindow.InitializeLayout(new List<Func<Window>>
 		{
-			() => CreateAnimationWindow<AnimationSelectorWindow>(),
-			() => CreateAnimationWindow<AnimationFramesWindow>(),
-			() => CreateAnimationWindow<AnimationPreviewWindow>(),
-			() => CreateAnimationWindow<AnimationTimelineWindow>(),
+			CreateAnimationWindow<AnimationSelectorWindow>,
+			CreateAnimationWindow<AnimationFramesWindow>,
+			CreateAnimationWindow<AnimationPreviewWindow>,
+			CreateAnimationWindow<AnimationTimelineWindow>,
 			() => new SceneSettingsWindow(),
 		});
 	}

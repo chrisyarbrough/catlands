@@ -1,15 +1,15 @@
 /*******************************************************************************************
-*
-*   raylib-extras [ImGui] example - Simple Integration
-*
-*	This is a simple ImGui Integration
-*	It is done using C++ but with C style code
-*	It can be done in C as well if you use the C ImGui wrapper
-*	https://github.com/cimgui/cimgui
-*
-*   Copyright (c) 2021 Jeffery Myers
-*
-********************************************************************************************/
+ *
+ *   raylib-extras [ImGui] example - Simple Integration
+ *
+ *	This is a simple ImGui Integration
+ *	It is done using C++ but with C style code
+ *	It can be done in C as well if you use the C ImGui wrapper
+ *	https://github.com/cimgui/cimgui
+ *
+ *   Copyright (c) 2021 Jeffery Myers
+ *
+ ********************************************************************************************/
 
 // resharper disable all
 #pragma warning disable
@@ -29,7 +29,19 @@ namespace rlImGui_cs
         internal static IntPtr ImGuiContext = IntPtr.Zero;
 
         private static ImGuiMouseCursor CurrentMouseCursor = ImGuiMouseCursor.COUNT;
-        private static Dictionary<ImGuiMouseCursor, MouseCursor> MouseCursorMap = new Dictionary<ImGuiMouseCursor, MouseCursor>();
+        private static Dictionary<ImGuiMouseCursor, MouseCursor> MouseCursorMap = new()
+        {
+            { ImGuiMouseCursor.Arrow, MouseCursor.MOUSE_CURSOR_ARROW },
+            { ImGuiMouseCursor.TextInput, MouseCursor.MOUSE_CURSOR_IBEAM },
+            { ImGuiMouseCursor.Hand, MouseCursor.MOUSE_CURSOR_POINTING_HAND },
+            { ImGuiMouseCursor.ResizeAll, MouseCursor.MOUSE_CURSOR_RESIZE_ALL },
+            { ImGuiMouseCursor.ResizeEW, MouseCursor.MOUSE_CURSOR_RESIZE_EW },
+            { ImGuiMouseCursor.ResizeNESW, MouseCursor.MOUSE_CURSOR_RESIZE_NESW },
+            { ImGuiMouseCursor.ResizeNS, MouseCursor.MOUSE_CURSOR_RESIZE_NS },
+            { ImGuiMouseCursor.ResizeNWSE, MouseCursor.MOUSE_CURSOR_RESIZE_NWSE },
+            { ImGuiMouseCursor.NotAllowed, MouseCursor.MOUSE_CURSOR_NOT_ALLOWED },
+        };
+        
         private static Texture2D FontTexture;
 
         static Dictionary<KeyboardKey, ImGuiKey> RaylibKeyMap = new Dictionary<KeyboardKey, ImGuiKey>();
@@ -60,9 +72,6 @@ namespace rlImGui_cs
         /// <param name="enableDocking">when true(not default) docking support will be enabled/param>
         public static void Setup(bool darkTheme = true, bool enableDocking = false)
         {
-            MouseCursorMap = new Dictionary<ImGuiMouseCursor, MouseCursor>();
-            MouseCursorMap = new Dictionary<ImGuiMouseCursor, MouseCursor>();
-
             LastFrameFocused = Raylib.IsWindowFocused();
             LastControlPressed = false;
             LastShiftPressed = false;
@@ -208,20 +217,6 @@ namespace rlImGui_cs
             RaylibKeyMap[KeyboardKey.KEY_KP_EQUAL] = ImGuiKey.KeypadEqual;
         }
 
-        private static void SetupMouseCursors()
-        {
-            MouseCursorMap.Clear();
-            MouseCursorMap[ImGuiMouseCursor.Arrow] = MouseCursor.MOUSE_CURSOR_ARROW;
-            MouseCursorMap[ImGuiMouseCursor.TextInput] = MouseCursor.MOUSE_CURSOR_IBEAM;
-            MouseCursorMap[ImGuiMouseCursor.Hand] = MouseCursor.MOUSE_CURSOR_POINTING_HAND;
-            MouseCursorMap[ImGuiMouseCursor.ResizeAll] = MouseCursor.MOUSE_CURSOR_RESIZE_ALL;
-            MouseCursorMap[ImGuiMouseCursor.ResizeEW] = MouseCursor.MOUSE_CURSOR_RESIZE_EW;
-            MouseCursorMap[ImGuiMouseCursor.ResizeNESW] = MouseCursor.MOUSE_CURSOR_RESIZE_NESW;
-            MouseCursorMap[ImGuiMouseCursor.ResizeNS] = MouseCursor.MOUSE_CURSOR_RESIZE_NS;
-            MouseCursorMap[ImGuiMouseCursor.ResizeNWSE] = MouseCursor.MOUSE_CURSOR_RESIZE_NWSE;
-            MouseCursorMap[ImGuiMouseCursor.NotAllowed] = MouseCursor.MOUSE_CURSOR_NOT_ALLOWED;
-        }
-
         /// <summary>
         /// Forces the font texture atlas to be recomputed and re-cached
         /// </summary>
@@ -271,8 +266,6 @@ namespace rlImGui_cs
         {
             unsafe
             {
-                SetupMouseCursors();
-
                 ImGui.SetCurrentContext(ImGuiContext);
 
                 var fonts = ImGui.GetIO().Fonts;
@@ -399,6 +392,8 @@ namespace rlImGui_cs
                                 Raylib.SetMouseCursor(MouseCursor.MOUSE_CURSOR_DEFAULT);
                             else
                                 Raylib.SetMouseCursor(MouseCursorMap[imgui_cursor]);
+
+                            Console.WriteLine($"ImGui cursor: {MouseCursorMap[imgui_cursor]}");
                         }
                     }
                 }

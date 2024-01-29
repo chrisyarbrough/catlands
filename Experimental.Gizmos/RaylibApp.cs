@@ -1,38 +1,18 @@
 namespace Experimental.Gizmos;
 
+using System.Numerics;
+using ImGuiNET;
 using Raylib_cs;
+using rlImGui_cs;
 
-public abstract class RaylibApp<T> where T : EditModelBase
+public abstract class RaylibApp<T> where T : IModel
 {
-	protected string Title { get; set; } = string.Empty;
-
-	protected string SubTitle
-	{
-		get => subTitle;
-		set
-		{
-			subTitle = value;
-			Raylib.SetWindowTitle(Title + SubTitle);
-		}
-	}
+	protected virtual string Title => GetType().Assembly.GetName().Name;
+	protected virtual Color BackgroundColor => Color.DARKGRAY;
 
 	protected T EditModel;
 
 	private Model model;
-	private string subTitle = string.Empty;
-
-	protected void Initialize()
-	{
-		Title = GetType().Assembly.GetName().Name;
-		Raylib.SetTraceLogLevel(TraceLogLevel.LOG_ERROR);
-		Raylib.SetConfigFlags(ConfigFlags.FLAG_WINDOW_RESIZABLE);
-		Raylib.InitWindow(width: 1280, height: 800, Title + SubTitle);
-		Raylib.SetTargetFPS(240);
-
-		model = Model.Load();
-		EditModel = (T)Activator.CreateInstance(typeof(T), model);
-		EditModel!.Changed += OnModelChanged;
-	}
 
 	public void Run()
 	{
@@ -41,44 +21,51 @@ public abstract class RaylibApp<T> where T : EditModelBase
 		while (!Raylib.WindowShouldClose())
 		{
 			Raylib.BeginDrawing();
-			Raylib.ClearBackground(Color.DARKGRAY);
-			HandleKeyboard();
-			Update();
+			Raylib.ClearBackground(BackgroundColor);
+
+			rlImGui.Begin(Raylib.GetFrameTime());
+			ImGui.DockSpaceOverViewport(ImGui.GetMainViewport(), ImGuiDockNodeFlags.PassthruCentralNode);
+
+			Update(captureInput: ImGui.GetIO() is { WantCaptureMouse: false, WantCaptureKeyboard: false });
+
+			ImGui.End(); // DockArea
+			rlImGui.End();
+
 			Raylib.EndDrawing();
 		}
 
 		Shutdown();
 	}
 
-	private void HandleKeyboard()
+	protected void Initialize()
 	{
-		if (Raylib.IsKeyPressed(KeyboardKey.KEY_A))
-		{
-			Rect rect = Rect.Handle(Raylib.GetMousePosition(), size: 50);
-			EditModel.AddRect(rect);
-		}
+		Raylib.SetTraceLogLevel(TraceLogLevel.LOG_ERROR);
+		Raylib.SetConfigFlags(ConfigFlags.FLAG_WINDOW_RESIZABLE | ConfigFlags.FLAG_VSYNC_HINT);
+		Raylib.InitWindow(width: 1280, height: 800, Title);
+		Raylib.SetTargetFPS(240);
 
-		if (Raylib.IsKeyDown(KeyboardKey.KEY_LEFT_SUPER) && Raylib.IsKeyPressed(KeyboardKey.KEY_Z))
-		{
-			EditModel.Undo();
-		}
+		rlImGui.Setup(darkTheme: true, enableDocking: true);
+		ImGui.PushStyleColor(ImGuiCol.WindowBg, new Vector4(0.125f, 0.125f, 0.125f, 1f));
 
-		if (Raylib.IsKeyPressed(KeyboardKey.KEY_BACKSPACE))
-		{
-			EditModel.DeleteSelected();
-		}
+		ImGui.GetIO().ConfigWindowsMoveFromTitleBarOnly = true;
+		ImGui.GetIO().ConfigFlags |= ImGuiConfigFlags.NoMouseCursorChange;
+
+		model = Model.Load();
+		EditModel = (T)Activator.CreateInstance(typeof(T), model);
+		EditModel!.Changed += OnModelChanged;
 	}
 
 	public void OnModelChanged(bool isDirty)
 	{
-		SubTitle = isDirty ? "*" : "";
+		Raylib.SetWindowTitle(Title + (isDirty ? "*" : ""));
 	}
 
-	protected abstract void Update();
+	protected virtual void Update(bool captureInput) { }
 
-	protected void Shutdown()
+	protected virtual void Shutdown()
 	{
 		EditModel.Save();
+		rlImGui.Shutdown();
 		Raylib.CloseWindow();
 	}
 }

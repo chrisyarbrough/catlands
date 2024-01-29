@@ -1,6 +1,7 @@
 namespace Experimental.Gizmos;
 
 using System.Numerics;
+using ImGuiNET;
 using Raylib_cs;
 
 public class EditModel : EditModelBase
@@ -25,23 +26,15 @@ public class EditModel : EditModelBase
 		return id;
 	}
 
-	public void Update()
+	public void Update(bool captureInput)
 	{
-		UpdateActiveGizmos(Raylib.GetMousePosition());
-		gizmos.ForEach(gizmo => gizmo.Draw());
+		Vector2 mousePosition = Raylib.GetMousePosition();
 
-		// Draw hovered and hot controls on top of other controls.
-		Gizmo.HoveredControl?.Draw();
-		Gizmo.HotControl?.Draw();
-	}
-
-	private void UpdateActiveGizmos(Vector2 mousePosition)
-	{
 		if (Gizmo.HotControl == null)
 		{
 			Gizmo.HoveredControl = SelectionStrategy.FindHoveredControl(mousePosition, gizmos);
 
-			if (Raylib.IsMouseButtonPressed(MouseButton.MOUSE_BUTTON_LEFT))
+			if (captureInput && Raylib.IsMouseButtonPressed(MouseButton.MOUSE_BUTTON_LEFT))
 			{
 				OnMousePressed(mousePosition);
 			}
@@ -57,7 +50,20 @@ public class EditModel : EditModelBase
 			}
 		}
 
+		if (!captureInput)
+		{
+			Gizmo.HoveredControl = null;
+		}
+
+		ImGui.Checkbox("Debug Draw", ref Gizmo.DebugDraw);
+
 		Cursor.Update(Gizmo.HotControl, Gizmo.HoveredControl);
+
+		gizmos.ForEach(gizmo => gizmo.Draw());
+
+		// Draw hovered and hot controls on top of other controls.
+		Gizmo.HoveredControl?.Draw();
+		Gizmo.HotControl?.Draw();
 	}
 
 	private void OnMousePressed(Vector2 mousePosition)

@@ -14,7 +14,7 @@ public static class MainWindow
 		MainWindow.toolbarDrawFunction = toolbarDrawFunction;
 	}
 
-	public static void InitializeLayout(List<Func<Window>> windowFactories)
+	public static void InitializeLayout(IEnumerable<Func<Window>> windowFactories)
 	{
 		foreach (Func<Window> factory in windowFactories)
 		{
